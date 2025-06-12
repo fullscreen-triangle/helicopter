@@ -570,7 +570,7 @@ class BayesianBeliefNetwork:
         
         elif self.domain == 'sports':
             sports_beliefs = ['technique_correct', 'performance_optimal']
-            sports_values = [self.nodes[b].current_belief for b in sports_beliefs if b in self.nodes]
+            sports_values = [self.nodes[b].current_belief for b in sports_beliefs if b in sports_beliefs]
             injury_penalty = self.nodes.get('injury_risk', BeliefNode('', 0, 0)).current_belief
             sports_objective = np.mean(sports_values) if sports_values else 0.5
             return sports_objective * (1.0 - injury_penalty)  # Penalize injury risk
