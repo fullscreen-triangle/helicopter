@@ -1,0 +1,65 @@
+# GitHub Pages Jekyll Configuration for Helicopter Documentation
+
+title: "Helicopter: Autonomous Visual Understanding"
+description: "Revolutionary computer vision framework that proves understanding through reconstruction ability"
+url: "https://fullscreen-triangle.github.io"
+baseurl: "/helicopter"
+
+# Theme
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Navigation
+header_pages:
+  - getting-started.md
+  - autonomous-reconstruction.md
+  - comprehensive-analysis.md
+  - api-reference.md
+  - examples.md
+  - research.md
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Collections
+collections:
+  examples:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "examples"
+    values:
+      layout: "example"
+
+# Social links
+github_username: fullscreen-triangle
+email: kundai.f.sachikonye@gmail.com
+
+# Google Analytics (optional)
+# google_analytics: UA-XXXXXXXX-X
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/ 
