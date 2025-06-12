@@ -25,6 +25,7 @@ import pickle
 from collections import deque
 import copy
 from datetime import datetime
+import cv2
 
 logger = logging.getLogger(__name__)
 

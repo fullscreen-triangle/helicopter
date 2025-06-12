@@ -21,6 +21,8 @@ from dataclasses import dataclass
 import logging
 from pathlib import Path
 from abc import ABC, abstractmethod
+from datetime import datetime
+import json
 
 # Local imports for integrated systems
 from .simple_template_tracker import SimpleTemplateTracker, TrackedElement, TrackingResult
@@ -29,6 +31,22 @@ from ..integrations.vibrio_integration import VibrioPhysicsValidator
 from ..integrations.moriarty_integration import MoriartyPoseAnalyzer
 from ..integrations.homo_veloce_integration import HomoVeloceValidator
 from ..integrations.pakati_integration import PakatiReverseAnalyzer
+from .vibrio_methods import (
+    OpticalFlowAnalyzer, MotionEnergyAnalyzer, 
+    KalmanTracker, MultiObjectTracker, PhysicsValidator
+)
+from .moriarty_methods import (
+    Pose3DEstimator, JointAngleAnalyzer, BiomechanicalAnalyzer
+)
+from .homo_veloce_methods import (
+    GroundTruthManager, AccuracyValidator, 
+    StatisticalAnalyzer, QualityAssessmentEngine
+)
+from .pakati_methods import (
+    RegionalControlExtractor, DiffusionReverseAnalyzer,
+    SemanticExtractor, VisualTokenGenerator, PakatiReverseEngine
+)
+from .continuous_learning_engine import ContinuousLearningEngine
 
 logger = logging.getLogger(__name__)
 
@@ -120,164 +138,256 @@ class ComprehensiveAnalysisEngine:
     - Pakati reverse analysis
     """
     
-    def __init__(self, config: AnalysisConfiguration):
+    def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.analysis_methods: Dict[str, AnalysisMethod] = {}
+        self.domain = config.get('domain', 'general')
         
-        # Initialize all enabled analysis methods
-        self._initialize_analysis_methods()
-        
-        # Cross-validation engine
-        self.cross_validator = CrossValidationEngine()
-        
-        # Results aggregator
-        self.results_aggregator = ResultsAggregator()
-        
-        logger.info(f"Initialized Comprehensive Analysis Engine for domain: {config.domain}")
-        logger.info(f"Enabled methods: {list(self.analysis_methods.keys())}")
-    
-    def _initialize_analysis_methods(self):
-        """Initialize all enabled analysis methods"""
-        
-        if self.config.enable_template_tracking:
-            self.analysis_methods['template_tracking'] = TemplateTrackingMethod()
-        
-        if self.config.enable_iterative_learning:
-            self.analysis_methods['expert_learning'] = ExpertLearningMethod(
-                domain=self.config.domain,
-                literature_sources=self.config.literature_sources
-            )
-        
-        if self.config.enable_physics_validation:
-            self.analysis_methods['physics_validation'] = PhysicsValidationMethod(
-                constraints=self.config.physics_constraints,
-                optical_methods=self.config.optical_flow_methods,
-                motion_methods=self.config.motion_analysis_methods
-            )
-        
-        if self.config.enable_pose_analysis:
-            self.analysis_methods['pose_analysis'] = PoseAnalysisMethod(
-                models=self.config.pose_models,
-                biomechanical_constraints=self.config.biomechanical_constraints
-            )
-        
-        if self.config.enable_ground_truth_validation:
-            self.analysis_methods['ground_truth'] = GroundTruthValidationMethod(
-                baselines=self.config.validation_baselines,
-                thresholds=self.config.accuracy_thresholds
-            )
-        
-        if self.config.enable_pakati_reverse:
-            self.analysis_methods['pakati_reverse'] = PakatiReverseMethod(
-                domain=self.config.domain
-            )
-    
-    def analyze_dataset(
-        self,
-        dataset_path: str,
-        output_path: str,
-        template_annotations: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """
-        Analyze complete research dataset using all methods
-        
-        Args:
-            dataset_path: Path to image/video dataset
-            output_path: Path for analysis results
-            template_annotations: Optional template annotations for tracking
-            
-        Returns:
-            Comprehensive analysis results
-        """
-        
-        logger.info(f"Starting comprehensive analysis of dataset: {dataset_path}")
-        
-        # Load dataset
-        dataset = self._load_dataset(dataset_path)
-        
-        # Load template annotations if provided
-        template_data = None
-        if template_annotations:
-            template_data = self._load_template_annotations(template_annotations)
-        
-        # Initialize iterative analysis
-        iteration_results = []
-        
-        for iteration in range(self.config.max_iterations):
-            logger.info(f"\n=== ITERATION {iteration + 1} ===")
-            
-            # Analyze dataset with current methods
-            iteration_result = self._analyze_iteration(
-                dataset, template_data, iteration
-            )
-            
-            iteration_results.append(iteration_result)
-            
-            # Check convergence
-            if self._check_convergence(iteration_results):
-                logger.info("Analysis converged!")
-                break
-            
-            # Update methods based on results
-            self._update_methods(iteration_result)
-        
-        # Generate final comprehensive results
-        final_results = self._generate_final_results(
-            iteration_results, dataset_path, output_path
+        # Initialize continuous learning engine
+        self.learning_engine = ContinuousLearningEngine(
+            domain=self.domain,
+            device=config.get('device', None)
         )
         
-        return final_results
+        # Initialize all method analyzers
+        self._initialize_analyzers()
+        
+        # Analysis state
+        self.analysis_history = []
+        self.method_weights = {}
+        self.consensus_threshold = config.get('consensus_threshold', 0.8)
+        
+        logger.info(f"Initialized Comprehensive Analysis Engine for domain: {self.domain}")
     
-    def _analyze_iteration(
-        self,
-        dataset: List[Dict[str, Any]],
-        template_data: Optional[Dict[str, Any]],
-        iteration: int
-    ) -> List[ComprehensiveAnalysisResult]:
-        """Analyze one iteration across all methods"""
+    def _initialize_analyzers(self):
+        """Initialize all analysis method instances"""
         
-        iteration_results = []
+        # Vibrio analyzers
+        self.optical_flow = OpticalFlowAnalyzer()
+        self.motion_energy = MotionEnergyAnalyzer()
+        self.kalman_tracker = KalmanTracker()
+        self.multi_tracker = MultiObjectTracker()
+        self.physics_validator = PhysicsValidator()
         
-        for item in dataset:
-            logger.debug(f"Analyzing {item['path']} (iteration {iteration})")
+        # Moriarty analyzers
+        self.pose_3d = Pose3DEstimator()
+        self.joint_analyzer = JointAngleAnalyzer()
+        self.biomech_analyzer = BiomechanicalAnalyzer()
+        
+        # Homo-veloce analyzers
+        self.ground_truth_manager = GroundTruthManager()
+        self.accuracy_validator = AccuracyValidator()
+        self.statistical_analyzer = StatisticalAnalyzer()
+        self.quality_engine = QualityAssessmentEngine()
+        
+        # Pakati analyzers
+        self.regional_extractor = RegionalControlExtractor()
+        self.diffusion_analyzer = DiffusionReverseAnalyzer()
+        self.semantic_extractor = SemanticExtractor()
+        self.token_generator = VisualTokenGenerator()
+        self.pakati_reverse = PakatiReverseEngine()
+        
+        logger.info("Initialized all analysis method instances")
+    
+    def analyze_dataset(
+        self, 
+        dataset_path: str, 
+        template_data: Optional[Dict[str, Any]] = None,
+        ground_truth_path: Optional[str] = None,
+        batch_size: int = 32,
+        enable_iterative_learning: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Analyze entire dataset with continuous learning
+        
+        Args:
+            dataset_path: Path to dataset directory
+            template_data: Optional template tracking data
+            ground_truth_path: Optional path to ground truth annotations
+            batch_size: Batch size for iterative learning
+            enable_iterative_learning: Whether to enable iterative learning
             
-            # Context for this analysis
-            context = {
-                'iteration': iteration,
-                'template_data': template_data,
-                'domain': self.config.domain,
-                'previous_results': iteration_results
+        Returns:
+            Complete dataset analysis results with learning progression
+        """
+        
+        logger.info(f"Starting dataset analysis: {dataset_path}")
+        
+        # Load dataset
+        image_paths = self._load_dataset(dataset_path)
+        logger.info(f"Found {len(image_paths)} images in dataset")
+        
+        # Load ground truth if available
+        ground_truth_data = None
+        if ground_truth_path:
+            ground_truth_data = self._load_ground_truth(ground_truth_path)
+        
+        # Process dataset in batches for iterative learning
+        all_results = []
+        learning_progression = []
+        
+        for batch_start in range(0, len(image_paths), batch_size):
+            batch_end = min(batch_start + batch_size, len(image_paths))
+            batch_paths = image_paths[batch_start:batch_end]
+            
+            logger.info(f"Processing batch {batch_start//batch_size + 1}/{(len(image_paths) + batch_size - 1)//batch_size}")
+            
+            # Load batch images
+            batch_images = []
+            batch_metadata = []
+            batch_ground_truth = []
+            
+            for img_path in batch_paths:
+                image = cv2.imread(img_path)
+                if image is None:
+                    logger.warning(f"Could not load image: {img_path}")
+                    continue
+                
+                metadata = self._extract_metadata(img_path, template_data)
+                batch_images.append(image)
+                batch_metadata.append(metadata)
+                
+                # Add ground truth if available
+                if ground_truth_data and img_path in ground_truth_data:
+                    batch_ground_truth.append(ground_truth_data[img_path])
+                else:
+                    batch_ground_truth.append(None)
+            
+            if not batch_images:
+                continue
+            
+            # Perform initial analysis on batch
+            batch_initial_results = []
+            for i, (image, metadata) in enumerate(zip(batch_images, batch_metadata)):
+                result = self._perform_multi_method_analysis(image, metadata)
+                batch_initial_results.append(result)
+            
+            # Perform batch iterative learning if enabled
+            if enable_iterative_learning:
+                logger.info("Starting batch iterative learning")
+                
+                iterative_results = self.learning_engine.iterate_until_convergence(
+                    images=batch_images,
+                    initial_analysis_results=batch_initial_results,
+                    ground_truth=batch_ground_truth if any(gt is not None for gt in batch_ground_truth) else None
+                )
+                
+                # Use improved results
+                batch_final_results = iterative_results['final_results']
+                
+                # Add iterative learning metadata
+                for i, result in enumerate(batch_final_results):
+                    result['_batch_learning'] = {
+                        'batch_number': batch_start // batch_size + 1,
+                        'converged': iterative_results['convergence_achieved'],
+                        'final_confidence': iterative_results['final_confidence'],
+                        'iterations': iterative_results['total_iterations'],
+                        'learning_metrics': iterative_results['learning_metrics']
+                    }
+                
+                learning_progression.append({
+                    'batch_number': batch_start // batch_size + 1,
+                    'batch_size': len(batch_images),
+                    'final_confidence': iterative_results['final_confidence'],
+                    'iterations': iterative_results['total_iterations'],
+                    'convergence_achieved': iterative_results['convergence_achieved'],
+                    'learning_metrics': iterative_results['learning_metrics']
+                })
+                
+                all_results.extend(batch_final_results)
+                
+            else:
+                # Just learn from each image individually
+                for i, (image, result, gt) in enumerate(zip(batch_images, batch_initial_results, batch_ground_truth)):
+                    learning_result = self.learning_engine.learn_from_analysis(image, result, gt)
+                    result['_learning'] = learning_result
+                
+                all_results.extend(batch_initial_results)
+        
+        # Calculate dataset-level metrics
+        dataset_metrics = self._calculate_dataset_metrics(all_results, learning_progression)
+        
+        # Save learning state
+        learning_save_path = Path(dataset_path).parent / "helicopter_learning_state"
+        self.learning_engine.save_learning_state(str(learning_save_path))
+        
+        return {
+            'dataset_path': dataset_path,
+            'total_images': len(image_paths),
+            'successful_analyses': len(all_results),
+            'results': all_results,
+            'learning_progression': learning_progression,
+            'dataset_metrics': dataset_metrics,
+            'learning_state_saved': str(learning_save_path)
+        }
+    
+    def _load_ground_truth(self, ground_truth_path: str) -> Dict[str, Any]:
+        """Load ground truth annotations"""
+        
+        ground_truth_data = {}
+        gt_path = Path(ground_truth_path)
+        
+        if gt_path.suffix.lower() == '.json':
+            with open(gt_path, 'r') as f:
+                ground_truth_data = json.load(f)
+        elif gt_path.is_dir():
+            # Load annotations from directory
+            for annotation_file in gt_path.glob('*.json'):
+                with open(annotation_file, 'r') as f:
+                    annotations = json.load(f)
+                    ground_truth_data.update(annotations)
+        
+        logger.info(f"Loaded ground truth for {len(ground_truth_data)} images")
+        return ground_truth_data
+    
+    def _calculate_dataset_metrics(self, all_results: List[Dict[str, Any]], learning_progression: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Calculate comprehensive dataset-level metrics"""
+        
+        # Confidence progression across batches
+        if learning_progression:
+            confidence_progression = [batch['final_confidence'] for batch in learning_progression]
+            iterations_progression = [batch['iterations'] for batch in learning_progression]
+            
+            dataset_learning_metrics = {
+                'initial_confidence': confidence_progression[0] if confidence_progression else 0.0,
+                'final_confidence': confidence_progression[-1] if confidence_progression else 0.0,
+                'confidence_improvement': confidence_progression[-1] - confidence_progression[0] if len(confidence_progression) > 1 else 0.0,
+                'average_iterations_per_batch': np.mean(iterations_progression) if iterations_progression else 0,
+                'total_batches_converged': sum(1 for batch in learning_progression if batch['convergence_achieved']),
+                'learning_stability': 1.0 - np.var(confidence_progression) if len(confidence_progression) > 1 else 1.0
             }
-            
-            # Run all analysis methods
-            method_results = {}
-            for method_name, method in self.analysis_methods.items():
-                try:
-                    result = method.analyze(item, context)
-                    method_results[method_name] = result
-                    logger.debug(f"  {method_name}: confidence {method.get_confidence(result):.3f}")
-                except Exception as e:
-                    logger.error(f"Error in {method_name}: {e}")
-                    method_results[method_name] = None
-            
-            # Cross-validate results
-            cross_validation = self.cross_validator.validate_methods(
-                method_results, context
-            )
-            
-            # Aggregate into comprehensive result
-            comprehensive_result = self.results_aggregator.aggregate(
-                item, method_results, cross_validation, iteration
-            )
-            
-            iteration_results.append(comprehensive_result)
+        else:
+            dataset_learning_metrics = {'note': 'No iterative learning performed'}
         
-        return iteration_results
+        # Method performance across dataset
+        method_performances = {}
+        for result in all_results:
+            for method_name, method_result in result.items():
+                if isinstance(method_result, dict) and 'confidence' in method_result:
+                    if method_name not in method_performances:
+                        method_performances[method_name] = []
+                    method_performances[method_name].append(method_result['confidence'])
+        
+        method_statistics = {}
+        for method_name, confidences in method_performances.items():
+            method_statistics[method_name] = {
+                'mean_confidence': np.mean(confidences),
+                'std_confidence': np.std(confidences),
+                'min_confidence': np.min(confidences),
+                'max_confidence': np.max(confidences),
+                'total_analyses': len(confidences)
+            }
+        
+        return {
+            'learning_metrics': dataset_learning_metrics,
+            'method_statistics': method_statistics,
+            'total_successful_methods': len(method_statistics),
+            'dataset_overall_confidence': np.mean([result.get('_meta', {}).get('overall_confidence', 0.0) for result in all_results])
+        }
     
-    def _load_dataset(self, dataset_path: str) -> List[Dict[str, Any]]:
+    def _load_dataset(self, dataset_path: str) -> List[str]:
         """Load research dataset"""
         
-        dataset = []
+        image_paths = []
         dataset_dir = Path(dataset_path)
         
         # Support multiple formats
@@ -286,22 +396,15 @@ class ComprehensiveAnalysisEngine:
         
         for file_path in dataset_dir.rglob('*'):
             if file_path.suffix.lower() in image_extensions:
-                dataset.append({
-                    'type': 'image',
-                    'path': str(file_path),
-                    'metadata': self._extract_metadata(file_path)
-                })
+                image_paths.append(str(file_path))
             elif file_path.suffix.lower() in video_extensions:
-                dataset.append({
-                    'type': 'video',
-                    'path': str(file_path),
-                    'metadata': self._extract_metadata(file_path)
-                })
+                # Handle video files
+                pass
         
-        logger.info(f"Loaded dataset with {len(dataset)} items")
-        return dataset
+        logger.info(f"Loaded dataset with {len(image_paths)} items")
+        return image_paths
     
-    def _extract_metadata(self, file_path: Path) -> Dict[str, Any]:
+    def _extract_metadata(self, file_path: Path, template_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Extract metadata from file"""
         
         metadata = {
@@ -320,7 +423,7 @@ class ComprehensiveAnalysisEngine:
             metadata['category'] = 'experimental'
         
         # Domain-specific patterns
-        if self.config.domain == 'medical':
+        if self.domain == 'medical':
             if any(term in filename for term in ['normal', 'healthy']):
                 metadata['condition'] = 'normal'
             elif any(term in filename for term in ['abnormal', 'pathology']):
@@ -328,157 +431,100 @@ class ComprehensiveAnalysisEngine:
         
         return metadata
     
-    def _load_template_annotations(self, template_path: str) -> Dict[str, Any]:
-        """Load template annotations for tracking"""
+    def _perform_multi_method_analysis(self, image: np.ndarray, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Perform analysis using all available methods"""
         
-        # This would load template data created by SimpleTemplateTracker
-        # or other annotation tools
-        import json
+        results = {}
         
-        with open(template_path, 'r') as f:
-            template_data = json.load(f)
+        # Vibrio methods - motion and tracking analysis
+        try:
+            optical_flow_result = self.optical_flow.analyze_optical_flow(image)
+            results['optical_flow'] = optical_flow_result
+        except Exception as e:
+            logger.warning(f"Optical flow analysis failed: {e}")
+            results['optical_flow'] = {'error': str(e), 'confidence': 0.0}
         
-        logger.info(f"Loaded template with {len(template_data.get('elements', []))} elements")
-        return template_data
-    
-    def _check_convergence(self, iteration_results: List[List[ComprehensiveAnalysisResult]]) -> bool:
-        """Check if analysis has converged"""
+        try:
+            motion_energy_result = self.motion_energy.analyze_motion_energy(image)
+            results['motion_energy'] = motion_energy_result
+        except Exception as e:
+            logger.warning(f"Motion energy analysis failed: {e}")
+            results['motion_energy'] = {'error': str(e), 'confidence': 0.0}
         
-        if len(iteration_results) < 2:
-            return False
+        try:
+            physics_result = self.physics_validator.validate_physics(image, metadata or {})
+            results['physics_validation'] = physics_result
+        except Exception as e:
+            logger.warning(f"Physics validation failed: {e}")
+            results['physics_validation'] = {'error': str(e), 'confidence': 0.0}
         
-        # Compare last two iterations
-        prev_results = iteration_results[-2]
-        curr_results = iteration_results[-1]
+        # Moriarty methods - pose analysis
+        try:
+            pose_3d_result = self.pose_3d.estimate_3d_pose(image)
+            results['pose_3d'] = pose_3d_result
+        except Exception as e:
+            logger.warning(f"3D pose estimation failed: {e}")
+            results['pose_3d'] = {'error': str(e), 'confidence': 0.0}
         
-        # Calculate average confidence improvement
-        prev_confidence = np.mean([r.consensus_confidence for r in prev_results])
-        curr_confidence = np.mean([r.consensus_confidence for r in curr_results])
+        try:
+            joint_analysis_result = self.joint_analyzer.analyze_joint_angles(image)
+            results['joint_analysis'] = joint_analysis_result
+        except Exception as e:
+            logger.warning(f"Joint analysis failed: {e}")
+            results['joint_analysis'] = {'error': str(e), 'confidence': 0.0}
         
-        improvement = curr_confidence - prev_confidence
+        try:
+            biomech_result = self.biomech_analyzer.analyze_biomechanics(image)
+            results['biomechanics'] = biomech_result
+        except Exception as e:
+            logger.warning(f"Biomechanical analysis failed: {e}")
+            results['biomechanics'] = {'error': str(e), 'confidence': 0.0}
         
-        # Converged if improvement is small and confidence is high
-        converged = (
-            improvement < 0.02 and  # Less than 2% improvement
-            curr_confidence > self.config.confidence_threshold
-        )
+        # Homo-veloce methods - validation and quality
+        try:
+            accuracy_result = self.accuracy_validator.validate_accuracy(image, metadata or {})
+            results['accuracy_validation'] = accuracy_result
+        except Exception as e:
+            logger.warning(f"Accuracy validation failed: {e}")
+            results['accuracy_validation'] = {'error': str(e), 'confidence': 0.0}
         
-        logger.info(f"Convergence check: prev={prev_confidence:.3f}, curr={curr_confidence:.3f}, improvement={improvement:.3f}, converged={converged}")
+        try:
+            quality_result = self.quality_engine.assess_quality(image)
+            results['quality_assessment'] = quality_result
+        except Exception as e:
+            logger.warning(f"Quality assessment failed: {e}")
+            results['quality_assessment'] = {'error': str(e), 'confidence': 0.0}
         
-        return converged
-    
-    def _update_methods(self, iteration_result: List[ComprehensiveAnalysisResult]):
-        """Update analysis methods based on iteration results"""
+        # Pakati methods - reverse analysis
+        try:
+            semantic_result = self.semantic_extractor.extract_semantic_features(image)
+            results['semantic_analysis'] = semantic_result
+        except Exception as e:
+            logger.warning(f"Semantic analysis failed: {e}")
+            results['semantic_analysis'] = {'error': str(e), 'confidence': 0.0}
         
-        # Update expert learning method with new knowledge
-        if 'expert_learning' in self.analysis_methods:
-            expert_method = self.analysis_methods['expert_learning']
-            expert_method.update_knowledge(iteration_result)
+        try:
+            pakati_result = self.pakati_reverse.reverse_analyze(image)
+            results['pakati_reverse'] = pakati_result
+        except Exception as e:
+            logger.warning(f"Pakati reverse analysis failed: {e}")
+            results['pakati_reverse'] = {'error': str(e), 'confidence': 0.0}
         
-        # Update physics validation thresholds
-        if 'physics_validation' in self.analysis_methods:
-            physics_method = self.analysis_methods['physics_validation']
-            physics_method.adapt_constraints(iteration_result)
-    
-    def _generate_final_results(
-        self,
-        iteration_results: List[List[ComprehensiveAnalysisResult]],
-        dataset_path: str,
-        output_path: str
-    ) -> Dict[str, Any]:
-        """Generate final comprehensive analysis results"""
+        # Calculate overall confidence and consensus
+        method_confidences = []
+        for method_name, result in results.items():
+            if isinstance(result, dict) and 'confidence' in result:
+                method_confidences.append(result['confidence'])
         
-        final_iteration = iteration_results[-1]
-        
-        # Aggregate statistics
-        total_items = len(final_iteration)
-        high_confidence_items = len([r for r in final_iteration if r.consensus_confidence > 0.8])
-        needs_review_items = len([r for r in final_iteration if r.needs_human_review])
-        
-        # Method performance analysis
-        method_performance = {}
-        for method_name in self.analysis_methods.keys():
-            method_confidences = []
-            for result in final_iteration:
-                if hasattr(result, f'{method_name}_confidence'):
-                    method_confidences.append(getattr(result, f'{method_name}_confidence'))
-            
-            method_performance[method_name] = {
-                'average_confidence': np.mean(method_confidences) if method_confidences else 0.0,
-                'samples': len(method_confidences)
-            }
-        
-        # Learning progression
-        learning_progression = []
-        for i, iteration in enumerate(iteration_results):
-            avg_confidence = np.mean([r.consensus_confidence for r in iteration])
-            learning_progression.append({
-                'iteration': i + 1,
-                'average_confidence': avg_confidence,
-                'high_confidence_count': len([r for r in iteration if r.consensus_confidence > 0.8])
-            })
-        
-        final_results = {
-            'dataset_path': dataset_path,
-            'analysis_config': self.config,
-            'total_iterations': len(iteration_results),
-            'total_items_analyzed': total_items,
-            'high_confidence_items': high_confidence_items,
-            'needs_review_items': needs_review_items,
-            'method_performance': method_performance,
-            'learning_progression': learning_progression,
-            'final_results': final_iteration,
-            'convergence_achieved': not any(r.needs_human_review for r in final_iteration),
-            'overall_quality_score': np.mean([r.quality_score for r in final_iteration])
+        results['_meta'] = {
+            'total_methods': len(results),
+            'successful_methods': len([r for r in results.values() if not ('error' in r if isinstance(r, dict) else False)]),
+            'overall_confidence': np.mean(method_confidences) if method_confidences else 0.0,
+            'confidence_std': np.std(method_confidences) if method_confidences else 0.0,
+            'analysis_timestamp': datetime.now().isoformat()
         }
         
-        # Save results
-        self._save_results(final_results, output_path)
-        
-        return final_results
-    
-    def _save_results(self, results: Dict[str, Any], output_path: str):
-        """Save comprehensive results"""
-        
-        output_dir = Path(output_path)
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Save main results as JSON
-        import json
-        with open(output_dir / 'comprehensive_analysis.json', 'w') as f:
-            # Convert numpy types for JSON serialization
-            json_results = self._convert_for_json(results)
-            json.dump(json_results, f, indent=2)
-        
-        # Save detailed results for each method
-        for method_name in self.analysis_methods.keys():
-            method_results = []
-            for result in results['final_results']:
-                method_result = getattr(result, f'{method_name}_results', None)
-                if method_result:
-                    method_results.append(method_result)
-            
-            if method_results:
-                with open(output_dir / f'{method_name}_detailed.json', 'w') as f:
-                    json.dump(self._convert_for_json(method_results), f, indent=2)
-        
-        logger.info(f"Saved comprehensive analysis results to: {output_path}")
-    
-    def _convert_for_json(self, obj):
-        """Convert numpy types and other non-serializable objects for JSON"""
-        
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, dict):
-            return {key: self._convert_for_json(value) for key, value in obj.items()}
-        elif isinstance(obj, list):
-            return [self._convert_for_json(item) for item in obj]
-        else:
-            return obj
+        return results
 
 
 class CrossValidationEngine:
@@ -710,4 +756,163 @@ class PakatiReverseMethod(AnalysisMethod):
         pass
     
     def validate_result(self, result: Dict[str, Any], reference: Any) -> bool:
-        pass 
+        pass
+
+    def comprehensive_analysis(
+        self, 
+        image: np.ndarray, 
+        metadata: Optional[Dict[str, Any]] = None,
+        ground_truth: Optional[Dict[str, Any]] = None,
+        enable_iterative_learning: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Perform comprehensive analysis with iterative learning
+        
+        Args:
+            image: Input image for analysis
+            metadata: Optional metadata about the image
+            ground_truth: Optional ground truth for supervised learning
+            enable_iterative_learning: Whether to perform iterative learning
+            
+        Returns:
+            Comprehensive analysis results with learning metrics
+        """
+        
+        logger.info("Starting comprehensive analysis")
+        
+        # Perform initial analysis with all methods
+        initial_results = self._perform_multi_method_analysis(image, metadata)
+        
+        # Learn from the analysis
+        learning_results = self.learning_engine.learn_from_analysis(
+            image, initial_results, ground_truth
+        )
+        
+        # Add learning metadata to results
+        initial_results['_learning'] = learning_results
+        
+        # If iterative learning is enabled and we have low confidence, iterate
+        if enable_iterative_learning:
+            current_confidence = learning_results['confidence']
+            
+            if current_confidence < self.learning_engine.confidence_controller.target_confidence:
+                logger.info(f"Initial confidence {current_confidence:.3f} below target, starting iterative learning")
+                
+                # Perform iterative learning until convergence
+                iterative_results = self.learning_engine.iterate_until_convergence(
+                    images=[image],
+                    initial_analysis_results=[initial_results],
+                    ground_truth=[ground_truth] if ground_truth else None
+                )
+                
+                # Use the improved results
+                if iterative_results['final_results']:
+                    final_results = iterative_results['final_results'][0]
+                    final_results['_iterative_learning'] = {
+                        'converged': iterative_results['convergence_achieved'],
+                        'final_confidence': iterative_results['final_confidence'],
+                        'iterations': iterative_results['total_iterations'],
+                        'learning_metrics': iterative_results['learning_metrics']
+                    }
+                    
+                    logger.info(f"Iterative learning completed: {iterative_results['total_iterations']} iterations, "
+                              f"final confidence: {iterative_results['final_confidence']:.3f}")
+                    
+                    return final_results
+        
+        return initial_results
+    
+    def _perform_multi_method_analysis(self, image: np.ndarray, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Perform analysis using all available methods"""
+        
+        results = {}
+        
+        # Vibrio methods - motion and tracking analysis
+        try:
+            optical_flow_result = self.optical_flow.analyze_optical_flow(image)
+            results['optical_flow'] = optical_flow_result
+        except Exception as e:
+            logger.warning(f"Optical flow analysis failed: {e}")
+            results['optical_flow'] = {'error': str(e), 'confidence': 0.0}
+        
+        try:
+            motion_energy_result = self.motion_energy.analyze_motion_energy(image)
+            results['motion_energy'] = motion_energy_result
+        except Exception as e:
+            logger.warning(f"Motion energy analysis failed: {e}")
+            results['motion_energy'] = {'error': str(e), 'confidence': 0.0}
+        
+        try:
+            physics_result = self.physics_validator.validate_physics(image, metadata or {})
+            results['physics_validation'] = physics_result
+        except Exception as e:
+            logger.warning(f"Physics validation failed: {e}")
+            results['physics_validation'] = {'error': str(e), 'confidence': 0.0}
+        
+        # Moriarty methods - pose analysis
+        try:
+            pose_3d_result = self.pose_3d.estimate_3d_pose(image)
+            results['pose_3d'] = pose_3d_result
+        except Exception as e:
+            logger.warning(f"3D pose estimation failed: {e}")
+            results['pose_3d'] = {'error': str(e), 'confidence': 0.0}
+        
+        try:
+            joint_analysis_result = self.joint_analyzer.analyze_joint_angles(image)
+            results['joint_analysis'] = joint_analysis_result
+        except Exception as e:
+            logger.warning(f"Joint analysis failed: {e}")
+            results['joint_analysis'] = {'error': str(e), 'confidence': 0.0}
+        
+        try:
+            biomech_result = self.biomech_analyzer.analyze_biomechanics(image)
+            results['biomechanics'] = biomech_result
+        except Exception as e:
+            logger.warning(f"Biomechanical analysis failed: {e}")
+            results['biomechanics'] = {'error': str(e), 'confidence': 0.0}
+        
+        # Homo-veloce methods - validation and quality
+        try:
+            accuracy_result = self.accuracy_validator.validate_accuracy(image, metadata or {})
+            results['accuracy_validation'] = accuracy_result
+        except Exception as e:
+            logger.warning(f"Accuracy validation failed: {e}")
+            results['accuracy_validation'] = {'error': str(e), 'confidence': 0.0}
+        
+        try:
+            quality_result = self.quality_engine.assess_quality(image)
+            results['quality_assessment'] = quality_result
+        except Exception as e:
+            logger.warning(f"Quality assessment failed: {e}")
+            results['quality_assessment'] = {'error': str(e), 'confidence': 0.0}
+        
+        # Pakati methods - reverse analysis
+        try:
+            semantic_result = self.semantic_extractor.extract_semantic_features(image)
+            results['semantic_analysis'] = semantic_result
+        except Exception as e:
+            logger.warning(f"Semantic analysis failed: {e}")
+            results['semantic_analysis'] = {'error': str(e), 'confidence': 0.0}
+        
+        try:
+            pakati_result = self.pakati_reverse.reverse_analyze(image)
+            results['pakati_reverse'] = pakati_result
+        except Exception as e:
+            logger.warning(f"Pakati reverse analysis failed: {e}")
+            results['pakati_reverse'] = {'error': str(e), 'confidence': 0.0}
+        
+        # Calculate overall confidence and consensus
+        method_confidences = []
+        for method_name, result in results.items():
+            if isinstance(result, dict) and 'confidence' in result:
+                method_confidences.append(result['confidence'])
+        
+        results['_meta'] = {
+            'total_methods': len(results),
+            'successful_methods': len([r for r in results.values() if not ('error' in r if isinstance(r, dict) else False)]),
+            'overall_confidence': np.mean(method_confidences) if method_confidences else 0.0,
+            'confidence_std': np.std(method_confidences) if method_confidences else 0.0,
+            'analysis_timestamp': datetime.now().isoformat()
+        }
+        
+        return results 
