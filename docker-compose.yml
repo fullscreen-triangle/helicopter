@@ -1,0 +1,342 @@
+version: '3.8'
+
+services:
+  # Main Helicopter application
+  helicopter-dev:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8000:8000"
+      - "8888:8888"  # Jupyter notebook
+    volumes:
+      - .:/app
+      - helicopter-cache:/app/cache
+      - helicopter-models:/app/models
+      - helicopter-data:/app/data
+    environment:
+      - HELICOPTER_ENV=development
+      - CUDA_VISIBLE_DEVICES=0
+      - WANDB_MODE=offline
+    env_file:
+      - env.example
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+
+  # Production Helicopter application
+  helicopter-prod:
+    build:
+      context: .
+      target: production
+    ports:
+      - "80:8000"
+    volumes:
+      - helicopter-models:/app/models
+      - helicopter-data:/app/data
+      - helicopter-cache:/app/cache
+    environment:
+      - HELICOPTER_ENV=production
+      - CUDA_VISIBLE_DEVICES=0
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+    profiles:
+      - production
+
+  # Training service for model training
+  helicopter-training:
+    build:
+      context: .
+      target: training
+    volumes:
+      - helicopter-models:/app/models
+      - helicopter-data:/app/data
+      - helicopter-cache:/app/cache
+      - ./training_configs:/app/training_configs
+    environment:
+      - HELICOPTER_ENV=training
+      - CUDA_VISIBLE_DEVICES=0
+      - WANDB_PROJECT=helicopter
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - helicopter-network
+    profiles:
+      - training
+
+  # Inference-only service
+  helicopter-inference:
+    build:
+      context: .
+      target: inference
+    ports:
+      - "8001:8000"
+    volumes:
+      - helicopter-models:/app/models:ro
+    environment:
+      - HELICOPTER_ENV=inference
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+    profiles:
+      - inference
+
+  # Redis for caching and job queue
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+
+  # PostgreSQL for metadata and analysis storage
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    environment:
+      - POSTGRES_DB=helicopter
+      - POSTGRES_USER=helicopter
+      - POSTGRES_PASSWORD=helicopter_password
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+
+  # Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - helicopter-prod
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+    profiles:
+      - production
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+    profiles:
+      - monitoring
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+    profiles:
+      - monitoring
+
+  # Jupyter notebook for development and research
+  jupyter:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+      - helicopter-notebooks:/app/notebooks
+      - helicopter-data:/app/data
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=helicopter
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --allow-root --no-browser
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - helicopter-network
+    profiles:
+      - development
+
+  # MinIO for object storage
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    environment:
+      - MINIO_ROOT_USER=helicopter
+      - MINIO_ROOT_PASSWORD=helicopter_storage
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    networks:
+      - helicopter-network
+    profiles:
+      - storage
+
+  # Celery worker for background tasks
+  celery-worker:
+    build:
+      context: .
+      target: development
+    volumes:
+      - helicopter-models:/app/models
+      - helicopter-data:/app/data
+      - helicopter-cache:/app/cache
+    environment:
+      - HELICOPTER_ENV=development
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
+    command: celery -A helicopter.worker worker --loglevel=info
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - helicopter-network
+    profiles:
+      - worker
+
+  # Celery beat scheduler
+  celery-beat:
+    build:
+      context: .
+      target: development
+    volumes:
+      - helicopter-data:/app/data
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+    command: celery -A helicopter.worker beat --loglevel=info
+    networks:
+      - helicopter-network
+    profiles:
+      - worker
+
+  # Flower for Celery monitoring
+  flower:
+    build:
+      context: .
+      target: development
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+    command: celery -A helicopter.worker flower --port=5555
+    networks:
+      - helicopter-network
+    profiles:
+      - worker
+
+volumes:
+  helicopter-cache:
+    driver: local
+  helicopter-models:
+    driver: local
+  helicopter-data:
+    driver: local
+  helicopter-notebooks:
+    driver: local
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  minio-data:
+    driver: local
+
+networks:
+  helicopter-network:
+    driver: bridge 
