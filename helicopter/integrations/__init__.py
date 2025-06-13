@@ -1,11 +1,37 @@
 """
-Integrations Package
+Helicopter Integrations Module
 
-This package contains integrations with other computer vision frameworks:
-- Vibrio: Physics-based validation and motion analysis
-- Moriarty-sese-seko: Human pose detection and biomechanical analysis
-- Homo-veloce: Ground truth validation
-- Pakati: Reverse regional control analysis
+This module provides integrations with external AI services and models,
+particularly Hugging Face models for enhanced computer vision capabilities.
+
+The integrations support the core Helicopter principle: reconstruction ability
+demonstrates understanding. External models are used to validate and enhance
+autonomous reconstruction insights.
 """
+
+from .huggingface_api import (
+    HuggingFaceModelAPI,
+    ModelSelector,
+    TaskRouter,
+    ModelCapabilities,
+    IntelligentModelOrchestrator
+)
+
+from .model_validation import (
+    ModelValidationEngine,
+    CrossModelValidator,
+    ConsensusBuilder
+)
+
+__all__ = [
+    'HuggingFaceModelAPI',
+    'ModelSelector', 
+    'TaskRouter',
+    'ModelCapabilities',
+    'IntelligentModelOrchestrator',
+    'ModelValidationEngine',
+    'CrossModelValidator',
+    'ConsensusBuilder'
+]
 
 __version__ = "0.1.0" 

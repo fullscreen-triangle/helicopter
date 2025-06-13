@@ -31,6 +31,8 @@ import time
 
 from .bayesian_objective_engine import BayesianObjectiveEngine
 from .continuous_learning_engine import ContinuousLearningEngine
+from .pakati_inspired_reconstruction import PakatiInspiredReconstruction
+from .regional_reconstruction_engine import RegionalReconstructionEngine
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +173,19 @@ class AutonomousReconstructionEngine:
         self.learning_engine = ContinuousLearningEngine("reconstruction", device)
         self.objective_engine = BayesianObjectiveEngine("reconstruction")
         
+        # Pakati-inspired reconstruction for API-based understanding validation
+        try:
+            self.pakati_engine = PakatiInspiredReconstruction()
+            self.use_api_reconstruction = True
+            logger.info("Pakati-inspired API reconstruction enabled")
+        except ValueError as e:
+            logger.warning(f"API reconstruction disabled: {e}")
+            self.pakati_engine = None
+            self.use_api_reconstruction = False
+        
+        # Regional reconstruction for local processing
+        self.regional_engine = RegionalReconstructionEngine(device)
+        
         # Reconstruction state
         self.current_state = None
         self.reconstruction_history = []
@@ -186,6 +201,188 @@ class AutonomousReconstructionEngine:
         
         logger.info(f"Initialized Autonomous Reconstruction Engine")
         logger.info(f"Patch size: {patch_size}, Context size: {context_size}")
+    
+    def validate_understanding_through_reconstruction(self, 
+                                                    image: np.ndarray,
+                                                    description: str = "") -> Dict[str, Any]:
+        """
+        Validate understanding using Pakati's insight: "Best way to analyze an image 
+        is if AI can draw the image perfectly."
+        
+        This method uses HuggingFace API for actual reconstruction while maintaining
+        the core insight that reconstruction ability demonstrates understanding.
+        """
+        
+        if not self.use_api_reconstruction:
+            logger.warning("API reconstruction not available, falling back to local methods")
+            return self._local_understanding_validation(image, description)
+        
+        logger.info(f"Validating understanding through API reconstruction: {description}")
+        
+        # Use Pakati-inspired approach for comprehensive understanding test
+        api_results = self.pakati_engine.test_understanding(image, description)
+        
+        # Use regional engine for detailed local analysis
+        regional_results = self.regional_engine.comprehensive_understanding_assessment(image)
+        
+        # Combine results for comprehensive assessment
+        combined_results = {
+            'description': description,
+            'image_shape': image.shape,
+            'api_reconstruction_results': api_results,
+            'regional_analysis_results': regional_results,
+            'combined_understanding': self._combine_understanding_assessments(api_results, regional_results),
+            'validation_method': 'pakati_inspired_api_reconstruction',
+            'insights': []
+        }
+        
+        # Generate combined insights
+        combined_results['insights'] = self._generate_combined_insights(api_results, regional_results)
+        
+        return combined_results
+    
+    def progressive_understanding_validation(self, 
+                                           image: np.ndarray,
+                                           description: str = "") -> Dict[str, Any]:
+        """
+        Progressive understanding validation using Pakati's approach.
+        
+        Tests understanding at increasing difficulty levels until failure,
+        implementing the core insight that reconstruction ability proves understanding.
+        """
+        
+        if not self.use_api_reconstruction:
+            logger.warning("API reconstruction not available")
+            return {'error': 'API reconstruction required for progressive validation'}
+        
+        logger.info(f"Starting progressive understanding validation: {description}")
+        
+        # Use Pakati's progressive test
+        progressive_results = self.pakati_engine.progressive_test(image, description)
+        
+        # Enhance with local regional analysis at the mastery level
+        if progressive_results['mastery_achieved']:
+            mastery_level = progressive_results['mastery_level']
+            
+            # Test regional understanding at the mastery difficulty level
+            from .regional_reconstruction_engine import ReconstructionRegion
+            
+            # Create regions for detailed analysis
+            h, w = image.shape[:2]
+            regions = [
+                ReconstructionRegion(
+                    region_id="center_region",
+                    polygon=[(w//4, h//4), (3*w//4, h//4), (3*w//4, 3*h//4), (w//4, 3*h//4)],
+                    difficulty_level=mastery_level
+                ),
+                ReconstructionRegion(
+                    region_id="full_image",
+                    polygon=[(0, 0), (w, 0), (w, h), (0, h)],
+                    difficulty_level=mastery_level
+                )
+            ]
+            
+            regional_validation = self.regional_engine.test_regional_understanding(
+                image, regions
+            )
+            
+            progressive_results['detailed_regional_analysis'] = regional_validation
+        
+        return progressive_results
+    
+    def _local_understanding_validation(self, image: np.ndarray, description: str) -> Dict[str, Any]:
+        """Fallback local understanding validation when API is not available."""
+        
+        logger.info("Using local understanding validation")
+        
+        # Use regional reconstruction engine for local validation
+        regional_results = self.regional_engine.comprehensive_understanding_assessment(image)
+        
+        # Convert to similar format as API results
+        local_results = {
+            'description': description,
+            'image_shape': image.shape,
+            'understanding_level': regional_results['overall_understanding']['understanding_level'],
+            'average_quality': regional_results['overall_understanding']['overall_score'],
+            'mastery_achieved': regional_results['overall_understanding']['overall_score'] >= 0.85,
+            'validation_method': 'local_regional_reconstruction',
+            'detailed_results': regional_results
+        }
+        
+        return local_results
+    
+    def _combine_understanding_assessments(self, api_results: Dict[str, Any], 
+                                         regional_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Combine API and regional understanding assessments."""
+        
+        # Extract key metrics
+        api_quality = api_results.get('average_quality', 0.0)
+        api_mastery = api_results.get('mastery_achieved', False)
+        
+        regional_quality = regional_results['overall_understanding']['overall_score']
+        regional_mastery = regional_results['overall_understanding']['overall_score'] >= 0.85
+        
+        # Combine with weighted average (API gets higher weight as it's more comprehensive)
+        combined_quality = (api_quality * 0.7) + (regional_quality * 0.3)
+        combined_mastery = api_mastery and regional_quality >= 0.7  # Both must be good
+        
+        # Determine combined understanding level
+        if combined_quality >= 0.9:
+            understanding_level = "excellent"
+        elif combined_quality >= 0.8:
+            understanding_level = "good"
+        elif combined_quality >= 0.6:
+            understanding_level = "moderate"
+        elif combined_quality >= 0.4:
+            understanding_level = "limited"
+        else:
+            understanding_level = "poor"
+        
+        return {
+            'combined_quality': combined_quality,
+            'combined_mastery': combined_mastery,
+            'understanding_level': understanding_level,
+            'api_contribution': api_quality * 0.7,
+            'regional_contribution': regional_quality * 0.3,
+            'validation_confidence': min(1.0, (api_quality + regional_quality) / 2.0)
+        }
+    
+    def _generate_combined_insights(self, api_results: Dict[str, Any], 
+                                  regional_results: Dict[str, Any]) -> List[str]:
+        """Generate insights from combined API and regional analysis."""
+        
+        insights = []
+        
+        # API insights
+        api_level = api_results.get('understanding_level', 'unknown')
+        api_quality = api_results.get('average_quality', 0.0)
+        
+        insights.append(f"API reconstruction achieved {api_level} understanding ({api_quality:.3f} quality)")
+        
+        # Regional insights
+        regional_level = regional_results['overall_understanding']['understanding_level']
+        regional_quality = regional_results['overall_understanding']['overall_score']
+        
+        insights.append(f"Regional analysis achieved {regional_level} understanding ({regional_quality:.3f} quality)")
+        
+        # Comparison insights
+        if api_quality > regional_quality + 0.1:
+            insights.append("API reconstruction outperformed local analysis - suggests complex understanding")
+        elif regional_quality > api_quality + 0.1:
+            insights.append("Local analysis outperformed API - suggests structured understanding")
+        else:
+            insights.append("API and local analysis showed consistent results - high confidence")
+        
+        # Strategy insights
+        if 'test_results' in api_results:
+            best_strategy = max(api_results['test_results'], key=lambda x: x['quality_score'])
+            insights.append(f"Best API strategy: {best_strategy['strategy']} at difficulty {best_strategy['difficulty']}")
+        
+        if 'strategy_rankings' in regional_results:
+            best_regional = min(regional_results['strategy_rankings'].items(), key=lambda x: x[1]['rank'])
+            insights.append(f"Best regional strategy: {best_regional[0]}")
+        
+        return insights
     
     def autonomous_analyze(self, 
                           image: np.ndarray, 
