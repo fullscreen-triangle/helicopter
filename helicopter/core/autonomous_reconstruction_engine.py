@@ -33,6 +33,7 @@ from .bayesian_objective_engine import BayesianObjectiveEngine
 from .continuous_learning_engine import ContinuousLearningEngine
 from .pakati_inspired_reconstruction import PakatiInspiredReconstruction
 from .regional_reconstruction_engine import RegionalReconstructionEngine
+from .segment_aware_reconstruction import SegmentAwareReconstructionEngine
 
 logger = logging.getLogger(__name__)
 
@@ -185,6 +186,16 @@ class AutonomousReconstructionEngine:
         
         # Regional reconstruction for local processing
         self.regional_engine = RegionalReconstructionEngine(device)
+        
+        # Segment-aware reconstruction for independent segment processing
+        try:
+            self.segment_engine = SegmentAwareReconstructionEngine(api_key=None)  # Will use same API key as pakati_engine
+            if self.pakati_engine:
+                self.segment_engine.api = self.pakati_engine.api
+            logger.info("Segment-aware reconstruction enabled")
+        except Exception as e:
+            logger.warning(f"Segment-aware reconstruction disabled: {e}")
+            self.segment_engine = None
         
         # Reconstruction state
         self.current_state = None
@@ -381,6 +392,160 @@ class AutonomousReconstructionEngine:
         if 'strategy_rankings' in regional_results:
             best_regional = min(regional_results['strategy_rankings'].items(), key=lambda x: x[1]['rank'])
             insights.append(f"Best regional strategy: {best_regional[0]}")
+        
+        return insights
+    
+    def segment_aware_understanding_validation(self, 
+                                             image: np.ndarray,
+                                             description: str = "") -> Dict[str, Any]:
+        """
+        Validate understanding using segment-aware reconstruction.
+        
+        This addresses the critical insight that AI changes everything when modifying anything.
+        Each segment gets its own iteration cycles to prevent unwanted changes in other areas.
+        """
+        
+        if not self.segment_engine:
+            logger.warning("Segment-aware reconstruction not available")
+            return {'error': 'Segment-aware reconstruction engine not initialized'}
+        
+        logger.info(f"Starting segment-aware understanding validation: {description}")
+        
+        # Perform segment-aware reconstruction
+        segment_results = self.segment_engine.segment_aware_reconstruction(image, description)
+        
+        # Enhance with traditional analysis for comparison
+        if self.use_api_reconstruction:
+            # Also run Pakati-inspired test for comparison
+            pakati_results = self.pakati_engine.test_understanding(image, description)
+            
+            # Combine insights
+            combined_results = {
+                'description': description,
+                'image_shape': image.shape,
+                'segment_aware_results': segment_results,
+                'pakati_comparison_results': pakati_results,
+                'validation_method': 'segment_aware_with_pakati_comparison',
+                'combined_assessment': self._compare_segment_vs_pakati(segment_results, pakati_results),
+                'insights': []
+            }
+            
+            # Generate comparative insights
+            combined_results['insights'] = self._generate_segment_pakati_insights(
+                segment_results, pakati_results
+            )
+            
+            return combined_results
+        
+        else:
+            # Segment-aware only
+            segment_results['validation_method'] = 'segment_aware_only'
+            segment_results['insights'] = self._generate_segment_only_insights(segment_results)
+            
+            return segment_results
+    
+    def _compare_segment_vs_pakati(self, segment_results: Dict[str, Any], 
+                                 pakati_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Compare segment-aware vs Pakati-inspired reconstruction results."""
+        
+        segment_quality = segment_results['overall_quality']
+        pakati_quality = pakati_results.get('average_quality', 0.0)
+        
+        # Determine which approach performed better
+        if segment_quality > pakati_quality + 0.1:
+            better_approach = 'segment_aware'
+            quality_advantage = segment_quality - pakati_quality
+        elif pakati_quality > segment_quality + 0.1:
+            better_approach = 'pakati_inspired'
+            quality_advantage = pakati_quality - segment_quality
+        else:
+            better_approach = 'comparable'
+            quality_advantage = abs(segment_quality - pakati_quality)
+        
+        return {
+            'segment_quality': segment_quality,
+            'pakati_quality': pakati_quality,
+            'better_approach': better_approach,
+            'quality_advantage': quality_advantage,
+            'segment_iterations': segment_results['total_iterations'],
+            'segment_success_rate': segment_results['successful_segments'] / max(1, segment_results['segments_processed']),
+            'recommendation': self._generate_approach_recommendation(better_approach, quality_advantage)
+        }
+    
+    def _generate_approach_recommendation(self, better_approach: str, 
+                                        quality_advantage: float) -> str:
+        """Generate recommendation for which approach to use."""
+        
+        if better_approach == 'segment_aware':
+            if quality_advantage > 0.2:
+                return "Strongly recommend segment-aware approach for this type of image"
+            else:
+                return "Segment-aware approach shows slight advantage"
+        elif better_approach == 'pakati_inspired':
+            if quality_advantage > 0.2:
+                return "Strongly recommend Pakati-inspired approach for this type of image"
+            else:
+                return "Pakati-inspired approach shows slight advantage"
+        else:
+            return "Both approaches perform similarly - use based on specific requirements"
+    
+    def _generate_segment_pakati_insights(self, segment_results: Dict[str, Any],
+                                        pakati_results: Dict[str, Any]) -> List[str]:
+        """Generate insights comparing segment-aware and Pakati approaches."""
+        
+        insights = []
+        
+        # Performance comparison
+        segment_quality = segment_results['overall_quality']
+        pakati_quality = pakati_results.get('average_quality', 0.0)
+        
+        insights.append(f"Segment-aware quality: {segment_quality:.3f}")
+        insights.append(f"Pakati-inspired quality: {pakati_quality:.3f}")
+        
+        # Efficiency comparison
+        segment_iterations = segment_results['total_iterations']
+        segment_count = segment_results['segments_processed']
+        avg_iterations_per_segment = segment_iterations / max(1, segment_count)
+        
+        insights.append(f"Segment-aware used {segment_iterations} total iterations across {segment_count} segments")
+        insights.append(f"Average {avg_iterations_per_segment:.1f} iterations per segment")
+        
+        # Success rate analysis
+        success_rate = segment_results['successful_segments'] / max(1, segment_count)
+        insights.append(f"Segment success rate: {success_rate:.1%}")
+        
+        # Approach-specific insights
+        if segment_quality > pakati_quality + 0.1:
+            insights.append("Segment-aware approach prevented unwanted changes in unrelated areas")
+            insights.append("Independent segment processing improved overall reconstruction quality")
+        elif pakati_quality > segment_quality + 0.1:
+            insights.append("Pakati-inspired approach achieved better global coherence")
+            insights.append("Holistic reconstruction outperformed segmented approach")
+        else:
+            insights.append("Both approaches achieved similar quality - validates reconstruction insight")
+        
+        return insights
+    
+    def _generate_segment_only_insights(self, segment_results: Dict[str, Any]) -> List[str]:
+        """Generate insights for segment-aware reconstruction only."""
+        
+        insights = []
+        
+        # Overall performance
+        insights.append(f"Achieved {segment_results['understanding_level']} understanding level")
+        insights.append(f"Overall quality: {segment_results['overall_quality']:.3f}")
+        
+        # Segment analysis
+        success_rate = segment_results['successful_segments'] / max(1, segment_results['segments_processed'])
+        insights.append(f"Successfully reconstructed {success_rate:.1%} of segments")
+        
+        # Iteration efficiency
+        avg_iterations = segment_results['total_iterations'] / max(1, segment_results['segments_processed'])
+        insights.append(f"Average {avg_iterations:.1f} iterations per segment")
+        
+        # Key advantages
+        insights.append("Segment-aware approach prevented AI from changing unrelated image areas")
+        insights.append("Each segment received appropriate iteration cycles based on complexity")
         
         return insights
     

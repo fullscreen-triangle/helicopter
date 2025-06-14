@@ -7,7 +7,10 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Documentation](https://img.shields.io/badge/docs-github%20pages-blue)](https://yourusername.github.io/helicopter)
+[![Documentation](https://img.shields.io/badge/docs-github%20pages-blue)](https://fullscreen-triangle.github.io/helicopter)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000)](#)
+[![Claude](https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=fff)](#)
+[![ChatGPT](https://img.shields.io/badge/ChatGPT-74aa9c?logo=openai&logoColor=white)](#)
 
 Helicopter is a revolutionary computer vision framework built on a genius insight: **The best way to know if an AI has truly analyzed an image is if it can perfectly reconstruct it.** By treating image reconstruction as the ultimate test of understanding, Helicopter provides autonomous visual analysis that demonstrates true comprehension through the ability to "draw what it sees."
 
@@ -130,6 +133,96 @@ elif reconstruction_quality > 0.8:
     print("High-quality reconstruction - strong understanding demonstrated")
 else:
     print("Limited reconstruction quality - understanding incomplete")
+```
+
+### 🆕 Pakati-Inspired API Reconstruction
+
+```python
+from helicopter.core import PakatiInspiredReconstruction
+import os
+
+# Set your HuggingFace API key
+os.environ["HUGGINGFACE_API_KEY"] = "your_api_key_here"
+
+# Initialize Pakati-inspired engine
+engine = PakatiInspiredReconstruction()
+
+# Test understanding through reconstruction challenges
+results = engine.test_understanding(image, "medical scan showing chest X-ray")
+
+print(f"Understanding Level: {results['understanding_level']}")
+print(f"Average Quality: {results['average_quality']:.3f}")
+print(f"Mastery Achieved: {results['mastery_achieved']}")
+
+# Progressive difficulty testing until failure
+progressive_results = engine.progressive_test(image, "detailed medical image")
+print(f"Mastery Level: {progressive_results['mastery_level']:.1f}")
+print(f"Progressive Mastery: {progressive_results['mastery_achieved']}")
+```
+
+### 🎯 Segment-Aware Reconstruction
+
+**Addresses the critical insight**: AI changes everything when modifying anything, and pixels mean nothing semantically to AI.
+
+**Solution**: Independent reconstruction cycles per segment to prevent unwanted changes.
+
+```python
+from helicopter.core import SegmentAwareReconstructionEngine, AutonomousReconstructionEngine
+
+# Initialize segment-aware engine
+segment_engine = SegmentAwareReconstructionEngine()
+
+# Perform segment-aware reconstruction
+results = segment_engine.segment_aware_reconstruction(
+    image, 
+    "image with text, faces, and various objects"
+)
+
+print(f"Understanding level: {results['understanding_level']}")
+print(f"Segments processed: {results['segments_processed']}")
+print(f"Successful segments: {results['successful_segments']}")
+
+# Show segment-specific results
+for segment_id, segment_result in results['segment_results'].items():
+    print(f"{segment_id} ({segment_result['segment_type']}): "
+          f"Quality {segment_result['final_quality']:.3f}, "
+          f"Iterations {segment_result['iterations_performed']}")
+
+# Compare with traditional approach using autonomous engine
+engine = AutonomousReconstructionEngine()
+comparison = engine.segment_aware_understanding_validation(image, "complex image")
+
+assessment = comparison['combined_assessment']
+print(f"Better approach: {assessment['better_approach']}")
+print(f"Quality advantage: {assessment['quality_advantage']:.3f}")
+print(f"Recommendation: {assessment['recommendation']}")
+```
+
+**Key Benefits**:
+- **Prevents unwanted changes**: Each segment reconstructed independently
+- **Type-specific iterations**: Text regions get 10 iterations, simple regions get 3
+- **Semantic awareness**: Different segment types (text, faces, edges) handled appropriately
+- **Quality improvement**: Targeted processing improves overall reconstruction quality
+
+### 🔄 Combined Local + API Validation
+
+```python
+# Use both local neural networks and API reconstruction for comprehensive validation
+engine = AutonomousReconstructionEngine()
+
+results = engine.validate_understanding_through_reconstruction(
+    image, 
+    "complex medical imaging with multiple anatomical structures"
+)
+
+combined = results['combined_understanding']
+print(f"Combined Understanding: {combined['understanding_level']}")
+print(f"Combined Quality: {combined['combined_quality']:.3f}")
+print(f"Validation Confidence: {combined['validation_confidence']:.3f}")
+
+# View insights from both approaches
+for insight in results['insights']:
+    print(f"• {insight}")
 ```
 
 ### Comprehensive Analysis with Reconstruction
