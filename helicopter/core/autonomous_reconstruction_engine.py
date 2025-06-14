@@ -28,13 +28,16 @@ import random
 import math
 from collections import deque
 import time
+from PIL import Image
 
 from .bayesian_objective_engine import BayesianObjectiveEngine
 from .continuous_learning_engine import ContinuousLearningEngine
 from .pakati_inspired_reconstruction import PakatiInspiredReconstruction
 from .regional_reconstruction_engine import RegionalReconstructionEngine
-from .segment_aware_reconstruction import SegmentAwareReconstructionEngine
+from .segment_aware_reconstruction import SegmentAwareReconstructionEngine, SegmentType
 from .nicotine_context_validator import NicotineContextValidator, NicotineIntegration
+from .hatata_mdp_engine import HatataEngine
+from .zengeza_noise_detector import ZengezaEngine
 
 logger = logging.getLogger(__name__)
 
@@ -152,10 +155,14 @@ class AutonomousReconstructionNetwork(nn.Module):
 
 class AutonomousReconstructionEngine:
     """
-    Main engine for autonomous image reconstruction
+    Main engine for autonomous image reconstruction and understanding validation.
     
-    The core insight: True image analysis is demonstrated by the ability to reconstruct.
-    The system autonomously learns to predict image parts from other parts.
+    Integrates multiple validation layers:
+    1. Pakati-inspired reconstruction (HuggingFace API-based understanding validation)
+    2. Segment-aware processing (independent iteration cycles preventing unwanted changes)
+    3. Nicotine context validation (cognitive checkpoints preventing context drift)
+    4. Hatata MDP verification (probabilistic fallback and additional verification)
+    5. Zengeza noise detection (identifies and quantifies noise/garbage per segment)
     """
     
     def __init__(self, 
@@ -224,6 +231,11 @@ class AutonomousReconstructionEngine:
             'uncertainty_guided',
             'progressive_refinement'
         ]
+        
+        # Initialize Zengeza noise detection engine
+        self.zengeza_engine = ZengezaEngine()
+        
+        logger.info("🗑️ Zengeza noise detection integrated into autonomous reconstruction")
         
         logger.info(f"Initialized Autonomous Reconstruction Engine")
         logger.info(f"Patch size: {patch_size}, Context size: {context_size}")
@@ -1070,7 +1082,13 @@ class AutonomousReconstructionEngine:
             'original_image': original_image,
             'reconstruction_history': self.reconstruction_history,
             'objective_state': self.objective_engine.get_belief_summary(),
-            'learning_progress': self.current_state.learning_progress
+            'learning_progress': self.current_state.learning_progress,
+            'validation_layers': {
+                'segment_aware_enabled': self.segment_engine is not None,
+                'nicotine_enabled': self.nicotine_validator is not None,
+                'hatata_enabled': False,  # Assuming Hatata MDP is not enabled in the original code
+                'zengeza_enabled': True
+            }
         }
     
     def _analyze_reconstruction_patterns(self) -> Dict[str, Any]:
@@ -1183,4 +1201,241 @@ class AutonomousReconstructionEngine:
                 self.current_state = state_data['current_state']
                 self.reconstruction_history = state_data['reconstruction_history']
         
-        logger.info(f"Loaded autonomous reconstruction state from {save_path}") 
+        logger.info(f"Loaded autonomous reconstruction state from {save_path}")
+    
+    def reconstruct_with_understanding_validation(self, image_path: str, 
+                                                prompt: str,
+                                                max_iterations: int = 5,
+                                                quality_threshold: float = 0.85,
+                                                enable_segment_aware: bool = True,
+                                                enable_nicotine: bool = True,
+                                                enable_hatata: bool = True,
+                                                enable_zengeza: bool = True) -> Dict[str, Any]:
+        """
+        Perform autonomous reconstruction with comprehensive understanding validation.
+        
+        Now includes Zengeza noise detection to identify and quantify garbage content
+        per segment per iteration, helping focus reconstruction on important regions.
+        """
+        
+        logger.info(f"🚁 Starting autonomous reconstruction with understanding validation")
+        logger.info(f"📊 Validation layers: Segment-aware={enable_segment_aware}, "
+                   f"Nicotine={enable_nicotine}, Hatata={enable_hatata}, Zengeza={enable_zengeza}")
+        
+        # ... existing code ...
+        
+        # Initialize Zengeza noise tracking
+        if enable_zengeza:
+            noise_analysis_history = []
+            segment_noise_trends = {}
+        
+        for iteration in range(max_iterations):
+            logger.info(f"🔄 Iteration {iteration + 1}/{max_iterations}")
+            
+            # ... existing code for reconstruction ...
+            
+            # Zengeza noise analysis - identify garbage content per segment
+            if enable_zengeza:
+                logger.info("🗑️ Performing Zengeza noise analysis...")
+                
+                # Prepare segments for noise analysis
+                if enable_segment_aware and hasattr(self, 'segment_engine'):
+                    # Use segment-aware segments
+                    segments_for_noise = []
+                    for segment_id, segment_data in segment_results.get('segments', {}).items():
+                        segments_for_noise.append({
+                            'segment_id': segment_id,
+                            'bbox': segment_data.get('bbox', (0, 0, 64, 64)),
+                            'pixels': segment_data.get('pixels'),
+                            'segment_type': segment_data.get('segment_type', 'unknown')
+                        })
+                else:
+                    # Create basic segments for noise analysis
+                    image_array = np.array(Image.open(image_path))
+                    h, w = image_array.shape[:2]
+                    segments_for_noise = [
+                        {
+                            'segment_id': f'grid_segment_{i}',
+                            'bbox': (x, y, min(64, w-x), min(64, h-y)),
+                            'pixels': image_array[y:y+64, x:x+64]
+                        }
+                        for i, (x, y) in enumerate([(x, y) for x in range(0, w, 64) for y in range(0, h, 64)])
+                    ]
+                
+                # Context for noise analysis
+                noise_context = {
+                    'reconstruction_quality': current_quality,
+                    'expected_complexity': 0.6,  # Could be learned/adjusted
+                    'iteration': iteration,
+                    'prompt': prompt,
+                    'total_iterations': max_iterations
+                }
+                
+                # Perform noise analysis
+                noise_results = self.zengeza_engine.analyze_image_noise(
+                    image=np.array(Image.open(image_path)),
+                    segments=segments_for_noise,
+                    context=noise_context,
+                    iteration=iteration
+                )
+                
+                noise_analysis_history.append(noise_results)
+                
+                # Update segment priorities based on noise analysis
+                high_importance_segments = noise_results['high_importance_segments']
+                high_noise_segments = noise_results['high_noise_segments']
+                
+                logger.info(f"🗑️ Noise analysis: {len(high_importance_segments)} high-importance segments, "
+                           f"{len(high_noise_segments)} high-noise segments")
+                
+                # Log noise insights
+                for insight in noise_results['noise_insights']:
+                    logger.info(f"🗑️ Insight: {insight}")
+                
+                # Adjust reconstruction focus based on noise analysis
+                if enable_segment_aware and hasattr(self, 'segment_engine'):
+                    # Update segment priorities based on importance scores
+                    for priority_seg in noise_results['prioritized_segments'][:5]:  # Top 5 most important
+                        segment_id = priority_seg['segment_id']
+                        if segment_id in segment_results.get('segments', {}):
+                            # Increase iterations for important segments
+                            segment_results['segments'][segment_id]['priority_boost'] = True
+                            segment_results['segments'][segment_id]['importance_score'] = priority_seg['importance_score']
+                
+                # Store noise trends for this segment
+                for segment_id, segment_data in noise_results['segment_noise_analysis'].items():
+                    if segment_id not in segment_noise_trends:
+                        segment_noise_trends[segment_id] = []
+                    
+                    segment_noise_trends[segment_id].append({
+                        'iteration': iteration,
+                        'noise_probability': segment_data['noise_probability'],
+                        'importance_score': segment_data['importance_score'],
+                        'noise_level': segment_data['noise_level']
+                    })
+            
+            # ... existing code for other validation layers ...
+            
+            # Check if we should continue based on noise analysis
+            if enable_zengeza and noise_results:
+                avg_noise = noise_results['global_noise_statistics']['average_noise_level']
+                
+                # If noise level is very high, we might want to try different approach
+                if avg_noise > 0.8:
+                    logger.warning(f"🗑️ Very high noise level detected ({avg_noise:.3f}). "
+                                 f"Consider different reconstruction strategy.")
+                
+                # If most segments are high importance and low noise, we might be done
+                high_importance_ratio = len(high_importance_segments) / max(1, len(segments_for_noise))
+                if high_importance_ratio > 0.7 and avg_noise < 0.3:
+                    logger.info(f"🗑️ High information content detected ({high_importance_ratio:.1%} important segments, "
+                               f"{avg_noise:.3f} avg noise). Quality reconstruction likely achieved.")
+            
+            # ... existing code for quality checks and iteration logic ...
+        
+        # Compile final results with noise analysis
+        final_results = {
+            # ... existing results ...
+            'validation_layers': {
+                'segment_aware_enabled': enable_segment_aware,
+                'nicotine_enabled': enable_nicotine, 
+                'hatata_enabled': enable_hatata,
+                'zengeza_enabled': enable_zengeza
+            }
+        }
+        
+        # Add Zengeza noise analysis results
+        if enable_zengeza:
+            final_results['zengeza_noise_analysis'] = {
+                'noise_analysis_history': noise_analysis_history,
+                'segment_noise_trends': segment_noise_trends,
+                'final_noise_report': self.zengeza_engine.get_noise_report(),
+                'noise_insights': noise_analysis_history[-1]['noise_insights'] if noise_analysis_history else [],
+                'high_importance_segments': noise_analysis_history[-1]['high_importance_segments'] if noise_analysis_history else [],
+                'high_noise_segments': noise_analysis_history[-1]['high_noise_segments'] if noise_analysis_history else []
+            }
+            
+            logger.info(f"🗑️ Final noise analysis: "
+                       f"{len(final_results['zengeza_noise_analysis']['high_importance_segments'])} important segments, "
+                       f"{len(final_results['zengeza_noise_analysis']['high_noise_segments'])} noise segments")
+        
+        # ... existing code ...
+        
+        return final_results
+    
+    def zengeza_noise_understanding_validation(self, image_path: str, 
+                                             segments: List[Dict[str, Any]],
+                                             context: Dict[str, Any],
+                                             iteration: int = 0) -> Dict[str, Any]:
+        """
+        Standalone Zengeza noise analysis for understanding validation.
+        
+        This method can be called independently to analyze noise in image segments
+        and determine what content is important vs garbage for reconstruction.
+        """
+        
+        logger.info(f"🗑️ Performing standalone Zengeza noise analysis")
+        
+        # Load image
+        image = np.array(Image.open(image_path))
+        
+        # Perform noise analysis
+        noise_results = self.zengeza_engine.analyze_image_noise(
+            image=image,
+            segments=segments,
+            context=context,
+            iteration=iteration
+        )
+        
+        # Generate recommendations
+        recommendations = self._generate_noise_based_recommendations(noise_results)
+        
+        results = {
+            'noise_analysis': noise_results,
+            'recommendations': recommendations,
+            'analysis_method': 'zengeza_standalone',
+            'timestamp': time.time()
+        }
+        
+        logger.info(f"🗑️ Standalone noise analysis complete")
+        
+        return results
+    
+    def _generate_noise_based_recommendations(self, noise_results: Dict[str, Any]) -> List[str]:
+        """Generate reconstruction recommendations based on noise analysis."""
+        
+        recommendations = []
+        
+        # Global noise level recommendations
+        avg_noise = noise_results['global_noise_statistics']['average_noise_level']
+        
+        if avg_noise > 0.7:
+            recommendations.append("High noise detected - consider preprocessing or different segmentation strategy")
+        elif avg_noise < 0.3:
+            recommendations.append("Low noise detected - image has high information content, focus on detail preservation")
+        
+        # Segment-specific recommendations
+        high_noise_count = len(noise_results['high_noise_segments'])
+        high_importance_count = len(noise_results['high_importance_segments'])
+        
+        if high_noise_count > 0:
+            recommendations.append(f"Skip or reduce iterations for {high_noise_count} high-noise segments to save computation")
+        
+        if high_importance_count > 0:
+            recommendations.append(f"Prioritize and increase iterations for {high_importance_count} high-importance segments")
+        
+        # Noise type specific recommendations
+        all_noise_types = []
+        for segment_data in noise_results['segment_noise_analysis'].values():
+            all_noise_types.extend(segment_data['noise_types'])
+        
+        if 'visual_noise' in all_noise_types:
+            recommendations.append("Visual noise detected - consider denoising preprocessing")
+        
+        if 'semantic_noise' in all_noise_types:
+            recommendations.append("Semantic noise detected - focus reconstruction on semantically meaningful regions")
+        
+        if 'structural_noise' in all_noise_types:
+            recommendations.append("Structural noise detected - emphasize edge and structure preservation")
+        
+        return recommendations 

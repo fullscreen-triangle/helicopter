@@ -204,6 +204,66 @@ print(f"Recommendation: {assessment['recommendation']}")
 - **Semantic awareness**: Different segment types (text, faces, edges) handled appropriately
 - **Quality improvement**: Targeted processing improves overall reconstruction quality
 
+### 🚬 Nicotine Context Validation
+
+**Addresses the critical problem**: AI systems lose context over time and forget what they're supposed to be doing.
+
+**Solution**: Periodic "cigarette breaks" with machine-readable puzzles to validate context retention.
+
+```python
+from helicopter.core import NicotineContextValidator, NicotineIntegration
+
+# Initialize nicotine validator
+validator = NicotineContextValidator(
+    trigger_interval=10,  # Validate every 10 processes
+    puzzle_count=3,       # 3 puzzles per session
+    pass_threshold=0.7    # 70% success rate required
+)
+
+# Register processes and validate context
+objectives = ["reconstruct_image", "maintain_quality", "validate_understanding"]
+
+for i in range(20):
+    system_state = {
+        'reconstruction_quality': 0.85,
+        'iteration_count': i,
+        'confidence_score': 0.78
+    }
+    
+    can_continue = validator.register_process(
+        process_name=f"reconstruction_process_{i}",
+        current_task="autonomous_image_reconstruction",
+        objectives=objectives,
+        system_state=system_state
+    )
+    
+    if not can_continue:
+        print("🛑 Process halted - system failed context validation")
+        break
+
+# Get validation report
+report = validator.get_validation_report()
+print(f"Pass rate: {report['pass_rate']:.1%}")
+print(f"Context drift detected: {report['context_drift_detected']}")
+
+# Integrated with autonomous reconstruction
+engine = AutonomousReconstructionEngine()  # Includes nicotine validation
+results = engine.autonomous_analyze(image, max_iterations=50)
+
+# Check nicotine validation results
+if 'nicotine_validation' in results:
+    nicotine_report = results['nicotine_validation']
+    print(f"Nicotine sessions: {nicotine_report['total_sessions']}")
+    print(f"Context maintained: {nicotine_report['pass_rate']:.1%}")
+```
+
+**Key Benefits**:
+- **Prevents context drift**: Detects when AI loses track of objectives
+- **Cognitive checkpoints**: Validates understanding through puzzles
+- **Task focus**: Maintains awareness of primary objectives
+- **Automatic integration**: Works seamlessly with existing systems
+- **Machine-readable validation**: Uses structured puzzles, not subjective assessment
+
 ### 🔄 Combined Local + API Validation
 
 ```python

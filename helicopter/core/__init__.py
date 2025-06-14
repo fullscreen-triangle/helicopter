@@ -11,7 +11,26 @@ from .autonomous_reconstruction_engine import AutonomousReconstructionEngine
 from .pakati_inspired_reconstruction import PakatiInspiredReconstruction, ReconstructionStrategy
 from .regional_reconstruction_engine import RegionalReconstructionEngine, MaskingStrategy
 from .segment_aware_reconstruction import SegmentAwareReconstructionEngine, SegmentType
-from .nicotine_context_validator import NicotineContextValidator, NicotineIntegration, PuzzleType
+from .nicotine_context_validator import (
+    NicotineContextValidator,
+    NicotinePuzzle,
+    ContextSnapshot,
+    PuzzleType
+)
+from .hatata_mdp_engine import (
+    HatataEngine,
+    HatataMDPModel,
+    UnderstandingState,
+    HatataAction
+)
+from .zengeza_noise_detector import (
+    ZengezaEngine,
+    ZengezaNoiseAnalyzer,
+    NoiseMetrics,
+    NoiseType,
+    NoiseLevel,
+    ZengezaSegment
+)
 
 __all__ = [
     'AutonomousReconstructionEngine',
@@ -22,6 +41,17 @@ __all__ = [
     'SegmentAwareReconstructionEngine',
     'SegmentType',
     'NicotineContextValidator',
-    'NicotineIntegration',
-    'PuzzleType'
+    'NicotinePuzzle',
+    'ContextSnapshot',
+    'PuzzleType',
+    'HatataEngine',
+    'HatataMDPModel',
+    'UnderstandingState',
+    'HatataAction',
+    'ZengezaEngine',
+    'ZengezaNoiseAnalyzer',
+    'NoiseMetrics',
+    'NoiseType',
+    'NoiseLevel',
+    'ZengezaSegment'
 ] 
