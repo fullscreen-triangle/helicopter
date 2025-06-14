@@ -34,6 +34,7 @@ from .continuous_learning_engine import ContinuousLearningEngine
 from .pakati_inspired_reconstruction import PakatiInspiredReconstruction
 from .regional_reconstruction_engine import RegionalReconstructionEngine
 from .segment_aware_reconstruction import SegmentAwareReconstructionEngine
+from .nicotine_context_validator import NicotineContextValidator, NicotineIntegration
 
 logger = logging.getLogger(__name__)
 
@@ -196,6 +197,20 @@ class AutonomousReconstructionEngine:
         except Exception as e:
             logger.warning(f"Segment-aware reconstruction disabled: {e}")
             self.segment_engine = None
+        
+        # Nicotine context validator for preventing context drift
+        try:
+            self.nicotine_validator = NicotineContextValidator(
+                trigger_interval=15,  # Validate every 15 processes
+                puzzle_count=3,
+                pass_threshold=0.7
+            )
+            self.nicotine_integration = NicotineIntegration(self.nicotine_validator)
+            logger.info("🚬 Nicotine context validation enabled")
+        except Exception as e:
+            logger.warning(f"Nicotine context validation disabled: {e}")
+            self.nicotine_validator = None
+            self.nicotine_integration = None
         
         # Reconstruction state
         self.current_state = None
@@ -574,6 +589,18 @@ class AutonomousReconstructionEngine:
         logger.info("Starting autonomous reconstruction analysis")
         logger.info(f"Image shape: {image.shape}, Target quality: {target_quality}")
         
+        # Set up nicotine context
+        if self.nicotine_integration:
+            self.nicotine_integration.set_task_context(
+                task="autonomous_image_reconstruction",
+                objectives=[
+                    "reconstruct_image_through_understanding",
+                    "achieve_target_quality",
+                    "maintain_context_awareness",
+                    "demonstrate_visual_comprehension"
+                ]
+            )
+        
         # Initialize reconstruction state
         self.current_state = self._initialize_reconstruction_state(image)
         
@@ -608,6 +635,26 @@ class AutonomousReconstructionEngine:
             # Update learning systems
             self._update_autonomous_learning(learning_feedback)
             
+            # Nicotine checkpoint - validate context retention
+            if self.nicotine_integration:
+                system_state = {
+                    'reconstruction_quality': quality,
+                    'iteration_count': iteration + 1,
+                    'prediction_confidence': float(confidence.item()),
+                    'target_quality': target_quality,
+                    'patches_known': len(self.current_state.known_patches),
+                    'patches_unknown': len(self.current_state.unknown_patches)
+                }
+                
+                can_continue = self.nicotine_integration.checkpoint(
+                    process_name=f"reconstruction_iteration_{iteration + 1}",
+                    system_state=system_state
+                )
+                
+                if not can_continue:
+                    logger.error(f"🚬 Nicotine validation failed at iteration {iteration + 1} - halting reconstruction")
+                    break
+            
             # Update state
             self.current_state.iteration = iteration + 1
             self.current_state.reconstruction_quality = quality
@@ -636,6 +683,12 @@ class AutonomousReconstructionEngine:
         
         # Generate final analysis results
         final_results = self._generate_autonomous_analysis_results(image)
+        
+        # Add nicotine validation report
+        if self.nicotine_validator:
+            final_results['nicotine_validation'] = self.nicotine_validator.get_validation_report()
+            logger.info(f"🚬 Nicotine sessions: {final_results['nicotine_validation']['total_sessions']}, "
+                       f"Pass rate: {final_results['nicotine_validation']['pass_rate']:.1%}")
         
         return final_results
     

@@ -11,6 +11,7 @@ from .autonomous_reconstruction_engine import AutonomousReconstructionEngine
 from .pakati_inspired_reconstruction import PakatiInspiredReconstruction, ReconstructionStrategy
 from .regional_reconstruction_engine import RegionalReconstructionEngine, MaskingStrategy
 from .segment_aware_reconstruction import SegmentAwareReconstructionEngine, SegmentType
+from .nicotine_context_validator import NicotineContextValidator, NicotineIntegration, PuzzleType
 
 __all__ = [
     'AutonomousReconstructionEngine',
@@ -19,5 +20,8 @@ __all__ = [
     'RegionalReconstructionEngine',
     'MaskingStrategy',
     'SegmentAwareReconstructionEngine',
-    'SegmentType'
+    'SegmentType',
+    'NicotineContextValidator',
+    'NicotineIntegration',
+    'PuzzleType'
 ] 
