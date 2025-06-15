@@ -351,6 +351,174 @@ plt.tight_layout()
 plt.show()
 ```
 
+## 🏛️ Diadochi: Intelligent Model Combination
+
+Named after Alexander the Great's successors who divided his empire into specialized domains, **Diadochi** intelligently combines domain-expert models to produce superior expertise across multiple domains. This implements the comprehensive "Combine Harvester" framework for multi-domain AI systems.
+
+### Five Architectural Patterns
+
+#### 1. Router-Based Ensembles
+Automatically route queries to the most appropriate domain expert:
+
+```python
+from helicopter import DiadochiCore, DomainExpertise, ModelFactory
+
+# Initialize Diadochi
+diadochi = DiadochiCore()
+
+# Define domain expertise
+cv_expertise = DomainExpertise(
+    domain="computer_vision",
+    description="Expert in image processing and visual recognition",
+    keywords=["image", "vision", "detection", "classification"]
+)
+diadochi.add_domain_expertise(cv_expertise)
+
+# Register specialized models
+cv_model = ModelFactory.create_model("ollama", "llava")
+diadochi.register_model("cv_expert", cv_model, ["computer_vision"])
+
+# Configure router ensemble
+diadochi.configure_router_ensemble(
+    router_type="embedding",
+    threshold=0.75,
+    mixer_type="synthesis"
+)
+
+# Generate expert response
+response = await diadochi.generate("How can I improve object detection accuracy?")
+```
+
+#### 2. Sequential Chaining
+Process queries through multiple experts in sequence:
+
+```python
+# Define expert sequence
+chain_sequence = ["cv_expert", "ml_expert", "data_expert", "synthesizer"]
+
+# Configure with custom prompts
+prompt_templates = {
+    "cv_expert": "From a computer vision perspective: {query}",
+    "ml_expert": "Building on CV analysis: {responses[0]}\nML perspective: {query}",
+    "synthesizer": "Integrate all insights: {responses}\nQuery: {query}"
+}
+
+diadochi.configure_sequential_chain(chain_sequence, prompt_templates)
+response = await diadochi.generate("Build an AI content moderation system")
+```
+
+#### 3. Mixture of Experts
+Parallel processing with intelligent response combination:
+
+```python
+# Configure mixture of experts with confidence weighting
+diadochi.configure_mixture_of_experts(
+    threshold=0.2,
+    temperature=0.7
+)
+
+# Cross-domain queries automatically engage multiple experts
+response = await diadochi.generate(
+    "How do computer vision and NLP combine for document analysis?"
+)
+```
+
+#### 4. Specialized System Prompts
+Single model with multi-domain expertise:
+
+```python
+# Single model with multi-domain expertise
+diadochi.configure_system_prompts(
+    base_model="general_expert",
+    integration_prompt="You are a multi-domain AI expert..."
+)
+
+response = await diadochi.generate("Explain attention mechanisms in vision and language")
+```
+
+#### 5. Knowledge Distillation (Advanced)
+Distill multi-domain expertise into a single model:
+
+```python
+# Distill expertise from multiple teachers into a single student model
+from helicopter import KnowledgeDistiller
+
+distiller = KnowledgeDistiller(
+    teacher_models={"cv": cv_expert, "nlp": nlp_expert},
+    student_model=base_model
+)
+
+distilled_model = await distiller.distill(training_data)
+```
+
+### Comprehensive Evaluation Framework
+
+```python
+from helicopter import DiadochiEvaluator, EvaluationQuery
+
+# Setup evaluation
+evaluator = DiadochiEvaluator(domain_experts=expert_models)
+
+# Create evaluation queries
+queries = [
+    EvaluationQuery(
+        query="How does transfer learning work in computer vision?",
+        domains=["computer_vision", "machine_learning"],
+        difficulty="medium"
+    )
+]
+
+# Evaluate different patterns
+metrics = await evaluator.evaluate_dataset(diadochi, queries)
+
+print(f"Domain Accuracy: {metrics.domain_specific_accuracy}")
+print(f"Cross-Domain Integration: {metrics.cross_domain_accuracy}")
+print(f"Response Quality: {metrics.response_quality}")
+
+# Generate comprehensive report
+report = evaluator.generate_report(metrics)
+```
+
+### Real-World Applications
+
+- **Multi-Modal Content Analysis**: Combine vision, language, and audio processing
+- **Medical AI Systems**: Integrate radiology, pathology, and clinical expertise  
+- **Autonomous Systems**: Merge perception, planning, and control domains
+- **Scientific Research**: Bridge multiple disciplines for complex problem solving
+- **Educational AI**: Provide expert tutoring across multiple subjects
+
+### Quick Start with Diadochi
+
+```python
+# Run the comprehensive demo
+python examples/diadochi_demo.py
+
+# Interactive demo mode
+python examples/diadochi_demo.py --interactive
+
+# Example integration with Helicopter's reconstruction
+from helicopter import AutonomousReconstructionEngine, DiadochiCore
+
+# Combine reconstruction with expert analysis
+engine = AutonomousReconstructionEngine()
+diadochi = DiadochiCore()
+
+# Setup computer vision expert
+diadochi.add_domain_expertise(DomainExpertise(
+    domain="reconstruction",
+    description="Expert in image reconstruction and visual understanding"
+))
+
+# Analyze image using both approaches
+reconstruction_result = engine.autonomous_analyze(image)
+expert_analysis = await diadochi.generate(
+    f"Analyze reconstruction quality: {reconstruction_result['final_quality']}"
+)
+
+print(f"Reconstruction: {reconstruction_result['understanding_level']}")
+print(f"Expert Analysis: {expert_analysis}")
+```
+
 ## 🏗️ Architecture Overview
 
 ### Core Components

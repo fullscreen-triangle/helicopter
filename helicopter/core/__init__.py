@@ -32,6 +32,11 @@ from .zengeza_noise_detector import (
     ZengezaSegment
 )
 
+# Diadochi intelligent model combination framework
+from .diadochi import DiadochiCore, DomainExpertise, IntegrationPattern
+from .diadochi_models import ModelFactory, OllamaModel, MockModel
+from .diadochi_evaluation import DiadochiEvaluator, EvaluationMetrics
+
 __all__ = [
     'AutonomousReconstructionEngine',
     'PakatiInspiredReconstruction', 
@@ -53,5 +58,14 @@ __all__ = [
     'NoiseMetrics',
     'NoiseType',
     'NoiseLevel',
-    'ZengezaSegment'
+    'ZengezaSegment',
+    # Diadochi framework
+    'DiadochiCore',
+    'DomainExpertise',
+    'IntegrationPattern',
+    'ModelFactory',
+    'OllamaModel',
+    'MockModel',
+    'DiadochiEvaluator',
+    'EvaluationMetrics'
 ] 

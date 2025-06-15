@@ -29,6 +29,11 @@ from .training.differential_trainer import DifferentialTrainer
 from .api.web_interface import HelicopterWebInterface
 from .api.rest_api import HelicopterAPI
 
+# Diadochi intelligent model combination
+from .core.diadochi import DiadochiCore, DomainExpertise, IntegrationPattern
+from .core.diadochi_models import ModelFactory, OllamaModel, MockModel
+from .core.diadochi_evaluation import DiadochiEvaluator, EvaluationMetrics
+
 # Integration with ecosystem
 from .integrations.purpose_integration import PurposeIntegration
 from .integrations.combine_harvester_integration import CombineHarvesterIntegration
@@ -56,6 +61,16 @@ __all__ = [
     # Web/API
     "HelicopterWebInterface",
     "HelicopterAPI",
+    
+    # Diadochi framework
+    "DiadochiCore",
+    "DomainExpertise",
+    "IntegrationPattern",
+    "ModelFactory",
+    "OllamaModel", 
+    "MockModel",
+    "DiadochiEvaluator",
+    "EvaluationMetrics",
     
     # Ecosystem integrations
     "PurposeIntegration",
