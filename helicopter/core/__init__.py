@@ -37,6 +37,17 @@ from .diadochi import DiadochiCore, DomainExpertise, IntegrationPattern
 from .diadochi_models import ModelFactory, OllamaModel, MockModel
 from .diadochi_evaluation import DiadochiEvaluator, EvaluationMetrics
 
+# Metacognitive orchestrator for intelligent coordination
+from .metacognitive_orchestrator import (
+    MetacognitiveOrchestrator,
+    AnalysisStrategy,
+    ImageComplexity,
+    AnalysisContext,
+    ModuleResult,
+    PipelineState,
+    MetacognitiveInsight
+)
+
 __all__ = [
     'AutonomousReconstructionEngine',
     'PakatiInspiredReconstruction', 
@@ -67,5 +78,13 @@ __all__ = [
     'OllamaModel',
     'MockModel',
     'DiadochiEvaluator',
-    'EvaluationMetrics'
+    'EvaluationMetrics',
+    # Metacognitive orchestrator
+    'MetacognitiveOrchestrator',
+    'AnalysisStrategy',
+    'ImageComplexity',
+    'AnalysisContext',
+    'ModuleResult',
+    'PipelineState',
+    'MetacognitiveInsight'
 ] 

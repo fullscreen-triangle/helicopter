@@ -1,5 +1,5 @@
 """
-Metacognitive Orchestrator
+Metacognitive Orchestrated Pipeline
 
 The ultimate coordination layer that intelligently orchestrates all Helicopter modules:
 - Autonomous Reconstruction Engine
@@ -8,7 +8,7 @@ The ultimate coordination layer that intelligently orchestrates all Helicopter m
 - Hatata MDP Engine (Probabilistic Understanding)
 - Zengeza Noise Detector
 - Diadochi Model Combination
-- Comprehensive Analysis Engine
+- Traditional CV methods (Vibrio, Moriarty, Homo-veloce, Pakati)
 
 This orchestrator uses metacognitive principles to decide which modules to use when,
 adapt strategies based on image type and analysis goals, and learn from outcomes.
@@ -17,18 +17,31 @@ adapt strategies based on image type and analysis goals, and learn from outcomes
 import asyncio
 import json
 import logging
+import numpy as np
 import time
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, Union, Callable
+from pathlib import Path
 from enum import Enum
 import statistics
+
+# Import all Helicopter modules
+from .autonomous_reconstruction_engine import AutonomousReconstructionEngine
+from .segment_aware_reconstruction import SegmentAwareReconstructionEngine, SegmentType
+from .nicotine_context_validator import NicotineContextValidator, NicotinePuzzle, PuzzleType
+from .hatata_mdp_engine import HatataEngine, HatataMDPModel, UnderstandingState, HatataAction
+from .zengeza_noise_detector import ZengezaEngine, ZengezaNoiseAnalyzer, NoiseType, NoiseLevel
+from .diadochi import DiadochiCore, DomainExpertise, IntegrationPattern
+from .diadochi_models import ModelFactory, MockModel
+from .comprehensive_analysis_engine import ComprehensiveAnalysisEngine
 
 logger = logging.getLogger(__name__)
 
 class AnalysisStrategy(Enum):
     """Available analysis strategies."""
     SPEED_OPTIMIZED = "speed_optimized"
-    QUALITY_OPTIMIZED = "quality_optimized"  
+    QUALITY_OPTIMIZED = "quality_optimized"
     BALANCED = "balanced"
     DEEP_ANALYSIS = "deep_analysis"
     ADAPTIVE = "adaptive"
@@ -60,7 +73,7 @@ class AnalysisContext:
     analysis_goals: List[str] = field(default_factory=list)
     strategy: AnalysisStrategy = AnalysisStrategy.ADAPTIVE
     complexity: ImageComplexity = ImageComplexity.MODERATE
-    time_budget: float = 60.0
+    time_budget: float = 60.0  # seconds
     quality_threshold: float = 0.8
     confidence_threshold: float = 0.7
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -109,8 +122,8 @@ class MetacognitiveOrchestrator:
         """Initialize the metacognitive orchestrator."""
         self.config = config or self._default_config()
         
-        # Module engines will be initialized lazily to avoid import issues
-        self._engines = {}
+        # Initialize all module engines
+        self._initialize_modules()
         
         # Learning and adaptation
         self.execution_history: List[Dict[str, Any]] = []
@@ -120,8 +133,6 @@ class MetacognitiveOrchestrator:
         # Metacognitive state
         self.metacognitive_insights: List[MetacognitiveInsight] = []
         self.learning_enabled = True
-        
-        logger.info("🧠 Metacognitive Orchestrator initialized")
         
     def _default_config(self) -> Dict[str, Any]:
         """Default configuration for the orchestrator."""
@@ -145,95 +156,78 @@ class MetacognitiveOrchestrator:
                 "zengeza_noise": 0.8,
                 "hatata_mdp": 0.7,
                 "diadochi": 0.9,
-                "nicotine_validation": 0.6,
-                "comprehensive": 0.8
+                "nicotine_validation": 0.6
             }
         }
     
-    def _initialize_engine(self, engine_name: str):
-        """Lazily initialize engines to avoid circular imports."""
-        if engine_name in self._engines:
-            return self._engines[engine_name]
-            
+    def _initialize_modules(self):
+        """Initialize all analysis modules."""
         try:
-            if engine_name == "autonomous_reconstruction":
-                from .autonomous_reconstruction_engine import AutonomousReconstructionEngine
-                self._engines[engine_name] = AutonomousReconstructionEngine()
-                
-            elif engine_name == "segment_aware":
-                from .segment_aware_reconstruction import SegmentAwareReconstructionEngine
-                self._engines[engine_name] = SegmentAwareReconstructionEngine()
-                
-            elif engine_name == "comprehensive":
-                from .comprehensive_analysis_engine import ComprehensiveAnalysisEngine
-                self._engines[engine_name] = ComprehensiveAnalysisEngine()
-                
-            elif engine_name == "zengeza_noise":
-                from .zengeza_noise_detector import ZengezaEngine
-                self._engines[engine_name] = ZengezaEngine()
-                
-            elif engine_name == "hatata_mdp":
-                from .hatata_mdp_engine import HatataEngine
-                self._engines[engine_name] = HatataEngine()
-                
-            elif engine_name == "nicotine_validation":
-                from .nicotine_context_validator import NicotineContextValidator
-                self._engines[engine_name] = NicotineContextValidator(
-                    trigger_interval=5, puzzle_count=2, pass_threshold=0.7
-                )
-                
-            elif engine_name == "diadochi":
-                from .diadochi import DiadochiCore
-                from .diadochi_models import MockModel
-                
-                diadochi_core = DiadochiCore()
-                
-                # Setup domain expertise
-                from .diadochi import DomainExpertise
-                
-                domains = [
-                    DomainExpertise(
-                        domain="image_reconstruction",
-                        description="Expert in autonomous image reconstruction and visual understanding",
-                        keywords=["reconstruction", "autonomous", "visual", "understanding", "quality"]
-                    ),
-                    DomainExpertise(
-                        domain="noise_analysis",
-                        description="Expert in detecting and analyzing noise patterns in visual data",
-                        keywords=["noise", "artifacts", "quality", "distortion", "cleanup"]
-                    ),
-                    DomainExpertise(
-                        domain="probabilistic_reasoning",
-                        description="Expert in probabilistic analysis and uncertainty quantification",
-                        keywords=["probability", "uncertainty", "confidence", "bayesian", "markov"]
-                    ),
-                    DomainExpertise(
-                        domain="context_validation",
-                        description="Expert in maintaining context and validating system understanding",
-                        keywords=["context", "validation", "consistency", "awareness", "focus"]
-                    )
-                ]
-                
-                for expertise in domains:
-                    diadochi_core.add_domain_expertise(expertise)
-                
-                # Register mock models for demonstration
-                for domain in ["image_reconstruction", "noise_analysis", "probabilistic_reasoning", "context_validation"]:
-                    model = MockModel(f"{domain}_expert", {
-                        "analyze": f"Expert {domain} analysis provides comprehensive insights",
-                        "recommend": f"Based on {domain} expertise, I recommend specific approaches"
-                    })
-                    diadochi_core.register_model(f"{domain}_expert", model, [domain])
-                
-                diadochi_core.configure_mixture_of_experts(threshold=0.2, temperature=0.6)
-                self._engines[engine_name] = diadochi_core
-                
-            logger.info(f"✅ Initialized {engine_name} engine")
-            return self._engines[engine_name]
+            # Core reconstruction engines
+            self.autonomous_engine = AutonomousReconstructionEngine()
+            self.segment_engine = SegmentAwareReconstructionEngine()
+            self.comprehensive_engine = ComprehensiveAnalysisEngine()
+            
+            # Specialized analysis modules
+            self.zengeza_engine = ZengezaEngine()
+            self.hatata_engine = HatataEngine()
+            
+            # Context and validation
+            self.nicotine_validator = NicotineContextValidator(
+                trigger_interval=5,
+                puzzle_count=2,
+                pass_threshold=0.7
+            )
+            
+            # Expert model combination
+            self.diadochi_core = DiadochiCore()
+            self._setup_diadochi()
+            
+            logger.info("✅ All modules initialized successfully")
             
         except Exception as e:
-            logger.error(f"❌ Failed to initialize {engine_name}: {e}")
-            return None
+            logger.error(f"❌ Error initializing modules: {e}")
+            raise
+    
+    def _setup_diadochi(self):
+        """Setup Diadochi with domain experts."""
+        # Define expertise domains
+        domains = [
+            DomainExpertise(
+                domain="image_reconstruction",
+                description="Expert in autonomous image reconstruction and visual understanding through reconstruction",
+                keywords=["reconstruction", "autonomous", "visual", "understanding", "quality"]
+            ),
+            DomainExpertise(
+                domain="noise_analysis", 
+                description="Expert in detecting and analyzing noise patterns in visual data",
+                keywords=["noise", "artifacts", "quality", "distortion", "cleanup"]
+            ),
+            DomainExpertise(
+                domain="probabilistic_reasoning",
+                description="Expert in probabilistic analysis and uncertainty quantification",
+                keywords=["probability", "uncertainty", "confidence", "bayesian", "markov"]
+            ),
+            DomainExpertise(
+                domain="context_validation",
+                description="Expert in maintaining context and validating system understanding",
+                keywords=["context", "validation", "consistency", "awareness", "focus"]
+            )
+        ]
+        
+        for expertise in domains:
+            self.diadochi_core.add_domain_expertise(expertise)
+        
+        # Register mock models for each domain (in production, use real models)
+        for domain in ["image_reconstruction", "noise_analysis", "probabilistic_reasoning", "context_validation"]:
+            model = MockModel(f"{domain}_expert", {
+                "analyze": f"Expert {domain} analysis provides comprehensive insights",
+                "recommend": f"Based on {domain} expertise, I recommend specific approaches"
+            })
+            self.diadochi_core.register_model(f"{domain}_expert", model, [domain])
+        
+        # Configure with mixture of experts for multi-domain integration
+        self.diadochi_core.configure_mixture_of_experts(threshold=0.2, temperature=0.6)
     
     async def orchestrated_analysis(self, 
                                   image_path: str,
@@ -268,15 +262,10 @@ class MetacognitiveOrchestrator:
             # Update execution history
             execution_record = {
                 "timestamp": time.time(),
-                "image_path": context.image_path,
-                "strategy": context.strategy.value,
-                "results_summary": {
-                    "success": results.get("success", False),
-                    "overall_quality": results.get("overall_quality", 0.0),
-                    "overall_confidence": results.get("overall_confidence", 0.0),
-                    "modules_executed": results.get("modules_executed", 0)
-                },
-                "execution_time": time.time() - start_time
+                "context": context,
+                "results": results,
+                "execution_time": time.time() - start_time,
+                "success": results.get("success", False)
             }
             self.execution_history.append(execution_record)
             
@@ -334,43 +323,30 @@ class MetacognitiveOrchestrator:
         logger.info("🔍 Phase 1: Initial Assessment")
         
         try:
-            comprehensive_engine = self._initialize_engine("comprehensive")
-            if comprehensive_engine is None:
-                # Fallback assessment
-                assessment_result = ModuleResult(
-                    module_name="initial_assessment",
-                    success=True,
-                    confidence=0.7,
-                    quality_score=0.7,
-                    execution_time=0.5,
-                    insights=["Fallback assessment - comprehensive engine unavailable"],
-                    data={"complexity_score": 0.5}
-                )
+            # Quick complexity assessment using comprehensive engine
+            quick_results = self.comprehensive_engine.quick_assessment(context.image_path)
+            
+            # Determine image complexity
+            complexity_score = quick_results.get("complexity_score", 0.5)
+            if complexity_score < 0.3:
+                context.complexity = ImageComplexity.SIMPLE
+            elif complexity_score < 0.6:
                 context.complexity = ImageComplexity.MODERATE
+            elif complexity_score < 0.8:
+                context.complexity = ImageComplexity.COMPLEX
             else:
-                # Use comprehensive engine for assessment
-                quick_results = comprehensive_engine.quick_assessment(context.image_path)
-                
-                # Determine image complexity
-                complexity_score = quick_results.get("complexity_score", 0.5)
-                if complexity_score < 0.3:
-                    context.complexity = ImageComplexity.SIMPLE
-                elif complexity_score < 0.6:
-                    context.complexity = ImageComplexity.MODERATE
-                elif complexity_score < 0.8:
-                    context.complexity = ImageComplexity.COMPLEX
-                else:
-                    context.complexity = ImageComplexity.HIGHLY_COMPLEX
-                
-                assessment_result = ModuleResult(
-                    module_name="initial_assessment",
-                    success=True,
-                    confidence=quick_results.get("confidence", 0.7),
-                    quality_score=quick_results.get("quality", 0.7),
-                    execution_time=quick_results.get("execution_time", 1.0),
-                    insights=[f"Image complexity: {context.complexity.value}"],
-                    data=quick_results
-                )
+                context.complexity = ImageComplexity.HIGHLY_COMPLEX
+            
+            # Record initial assessment
+            assessment_result = ModuleResult(
+                module_name="initial_assessment",
+                success=True,
+                confidence=quick_results.get("confidence", 0.7),
+                quality_score=quick_results.get("quality", 0.7),
+                execution_time=quick_results.get("execution_time", 1.0),
+                insights=[f"Image complexity: {context.complexity.value}"],
+                data=quick_results
+            )
             
             state.module_results["initial_assessment"] = assessment_result
             state.completed_modules.append("initial_assessment")
@@ -386,23 +362,15 @@ class MetacognitiveOrchestrator:
         
         try:
             start_time = time.time()
-            zengeza_engine = self._initialize_engine("zengeza_noise")
             
-            if zengeza_engine is None:
-                # Fallback noise estimation
-                noise_result = {
-                    "overall_noise_level": 0.2,
-                    "confidence": 0.6,
-                    "noisy_segments": []
-                }
-            else:
-                noise_result = await zengeza_engine.analyze_image_noise(context.image_path)
+            # Use Zengeza for noise analysis
+            noise_result = await self.zengeza_engine.analyze_image_noise(context.image_path)
             
             execution_time = time.time() - start_time
             
             # Extract noise metrics
-            overall_noise = noise_result.get("overall_noise_level", 0.2)
-            noise_confidence = noise_result.get("confidence", 0.6)
+            overall_noise = noise_result.get("overall_noise_level", 0.0)
+            noise_confidence = noise_result.get("confidence", 0.0)
             noisy_segments = noise_result.get("noisy_segments", [])
             
             state.noise_level = overall_noise
@@ -412,7 +380,7 @@ class MetacognitiveOrchestrator:
                 module_name="zengeza_noise",
                 success=True,
                 confidence=noise_confidence,
-                quality_score=1.0 - overall_noise,
+                quality_score=1.0 - overall_noise,  # Lower noise = higher quality
                 execution_time=execution_time,
                 insights=[
                     f"Overall noise level: {overall_noise:.2%}",
@@ -455,7 +423,7 @@ class MetacognitiveOrchestrator:
             ImageComplexity.HIGHLY_COMPLEX: 1.0
         }[context.complexity]
         
-        noise_weight = min(state.noise_level * 2, 1.0)
+        noise_weight = min(state.noise_level * 2, 1.0)  # Scale noise impact
         
         # Calculate strategy scores
         strategy_scores = {
@@ -511,18 +479,6 @@ class MetacognitiveOrchestrator:
         start_time = time.time()
         
         try:
-            autonomous_engine = self._initialize_engine("autonomous_reconstruction")
-            
-            if autonomous_engine is None:
-                return ModuleResult(
-                    module_name="autonomous_reconstruction",
-                    success=False,
-                    confidence=0.0,
-                    quality_score=0.0,
-                    execution_time=0.1,
-                    data={"error": "Engine not available"}
-                )
-            
             # Configure based on strategy
             max_iterations = {
                 AnalysisStrategy.SPEED_OPTIMIZED: 15,
@@ -531,7 +487,7 @@ class MetacognitiveOrchestrator:
                 AnalysisStrategy.DEEP_ANALYSIS: 60
             }.get(context.strategy, 25)
             
-            results = autonomous_engine.autonomous_analyze(
+            results = self.autonomous_engine.autonomous_analyze(
                 image=context.image_path,
                 max_iterations=max_iterations,
                 target_quality=context.quality_threshold
@@ -572,19 +528,7 @@ class MetacognitiveOrchestrator:
         start_time = time.time()
         
         try:
-            segment_engine = self._initialize_engine("segment_aware")
-            
-            if segment_engine is None:
-                return ModuleResult(
-                    module_name="segment_aware_reconstruction",
-                    success=False,
-                    confidence=0.0,
-                    quality_score=0.0,
-                    execution_time=0.1,
-                    data={"error": "Engine not available"}
-                )
-            
-            results = segment_engine.segment_aware_reconstruction(
+            results = self.segment_engine.segment_aware_reconstruction(
                 image=context.image_path,
                 description=f"Complex {context.image_type} image"
             )
@@ -623,16 +567,12 @@ class MetacognitiveOrchestrator:
         """Perform probabilistic validation using Hatata MDP."""
         logger.info("🔍 Phase 5: Probabilistic Validation")
         
-        # Only run for quality/deep analysis strategies
-        if context.strategy == AnalysisStrategy.SPEED_OPTIMIZED:
+        # Only run for quality/deep analysis strategies or when confidence is uncertain
+        if context.strategy in [AnalysisStrategy.SPEED_OPTIMIZED]:
             return
         
         try:
             start_time = time.time()
-            hatata_engine = self._initialize_engine("hatata_mdp")
-            
-            if hatata_engine is None:
-                return
             
             # Get reconstruction results for probabilistic analysis
             reconstruction_data = {}
@@ -640,7 +580,7 @@ class MetacognitiveOrchestrator:
                 reconstruction_data.update(state.module_results["autonomous_reconstruction"].data)
             
             # Run Hatata probabilistic analysis
-            hatata_results = await hatata_engine.probabilistic_understanding_verification(
+            hatata_results = await self.hatata_engine.probabilistic_understanding_verification(
                 image_path=context.image_path,
                 reconstruction_data=reconstruction_data,
                 confidence_threshold=context.confidence_threshold
@@ -677,13 +617,8 @@ class MetacognitiveOrchestrator:
         logger.info("🔍 Phase 6: Context Validation")
         
         try:
-            nicotine_validator = self._initialize_engine("nicotine_validation")
-            
-            if nicotine_validator is None:
-                return
-            
             # Register current analysis process
-            can_continue = nicotine_validator.register_process(
+            can_continue = self.nicotine_validator.register_process(
                 process_name=f"orchestrated_analysis_{int(time.time())}",
                 current_task="comprehensive_image_analysis",
                 objectives=context.analysis_goals,
@@ -694,14 +629,14 @@ class MetacognitiveOrchestrator:
                 }
             )
             
-            validation_report = nicotine_validator.get_validation_report()
+            validation_report = self.nicotine_validator.get_validation_report()
             
             context_result = ModuleResult(
                 module_name="nicotine_validation",
                 success=can_continue,
                 confidence=validation_report.get("pass_rate", 0.0),
                 quality_score=1.0 if can_continue else 0.5,
-                execution_time=0.5,
+                execution_time=0.5,  # Quick validation
                 insights=[
                     f"Context validation: {'✅ Passed' if can_continue else '❌ Failed'}",
                     f"Pass rate: {validation_report.get('pass_rate', 0):.1%}",
@@ -727,21 +662,10 @@ class MetacognitiveOrchestrator:
         logger.info("🔍 Phase 7: Expert Synthesis")
         
         try:
-            diadochi_core = self._initialize_engine("diadochi")
-            
-            if diadochi_core is None:
-                return
-            
             # Prepare synthesis query
             completed_modules = ", ".join(state.completed_modules)
-            successful_results = [r for r in state.module_results.values() if r.success]
-            
-            if successful_results:
-                overall_quality = statistics.mean([r.quality_score for r in successful_results])
-                overall_confidence = statistics.mean([r.confidence for r in successful_results])
-            else:
-                overall_quality = 0.0
-                overall_confidence = 0.0
+            overall_quality = statistics.mean([r.quality_score for r in state.module_results.values() if r.success])
+            overall_confidence = statistics.mean([r.confidence for r in state.module_results.values() if r.success])
             
             synthesis_query = f"""
             Analyze and synthesize insights from comprehensive image analysis:
@@ -757,7 +681,7 @@ class MetacognitiveOrchestrator:
             """
             
             start_time = time.time()
-            expert_response = await diadochi_core.generate(synthesis_query)
+            expert_response = await self.diadochi_core.generate(synthesis_query)
             execution_time = time.time() - start_time
             
             synthesis_result = ModuleResult(
@@ -820,9 +744,9 @@ class MetacognitiveOrchestrator:
             "strategy_used": context.strategy.value,
             "image_complexity": context.complexity.value,
             "final_assessment": final_assessment,
-            "all_insights": list(set(all_insights)),
+            "all_insights": list(set(all_insights)),  # Remove duplicates
             "all_recommendations": list(set(all_recommendations)),
-            "module_results": {name: result.__dict__ for name, result in state.module_results.items()},
+            "module_results": {name: result for name, result in state.module_results.items()},
             "metacognitive_insights": [insight.__dict__ for insight in self.metacognitive_insights]
         }
     
@@ -850,7 +774,7 @@ class MetacognitiveOrchestrator:
         else:
             confidence_level = "Low"
         
-        # Understanding indicators
+        # Understanding level
         understanding_indicators = []
         if "autonomous_reconstruction" in state.module_results:
             recon_quality = state.module_results["autonomous_reconstruction"].quality_score
@@ -882,7 +806,7 @@ class MetacognitiveOrchestrator:
             "quality_level": quality_level,
             "confidence_level": confidence_level,
             "understanding_indicators": understanding_indicators,
-            "analysis_completeness": len(successful_modules) / max(len(state.module_results), 1),
+            "analysis_completeness": len(successful_modules) / len(state.module_results),
             "strategy_effectiveness": self._assess_strategy_effectiveness(context, state),
             "recommendations": recommendations,
             "summary": f"{quality_level} quality analysis with {confidence_level.lower()} confidence using {context.strategy.value} strategy"
@@ -1021,7 +945,7 @@ class MetacognitiveOrchestrator:
         """Save learning state to file."""
         learning_state = {
             "execution_history": self.execution_history[-50:],  # Keep recent history
-            "strategy_performance": {k.value: v for k, v in self.strategy_performance.items()},
+            "strategy_performance": self.strategy_performance,
             "module_reliability": self.module_reliability,
             "metacognitive_insights": [insight.__dict__ for insight in self.metacognitive_insights],
             "config": self.config
@@ -1039,17 +963,7 @@ class MetacognitiveOrchestrator:
                 learning_state = json.load(f)
             
             self.execution_history = learning_state.get("execution_history", [])
-            
-            # Convert strategy keys back to enums
-            strategy_perf = learning_state.get("strategy_performance", {})
-            self.strategy_performance = {}
-            for strategy_str, scores in strategy_perf.items():
-                try:
-                    strategy_enum = AnalysisStrategy(strategy_str)
-                    self.strategy_performance[strategy_enum] = scores
-                except ValueError:
-                    continue
-            
+            self.strategy_performance = learning_state.get("strategy_performance", {})
             self.module_reliability = learning_state.get("module_reliability", {})
             
             # Reconstruct metacognitive insights
@@ -1071,7 +985,7 @@ class MetacognitiveOrchestrator:
 __all__ = [
     "MetacognitiveOrchestrator",
     "AnalysisStrategy",
-    "ImageComplexity", 
+    "ImageComplexity",
     "AnalysisContext",
     "ModuleResult",
     "PipelineState",
