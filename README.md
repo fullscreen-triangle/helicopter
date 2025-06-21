@@ -5,57 +5,76 @@
 </p>
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Rust 1.70+](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Documentation](https://img.shields.io/badge/docs-github%20pages-blue)](https://fullscreen-triangle.github.io/helicopter)
-[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000)](#)
-[![Claude](https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=fff)](#)
-[![ChatGPT](https://img.shields.io/badge/ChatGPT-74aa9c?logo=openai&logoColor=white)](#)
+[![Turbulance DSL](https://img.shields.io/badge/Turbulance-DSL-purple.svg)](#turbulance-integration)
+[![Autobahn Integration](https://img.shields.io/badge/Autobahn-Probabilistic-green.svg)](#autobahn-integration)
+[![Performance](https://img.shields.io/badge/Performance-Rust%20Optimized-red.svg)](#rust-implementation)
 
-Helicopter is a revolutionary computer vision framework built on a genius insight: **The best way to know if an AI has truly analyzed an image is if it can perfectly reconstruct it.** By treating image reconstruction as the ultimate test of understanding, Helicopter provides autonomous visual analysis that demonstrates true comprehension through the ability to "draw what it sees."
+Helicopter is a computer vision framework implementing the hypothesis that reconstruction fidelity correlates directly with visual understanding. The system validates visual comprehension through autonomous image reconstruction, operating on the principle that successful reconstruction from partial information demonstrates genuine understanding rather than pattern matching.
 
-## 🧠 The Genius Insight: "Reverse Reverse Reverse Pakati"
+## Abstract
 
-### Core Principle: Reconstruction = Understanding
+This framework implements autonomous visual understanding through iterative reconstruction methodologies. The core hypothesis posits that systems capable of high-fidelity image reconstruction from partial information demonstrate genuine visual comprehension. The architecture integrates deterministic reconstruction engines with probabilistic reasoning systems, implementing hybrid Python-Rust execution for computational efficiency. Advanced reasoning capabilities are achieved through integration with semantic processing frameworks and consciousness-aware probabilistic engines.
 
-Traditional computer vision asks: *"What do you see in this image?"*  
-Helicopter asks: *"Can you draw what you see?"*
+## Theoretical Foundation
 
-If a system can perfectly reconstruct an image by predicting parts from other parts, it has demonstrated true visual understanding. The reconstruction process itself **IS** the analysis.
+### Core Hypothesis: Reconstruction Fidelity as Understanding Metric
+
+The system implements the hypothesis that reconstruction capability correlates directly with visual understanding. Traditional computer vision systems extract features and classify content without validating comprehension. This framework tests understanding through reconstruction challenges: systems that can accurately predict missing image regions from context demonstrate genuine visual comprehension.
+
+**Operational Principle**: Visual understanding is measured through reconstruction fidelity rather than classification accuracy.
 
 ```
 Traditional Approach: Image → Feature Extraction → Classification → Results
-Helicopter Approach: Image → Autonomous Reconstruction → Understanding Demonstrated
+Helicopter Approach: Image → Autonomous Reconstruction → Understanding Validation
 ```
 
-### Why This Revolutionizes Computer Vision:
+### Framework Advantages
 
-1. **Ultimate Test**: Perfect reconstruction proves perfect understanding
-2. **Self-Validating**: Reconstruction quality directly measures comprehension
-3. **Autonomous Operation**: System decides what to analyze next
-4. **No Complexity**: Reconstruction IS the analysis - no separate methods needed
-5. **Learning Through Doing**: System improves by attempting reconstruction
-6. **Universal Metric**: Works across all image types and domains
+1. **Direct Understanding Measurement**: Reconstruction quality provides quantitative understanding metrics
+2. **Self-Validation**: System validates its own comprehension through reconstruction challenges
+3. **Autonomous Operation**: Framework determines optimal analysis strategies without manual configuration
+4. **Computational Efficiency**: Analysis complexity scales with required understanding depth
+5. **Iterative Improvement**: System performance increases through reconstruction experience
+6. **Universal Application**: Methodology applies across image types and domains
 
-## 🚀 Key Features
+## System Architecture
 
-### 🎯 Autonomous Reconstruction Engine
-- **Patch-based reconstruction** starting with partial image information
-- **Multiple reconstruction strategies** (edge-guided, content-aware, uncertainty-guided)
-- **Real neural networks** with context encoding and confidence estimation
-- **Self-adaptive learning** that improves reconstruction strategies over time
+### Autonomous Reconstruction Engine
+- **Patch-based reconstruction** from partial image information using configurable patch sizes
+- **Multiple reconstruction strategies** including edge-guided, content-aware, and uncertainty-guided approaches
+- **Neural network implementation** with context encoding and confidence estimation mechanisms
+- **Adaptive learning algorithms** that optimize reconstruction strategies through iterative improvement
 
-### 🧮 Comprehensive Analysis Integration
-- **Autonomous reconstruction as primary method** - the ultimate test
-- **Supporting method validation** - traditional CV methods validate reconstruction insights
-- **Cross-validation framework** - ensures reconstruction quality aligns with other metrics
-- **Iterative improvement** - system learns and improves when reconstruction quality is low
+### Rust Implementation for Computational Efficiency
+- **High-performance modules** implemented in Rust for computationally intensive operations
+- **Autonomous Reconstruction Engine** core algorithms optimized for parallel processing
+- **Segment-Aware Reconstruction** with efficient memory management and concurrent processing
+- **Neural network inference** acceleration through Rust-based implementations
+- **Cross-language integration** maintaining Python API compatibility with Rust performance gains
 
-### 🔄 Continuous Learning System
-- **Bayesian belief networks** for probabilistic reasoning about visual data
-- **Fuzzy logic processing** for handling continuous, non-binary pixel values
-- **Metacognitive orchestration** that learns about its own learning process
-- **Confidence-based iteration** until research-grade understanding is achieved
+### Autobahn Integration for Probabilistic Reasoning
+- **Consciousness-aware computation** through integration with Autobahn oscillatory bio-metabolic processing
+- **Probabilistic reasoning delegation** for tasks requiring uncertainty quantification and Bayesian inference
+- **Biological intelligence architectures** including temporal determinism and metabolic computation
+- **Hybrid processing coordination** between deterministic reconstruction and probabilistic validation
+- **Seamless task delegation** automatically routing probabilistic reasoning to specialized subsystems
+
+### Turbulance Semantic Processing Interface
+- **Domain-specific language** for expressing complex visual understanding requirements
+- **Semantic proposition framework** enabling structured hypothesis validation
+- **Rust-based parser and compiler** for efficient Turbulance syntax processing
+- **Proposition-motion system** for logical reasoning about visual content
+- **Optional semantic interface** providing enhanced expressiveness while maintaining standard API compatibility
+
+### Comprehensive Analysis Integration
+- **Multi-method validation** using reconstruction as primary understanding verification
+- **Traditional CV integration** for cross-validation of reconstruction insights
+- **Quality alignment framework** ensuring reconstruction metrics correlate with established methods
+- **Iterative refinement** based on reconstruction quality feedback and learning outcomes
 
 ### 🧠 Metacognitive Orchestrator
 - **Intelligent module coordination** that decides which modules to use when
@@ -114,9 +133,80 @@ cp .env.example .env
 # Edit .env with your configuration
 ```
 
-## 💻 Quick Start
+## Implementation Methods
 
-### Autonomous Reconstruction Analysis
+### Standard Python API
+
+The framework provides standard Python APIs for immediate usage without additional dependencies:
+
+```python
+from helicopter.core import AutonomousReconstructionEngine
+
+# Initialize reconstruction engine
+engine = AutonomousReconstructionEngine(
+    patch_size=32,
+    context_size=96,
+    device="cuda"
+)
+
+# Perform reconstruction analysis
+results = engine.autonomous_analyze(
+    image=image,
+    max_iterations=50,
+    target_quality=0.90
+)
+```
+
+### Turbulance Semantic Interface
+
+For enhanced semantic expressiveness, the framework supports Turbulance syntax processing:
+
+```turbulance
+// medical_analysis.trb
+hypothesis MedicalImageAnalysis:
+    claim: "Medical scan contains diagnostically relevant features"
+    semantic_validation:
+        - anatomical_understanding: "can identify anatomical structures"
+        - pathological_understanding: "can detect abnormalities"
+        - reconstruction_fidelity: "can rebuild from understanding"
+    requires: "authentic_medical_visual_comprehension"
+
+item analysis = understand_medical_image("scan.jpg", 
+    confidence_threshold: 0.95)
+
+given analysis.understanding_level >= "excellent":
+    perform_diagnostic_analysis(analysis)
+alternatively:
+    flag_for_human_review(analysis, "insufficient_comprehension")
+```
+
+```python
+# Execute Turbulance script
+import helicopter.turbulance as turb
+
+results = turb.execute_script("medical_analysis.trb")
+```
+
+### Autobahn Integration
+
+Probabilistic reasoning tasks are automatically delegated to Autobahn when required:
+
+```python
+# Automatic probabilistic delegation
+results = engine.analyze_with_uncertainty_quantification(
+    image=complex_scene,
+    uncertainty_threshold=0.1,
+    bayesian_priors=domain_knowledge
+)
+
+# Results include probabilistic bounds from Autobahn processing
+print(f"Understanding probability: {results['understanding_probability']:.2%}")
+print(f"Confidence bounds: [{results['confidence_lower']:.2%}, {results['confidence_upper']:.2%}]")
+```
+
+## Usage Examples
+
+### Standard Reconstruction Analysis
 
 ```python
 from helicopter.core import AutonomousReconstructionEngine
@@ -1099,21 +1189,55 @@ Helicopter integrates seamlessly with:
 - **[Homo-veloce](https://github.com/fullscreen-triangle/homo-veloce)**: Ground truth validation
 - **[Pakati](https://github.com/fullscreen-triangle/pakati)**: Image generation
 
-## 📈 Roadmap
+## Technical Specifications
 
-- **v0.1.0**: ✅ Core autonomous reconstruction engine
-- **v0.2.0**: ✅ Segment-aware reconstruction and Pakati integration
-- **v0.3.0**: ✅ Nicotine context validation system
-- **v0.4.0**: ✅ Diadochi multi-domain expert combination
-- **v0.5.0**: ✅ Zengeza noise detection and analysis
-- **v0.6.0**: ✅ Hatata MDP probabilistic understanding verification
-- **v0.7.0**: ✅ Metacognitive orchestrator with adaptive strategies
-- **v0.8.0**: 🚧 Advanced learning algorithms and optimization
-- **v0.9.0**: 📋 Real-time reconstruction monitoring and visualization
-- **v1.0.0**: 📋 Production deployment tools and enterprise features
-- **v1.1.0**: 📋 Multi-modal reconstruction (video, audio, text)
-- **v1.2.0**: 📋 Distributed processing and cloud integration
-- **v2.0.0**: 📋 Fully autonomous AI research assistant
+### Performance Requirements
+- **Python**: 3.8+ with NumPy, PyTorch 2.0+, OpenCV 4.0+
+- **Rust**: 1.70+ for high-performance module implementations
+- **Hardware**: CUDA-capable GPU recommended for neural network acceleration
+- **Memory**: Minimum 8GB RAM, 16GB recommended for complex scene analysis
+- **Storage**: Variable based on model cache and reconstruction history
+
+### Architecture Components
+- **Core Engine**: Python implementation with Rust acceleration modules
+- **Turbulance Parser**: Rust-based compiler for semantic syntax processing
+- **Autobahn Interface**: Probabilistic reasoning integration layer
+- **Neural Networks**: PyTorch-based reconstruction and confidence estimation
+- **Orchestration**: Metacognitive module coordination and strategy selection
+
+### Integration Compatibility
+- **Autobahn**: Oscillatory bio-metabolic RAG system for probabilistic reasoning
+- **Vibrio**: Human velocity analysis integration
+- **Moriarty-sese-seko**: Pose detection system compatibility
+- **Homo-veloce**: Ground truth validation framework
+- **Pakati**: Image generation and reconstruction validation
+
+## Development Roadmap
+
+### Current Release (v0.7.0)
+- ✅ Metacognitive orchestrator implementation
+- ✅ Multi-module coordination and adaptive strategies
+- ✅ Comprehensive analysis integration
+- ✅ Performance benchmarking and optimization
+
+### Near-term Development (v0.8.0-v0.9.0)
+- 🚧 **Rust implementation** of computationally intensive modules
+- 🚧 **Turbulance parser and compiler** for semantic syntax processing
+- 🚧 **Autobahn integration** for probabilistic reasoning delegation
+- 📋 Performance profiling and optimization validation
+- 📋 Extended testing and validation frameworks
+
+### Medium-term Goals (v1.0.0-v1.2.0)
+- 📋 Production deployment optimization and enterprise features
+- 📋 Multi-modal reconstruction capabilities (video, audio, text)
+- 📋 Distributed processing and cloud infrastructure integration
+- 📋 Advanced semantic reasoning and hypothesis validation
+
+### Long-term Vision (v2.0.0+)
+- 📋 Autonomous research assistant capabilities
+- 📋 Self-improving reconstruction algorithms
+- 📋 Cross-domain understanding transfer
+- 📋 Integration with broader AI reasoning ecosystems
 
 ## 🤝 Contributing
 
@@ -1155,4 +1279,28 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Helicopter**: Where the ability to reconstruct proves the depth of understanding. *"Can you draw what you see? If yes, you have truly seen it."*
+## Citation
+
+If you use this framework in your research, please cite:
+
+```bibtex
+@software{helicopter2024,
+  title={Helicopter: Autonomous Visual Understanding Through Reconstruction},
+  author={Helicopter Development Team},
+  year={2024},
+  url={https://github.com/fullscreen-triangle/helicopter},
+  note={Framework implementing reconstruction-based visual understanding validation}
+}
+```
+
+## References
+
+1. Reconstruction-based understanding validation methodology
+2. Autonomous visual comprehension through iterative reconstruction
+3. Probabilistic reasoning integration for uncertainty quantification
+4. Semantic processing frameworks for structured visual reasoning
+5. Hybrid Python-Rust architectures for computational efficiency
+
+---
+
+**Helicopter**: Autonomous visual understanding through reconstruction fidelity measurement. Framework implementing the hypothesis that reconstruction capability correlates directly with visual comprehension.

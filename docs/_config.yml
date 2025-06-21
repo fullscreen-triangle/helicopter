@@ -5,6 +5,9 @@ description: "Revolutionary computer vision framework that proves understanding 
 url: "https://fullscreen-triangle.github.io"
 baseurl: "/helicopter"
 
+# Repository info
+repository: "fullscreen-triangle/helicopter"
+
 # Theme
 theme: minima
 plugins:
