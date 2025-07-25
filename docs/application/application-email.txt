@@ -1,0 +1,25 @@
+Subject: Application for PhD Position - Computational Biology and Super-Resolution Microscopy
+
+Dear Dr. Hell,
+
+I am writing to submit my application for a PhD position in your research group at the Max Planck Institute for Multidisciplinary Sciences. 
+
+I have developed computational frameworks in biological quantum processes and biomimetic computing that may complement your group's work in super-resolution microscopy. My background includes experience in computational biology, molecular dynamics simulations, and scientific software development, with particular focus on membrane dynamics and biological system modeling.
+
+Please find attached:
+- Cover letter detailing my research background and relevant experience
+- Curriculum vitae with academic and professional history
+- [Additional documents if required - transcripts, references, etc.]
+
+I understand the application deadline may have passed, but I would be grateful if you would consider my application for any available positions or future opportunities in your research group.
+
+I am available for further discussion at your convenience and can provide additional documentation if needed.
+
+Thank you for your time and consideration.
+
+Best regards,
+
+Kundai Farai Sachikonye
+Email: kundai.sachikonye@wzw.tum.de
+Address: Auf der Lichtung 19, 82971 Puchheim, Germany
+GitHub: github.com/fullscreen-triangle 
