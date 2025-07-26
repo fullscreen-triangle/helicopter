@@ -1,30 +1,78 @@
-//! # Kwasa-Kwasa Framework
+//! # Kwasa-Kwasa Framework Implementation
+//! 
+//! Revolutionary consciousness-aware semantic computation through Biological Maxwell Demon (BMD) networks.
+//! This module implements the complete Kwasa-Kwasa framework for information catalysis, fire-adapted
+//! consciousness enhancement, and reality modification through coordinated agency assertion.
 //!
-//! Implementation of consciousness-aware semantic computation through Biological Maxwell's Demons (BMDs).
-//! This module implements the revolutionary framework for information catalysis and reality discretization.
+//! ## Core Concepts
 //!
-//! ## Core Components
+//! ### Biological Maxwell Demons (BMDs)
+//! Information catalysts that operate across three scales:
+//! - **Molecular BMDs**: Direct molecular information processing
+//! - **Neural BMDs**: Neural network information catalysis  
+//! - **Cognitive BMDs**: High-level cognitive information processing
 //!
-//! - **Biological Maxwell's Demons (BMDs)**: Information catalysts that discretize continuous reality
-//! - **Fire-Adapted Consciousness**: 322% processing improvement through evolutionary enhancements
-//! - **Semantic Catalysis**: Reality-direct processing through BMD networks
-//! - **Naming Functions**: Reality discretization through naming system control
-//! - **Agency Assertion**: Coordinated reality modification through agency
+//! ### Fire-Adapted Consciousness
+//! Evolutionary consciousness enhancements providing:
+//! - 322% processing capacity improvement
+//! - 460% survival advantage in information domains
+//! - 79.3× communication complexity enhancement
+//! - 346% pattern recognition improvement
 //!
-//! ## Mathematical Foundation
+//! ### Semantic Catalysis
+//! Direct semantic processing through BMD networks, bypassing traditional symbolic computation
+//! while preserving meaning through catalytic processes.
 //!
-//! The Kwasa-Kwasa framework operates on the principle:
+//! ## Module Structure
+//!
 //! ```
-//! iCat_semantic = ℑ_input ○ ℑ_output ○ ℑ_agency
+//! kwasa/
+//! ├── biological_maxwell_demon.rs    # Core BMD information catalyst
+//! ├── bmd_network.rs                 # Multi-level BMD coordination
+//! ├── fire_adapted_consciousness.rs  # Fire-adapted neural enhancements
+//! ├── semantic_catalysis.rs          # Semantic processing catalysts
+//! ├── naming_functions.rs            # Naming system control
+//! ├── agency_assertion.rs            # Reality modification agency
+//! ├── molecular_bmd.rs               # Molecular-level BMD processing
+//! ├── neural_bmd.rs                  # Neural-level BMD processing
+//! ├── cognitive_bmd.rs               # Cognitive-level BMD processing
+//! ├── consciousness_threshold.rs     # Consciousness threshold management
+//! ├── fire_circle_communication.rs   # Fire circle communication enhancement
+//! └── kwasa_framework.rs             # Main framework coordinator
 //! ```
 //!
-//! Where:
-//! - `ℑ_input` = Pattern recognition (naming function)
-//! - `ℑ_output` = Output channeling (flow coordination)
-//! - `ℑ_agency` = Agency assertion (naming modification)
+//! ## Usage
+//!
+//! ```rust
+//! use crate::kwasa::{KwasaFramework, BMDNetwork, FireAdaptedConsciousness};
+//!
+//! // Initialize Kwasa-Kwasa framework
+//! let kwasa = KwasaFramework::new()?;
+//!
+//! // Create BMD network for information catalysis
+//! let bmd_network = BMDNetwork::new(
+//!     molecular_bmds: 1000,
+//!     neural_bmds: 100,
+//!     cognitive_bmds: 10
+//! )?;
+//!
+//! // Enable fire-adapted consciousness enhancements
+//! let consciousness = FireAdaptedConsciousness::new()
+//!     .enable_processing_enhancement(3.22)  // 322% improvement
+//!     .enable_pattern_recognition(3.46)      // 346% improvement
+//!     .enable_communication_complexity(79.3) // 79.3× enhancement
+//!     .initialize()?;
+//!
+//! // Process information through BMD catalysis
+//! let result = kwasa.process_through_bmd_catalysis(
+//!     input_information,
+//!     &bmd_network,
+//!     &consciousness
+//! ).await?;
+//! ```
 
 pub mod biological_maxwell_demon;
-pub mod bmd_network;
+pub mod bmd_network; 
 pub mod fire_adapted_consciousness;
 pub mod semantic_catalysis;
 pub mod naming_functions;
@@ -36,103 +84,125 @@ pub mod consciousness_threshold;
 pub mod fire_circle_communication;
 pub mod kwasa_framework;
 
-// Re-export main types
-pub use biological_maxwell_demon::*;
-pub use bmd_network::*;
-pub use fire_adapted_consciousness::*;
-pub use semantic_catalysis::*;
-pub use naming_functions::*;
-pub use agency_assertion::*;
-pub use molecular_bmd::*;
-pub use neural_bmd::*;
-pub use cognitive_bmd::*;
-pub use consciousness_threshold::*;
-pub use fire_circle_communication::*;
-pub use kwasa_framework::*;
+// Re-export main types for easy access
+pub use biological_maxwell_demon::{
+    BiologicalMaxwellDemon, BMDType, BMDState, MatrixAssociativeMemory, 
+    GoalOrientedSequence, LinguisticBehaviorType, ContextSwitcher, 
+    DiscourseTrajectoryMetrics
+};
+pub use bmd_network::{BMDNetwork, BMDNetworkConfig, NetworkTopology};
+pub use fire_adapted_consciousness::{FireAdaptedConsciousness, ConsciousnessEnhancement, EvolutionaryAdvantage};
+pub use semantic_catalysis::{SemanticCatalyst, CatalyticProcess, SemanticPreservation};
+pub use naming_functions::{NamingController, DiscretizationControl, RealityNaming};
+pub use agency_assertion::{AgencyAssertion, CoordinatedAgency, RealityModification};
+pub use kwasa_framework::{KwasaFramework, KwasaConfig, KwasaResult};
 
-/// Core result type for Kwasa-Kwasa operations
-pub type KwasaResult<T> = Result<T, KwasaError>;
+// Core types and constants
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
-/// Error types for Kwasa-Kwasa framework
-#[derive(Debug, Clone, PartialEq)]
+/// Core error types for Kwasa-Kwasa framework
+#[derive(Debug, thiserror::Error)]
 pub enum KwasaError {
-    /// BMD network initialization failed
-    BmdNetworkInitializationFailed(String),
-    /// Consciousness threshold not reached
-    ConsciousnessThresholdNotReached(f64),
-    /// Fire-adapted enhancement failed
-    FireAdaptedEnhancementFailed(String),
-    /// Semantic catalysis error
+    #[error("BMD initialization failed: {0}")]
+    BMDInitializationError(String),
+    
+    #[error("Consciousness enhancement failed: {0}")]
+    ConsciousnessEnhancementError(String),
+    
+    #[error("Semantic catalysis failed: {0}")]
     SemanticCatalysisError(String),
-    /// Naming function error
-    NamingFunctionError(String),
-    /// Agency assertion failed
-    AgencyAssertionFailed(String),
-    /// Reality discretization error
-    RealityDiscretizationError(String),
-    /// Information catalysis error
-    InformationCatalysisError(String),
+    
+    #[error("BMD network coordination failed: {0}")]
+    NetworkCoordinationError(String),
+    
+    #[error("Fire adaptation failed: {0}")]
+    FireAdaptationError(String),
+    
+    #[error("Agency assertion failed: {0}")]
+    AgencyAssertionError(String),
+    
+    #[error("Reality modification failed: {0}")]
+    RealityModificationError(String),
+    
+    #[error("Matrix memory operation failed: {0}")]
+    MatrixMemoryError(String),
+    
+    #[error("Context switching failed: {0}")]
+    ContextSwitchingError(String),
+    
+    #[error("Discourse trajectory analysis failed: {0}")]
+    DiscourseTrajectoryError(String),
 }
 
-impl std::fmt::Display for KwasaError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            KwasaError::BmdNetworkInitializationFailed(msg) => {
-                write!(f, "BMD network initialization failed: {}", msg)
-            }
-            KwasaError::ConsciousnessThresholdNotReached(threshold) => {
-                write!(f, "Consciousness threshold not reached: {}", threshold)
-            }
-            KwasaError::FireAdaptedEnhancementFailed(msg) => {
-                write!(f, "Fire-adapted enhancement failed: {}", msg)
-            }
-            KwasaError::SemanticCatalysisError(msg) => {
-                write!(f, "Semantic catalysis error: {}", msg)
-            }
-            KwasaError::NamingFunctionError(msg) => {
-                write!(f, "Naming function error: {}", msg)
-            }
-            KwasaError::AgencyAssertionFailed(msg) => {
-                write!(f, "Agency assertion failed: {}", msg)
-            }
-            KwasaError::RealityDiscretizationError(msg) => {
-                write!(f, "Reality discretization error: {}", msg)
-            }
-            KwasaError::InformationCatalysisError(msg) => {
-                write!(f, "Information catalysis error: {}", msg)
-            }
+/// Result type for Kwasa-Kwasa operations
+pub type KwasaResult<T> = Result<T, KwasaError>;
+
+/// Information units processed by BMDs
+#[derive(Debug, Clone)]
+pub struct InformationUnit {
+    pub content: Vec<u8>,
+    pub semantic_meaning: String,
+    pub catalytic_potential: f64,
+    pub consciousness_level: u32,
+    pub fire_adaptation_factor: f64,
+}
+
+/// BMD processing metrics
+#[derive(Debug, Clone)]
+pub struct BMDMetrics {
+    pub processing_enhancement: f64,    // 322% baseline
+    pub pattern_recognition: f64,       // 346% baseline  
+    pub communication_complexity: f64,  // 79.3× baseline
+    pub survival_advantage: f64,        // 460% baseline
+    pub catalytic_efficiency: f64,
+    pub consciousness_threshold: f64,
+}
+
+impl Default for BMDMetrics {
+    fn default() -> Self {
+        Self {
+            processing_enhancement: 3.22,     // 322% improvement
+            pattern_recognition: 3.46,        // 346% improvement  
+            communication_complexity: 79.3,   // 79.3× enhancement
+            survival_advantage: 4.60,         // 460% improvement
+            catalytic_efficiency: 0.95,
+            consciousness_threshold: 0.001,   // 0.1% sequential states
         }
     }
 }
 
-impl std::error::Error for KwasaError {}
+/// Global Kwasa-Kwasa framework constants
+pub struct KwasaConstants;
 
-/// Constants for the Kwasa-Kwasa framework
-pub mod constants {
-    /// Fire-adapted consciousness threshold (Θ_c = 0.61)
-    pub const FIRE_ADAPTED_CONSCIOUSNESS_THRESHOLD: f64 = 0.61;
+impl KwasaConstants {
+    /// Fire-adapted processing enhancement factor (322%)
+    pub const FIRE_PROCESSING_ENHANCEMENT: f64 = 3.22;
     
-    /// Baseline consciousness threshold (Θ_c = 0.4)
-    pub const BASELINE_CONSCIOUSNESS_THRESHOLD: f64 = 0.4;
+    /// Pattern recognition improvement factor (346%)
+    pub const PATTERN_RECOGNITION_FACTOR: f64 = 3.46;
     
-    /// Fire-adapted processing improvement factor (322%)
-    pub const FIRE_ADAPTED_PROCESSING_IMPROVEMENT: f64 = 3.22;
+    /// Communication complexity enhancement (79.3×)
+    pub const COMMUNICATION_COMPLEXITY_MULTIPLIER: f64 = 79.3;
     
     /// Survival advantage factor (460%)
     pub const SURVIVAL_ADVANTAGE_FACTOR: f64 = 4.60;
     
-    /// Communication complexity enhancement (79.3×)
-    pub const COMMUNICATION_COMPLEXITY_ENHANCEMENT: f64 = 79.3;
+    /// Sequential states for consciousness (0.1%)
+    pub const CONSCIOUSNESS_SEQUENTIAL_STATES: f64 = 0.001;
     
-    /// Pattern recognition improvement (346%)
-    pub const PATTERN_RECOGNITION_IMPROVEMENT: f64 = 3.46;
+    /// Dark matter oscillatory modes (95%)
+    pub const DARK_MATTER_PERCENTAGE: f64 = 0.95;
     
-    /// Coherence time enhancement (247ms vs 89ms baseline)
-    pub const FIRE_ADAPTED_COHERENCE_TIME: f64 = 247.0; // milliseconds
-    pub const BASELINE_COHERENCE_TIME: f64 = 89.0; // milliseconds
+    /// Ordinary matter confluences (5%)
+    pub const ORDINARY_MATTER_PERCENTAGE: f64 = 0.05;
     
-    /// Cognitive capacity enhancement (4.22×)
-    pub const COGNITIVE_CAPACITY_ENHANCEMENT: f64 = 4.22;
+    /// Minimum BMD network size for consciousness emergence
+    pub const MIN_BMD_CONSCIOUSNESS_NETWORK: usize = 100;
+    
+    /// Maximum information catalysis rate per BMD
+    pub const MAX_CATALYSIS_RATE: f64 = 1000.0; // information units per second
 }
 
 #[cfg(test)]
