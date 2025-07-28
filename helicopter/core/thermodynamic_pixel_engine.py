@@ -1,520 +1,590 @@
 """
-Thermodynamic Pixel Engine
+Thermodynamic Pixel Processing Engine
 
-Revolutionary Implementation: Each pixel is a gas atom with dual functionality:
-1. OSCILLATOR: Stores information through oscillation amplitude/frequency (pixel values)
-2. PROCESSOR: Computes through oscillatory interactions with neighboring gas atoms
+Implements the thermodynamic approach to pixel processing where each pixel is treated
+as a thermodynamic entity with entropy, temperature, and equilibrium properties.
 
-Core Insights:
-- Reconstruction becomes gas chamber configuration optimization
-- Oscillations happen at extremely fast pace enabling vast molecular space navigation
-- Temperature controls computational capability (higher T = more oscillatory capacity)
-- Any computational problem solvable in unit time with sufficient temperature
-- Pixel-gas duality unifies storage and processing
-
-Integration with Borgia:
-- Borgia provides molecular dynamics engine for gas chamber navigation
-- Helicopter defines target image (desired gas chamber configuration)
-- Thermodynamic optimization finds optimal oscillatory states
+Key Features:
+- Pixel-level entropy modeling
+- Temperature-controlled resource allocation
+- Equilibrium-based optimization
+- Adaptive processing based on local complexity
 """
 
 import numpy as np
 import torch
 import torch.nn as nn
-from typing import Dict, List, Tuple, Optional, Any, Union
-from dataclasses import dataclass, field
-from enum import Enum
-import logging
-import time
-import asyncio
-from scipy.optimize import minimize
 import cv2
-from PIL import Image
+from typing import Dict, List, Optional, Tuple, Any, Union
+from dataclasses import dataclass
+import logging
+from scipy.optimize import minimize
+import math
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
-class OscillationMode(Enum):
-    """Different oscillation modes for gas atom pixels."""
-    THERMAL = "thermal"           # Temperature-driven oscillation
-    COHERENT = "coherent"         # Synchronized oscillation
-    CHAOTIC = "chaotic"           # Random oscillation
-    RESONANT = "resonant"         # Frequency-matched oscillation
+class ProcessingState(Enum):
+    """Thermodynamic processing states"""
+    COLD = "cold"          # Low entropy, minimal processing
+    WARM = "warm"          # Medium entropy, standard processing  
+    HOT = "hot"            # High entropy, intensive processing
+    CRITICAL = "critical"  # Very high entropy, maximum processing
 
 
 @dataclass
-class GasAtomPixel:
-    """A single pixel treated as a gas atom with dual oscillator-processor functionality."""
+class PixelState:
+    """Thermodynamic state of a single pixel"""
+    entropy: float                    # Information entropy
+    temperature: float               # Computational temperature
+    energy: float                   # Internal energy
+    free_energy: float              # Helmholtz free energy (E - T*S)
+    processing_resources: int       # Allocated computational resources
+    equilibrium_reached: bool       # Whether pixel has reached equilibrium
+    class_probabilities: np.ndarray # Probability distribution over classes
+    neighbors_influence: float      # Influence from neighboring pixels
     
-    # Spatial coordinates
-    x: int
-    y: int
-    
-    # Oscillator properties
-    amplitude: float = 0.0        # Oscillation amplitude (brightness)
-    frequency: float = 1.0        # Oscillation frequency (processing speed)
-    phase: float = 0.0           # Phase offset
-    
-    # Gas properties
-    temperature: float = 300.0    # Temperature (computational capacity)
-    pressure: float = 1.0         # Pressure (environmental constraint)
-    velocity: Tuple[float, float] = (0.0, 0.0)  # Velocity vector
-    
-    # Processor properties
-    processing_capacity: float = 1.0    # How much computation this atom can do
-    memory_state: np.ndarray = None     # Current memory state
-    neighbors: List['GasAtomPixel'] = field(default_factory=list)
-    
-    # Molecular properties
-    molecular_type: str = "generic"     # Type of molecule this pixel represents
-    bonds: List[Tuple[int, int]] = field(default_factory=list)  # Bonds to other atoms
-    
-    def __post_init__(self):
-        if self.memory_state is None:
-            self.memory_state = np.zeros(8)  # Default memory size
-
 
 @dataclass
-class GasChamberConfiguration:
-    """Complete gas chamber configuration representing an image."""
-    
-    width: int
-    height: int
-    atoms: List[List[GasAtomPixel]]
-    
-    # Thermodynamic properties
-    global_temperature: float = 300.0
-    global_pressure: float = 1.0
-    entropy: float = 0.0
-    
-    # Computational properties
-    total_processing_capacity: float = 0.0
-    oscillation_synchrony: float = 0.0
-    
-    # Molecular properties
-    molecular_composition: Dict[str, int] = field(default_factory=dict)
-    bond_network: List[Tuple[Tuple[int, int], Tuple[int, int]]] = field(default_factory=list)
+class ThermodynamicMetrics:
+    """Global thermodynamic metrics for the image"""
+    total_entropy: float
+    average_temperature: float
+    total_free_energy: float
+    equilibrium_percentage: float
+    processing_efficiency: float
+    resource_allocation: Dict[str, int]
 
 
 class ThermodynamicPixelEngine:
     """
-    Main engine that treats image reconstruction as gas chamber configuration optimization.
+    Core thermodynamic pixel processing engine.
     
-    Each pixel becomes a gas atom with dual oscillator-processor functionality.
-    Reconstruction finds optimal oscillatory states for all gas atoms.
+    Models each pixel as a thermodynamic entity and optimizes processing
+    resources based on local entropy and temperature.
     """
     
-    def __init__(self, borgia_integration: bool = True):
-        self.borgia_integration = borgia_integration
+    def __init__(
+        self,
+        base_temperature: float = 1.0,
+        max_temperature: float = 10.0,
+        equilibrium_threshold: float = 1e-6,
+        max_iterations: int = 100,
+        num_classes: int = 256,
+        neighborhood_size: int = 3
+    ):
+        self.base_temperature = base_temperature
+        self.max_temperature = max_temperature
+        self.equilibrium_threshold = equilibrium_threshold
+        self.max_iterations = max_iterations
+        self.num_classes = num_classes
+        self.neighborhood_size = neighborhood_size
         
-        # Borgia integration for molecular dynamics
-        if borgia_integration:
-            try:
-                # Import Borgia functionality
-                self.borgia_available = True
-                logger.info("🧪 Borgia molecular dynamics integration enabled")
-            except ImportError:
-                self.borgia_available = False
-                logger.warning("🧪 Borgia not available, using local molecular simulation")
-        else:
-            self.borgia_available = False
+        # Processing states thresholds
+        self.state_thresholds = {
+            ProcessingState.COLD: 0.5,
+            ProcessingState.WARM: 2.0,
+            ProcessingState.HOT: 5.0,
+            ProcessingState.CRITICAL: 8.0
+        }
         
-        # Thermodynamic constants
-        self.boltzmann_constant = 1.380649e-23
-        self.avogadro_number = 6.02214076e23
+        # Resource allocation per state
+        self.state_resources = {
+            ProcessingState.COLD: 1,
+            ProcessingState.WARM: 4,
+            ProcessingState.HOT: 16,
+            ProcessingState.CRITICAL: 64
+        }
         
-        # Processing parameters
-        self.default_temperature = 300.0
-        self.max_temperature = 10000.0  # Maximum computational temperature
-        self.min_oscillation_frequency = 0.1
-        self.max_oscillation_frequency = 1000.0
-        
-        logger.info("🌡️ Thermodynamic Pixel Engine initialized")
+        logger.info("Initialized Thermodynamic Pixel Engine")
     
-    def image_to_gas_chamber(self, image: np.ndarray, 
-                           temperature: float = None) -> GasChamberConfiguration:
+    def calculate_pixel_entropy(
+        self, 
+        pixel_value: Union[int, np.ndarray],
+        neighborhood: Optional[np.ndarray] = None
+    ) -> float:
         """
-        Convert image to gas chamber configuration.
+        Calculate entropy for a single pixel based on its value and neighborhood.
         
-        Each pixel becomes a gas atom with oscillatory and processing properties.
+        Args:
+            pixel_value: Pixel intensity or RGB values
+            neighborhood: Neighboring pixel values for context
+            
+        Returns:
+            Entropy value for the pixel
         """
+        if isinstance(pixel_value, (int, float)):
+            # Grayscale pixel
+            probabilities = self._get_class_probabilities_grayscale(pixel_value, neighborhood)
+        else:
+            # RGB pixel
+            probabilities = self._get_class_probabilities_rgb(pixel_value, neighborhood)
         
-        if temperature is None:
-            temperature = self.default_temperature
+        # Calculate Shannon entropy
+        entropy = -np.sum(probabilities * np.log2(probabilities + 1e-10))
+        return entropy
+    
+    def _get_class_probabilities_grayscale(
+        self, 
+        pixel_value: float, 
+        neighborhood: Optional[np.ndarray] = None
+    ) -> np.ndarray:
+        """Calculate class probabilities for grayscale pixel"""
+        # Simple model: probability decreases with distance from pixel value
+        classes = np.arange(self.num_classes)
+        distances = np.abs(classes - pixel_value)
         
-        height, width = image.shape[:2]
+        # Add neighborhood influence
+        if neighborhood is not None:
+            neighborhood_mean = np.mean(neighborhood)
+            neighborhood_distances = np.abs(classes - neighborhood_mean)
+            distances = 0.7 * distances + 0.3 * neighborhood_distances
         
-        # Create gas atom matrix
-        atoms = []
-        for y in range(height):
-            row = []
-            for x in range(width):
-                # Extract pixel value
-                if len(image.shape) == 3:
-                    pixel_value = np.mean(image[y, x])  # Average RGB for brightness
-                else:
-                    pixel_value = image[y, x]
-                
-                # Create gas atom pixel
-                atom = GasAtomPixel(
-                    x=x, y=y,
-                    amplitude=pixel_value / 255.0,  # Normalize to [0, 1]
-                    frequency=self._calculate_frequency(pixel_value, temperature),
-                    phase=np.random.uniform(0, 2*np.pi),
-                    temperature=temperature,
-                    processing_capacity=self._calculate_processing_capacity(pixel_value, temperature),
-                    molecular_type=self._determine_molecular_type(pixel_value)
-                )
-                
-                row.append(atom)
-            atoms.append(row)
+        # Convert to probabilities using softmax with temperature
+        probabilities = np.exp(-distances / self.base_temperature)
+        probabilities = probabilities / np.sum(probabilities)
         
-        # Set up neighbor connections
-        self._setup_neighbor_connections(atoms)
+        return probabilities
+    
+    def _get_class_probabilities_rgb(
+        self, 
+        pixel_value: np.ndarray, 
+        neighborhood: Optional[np.ndarray] = None
+    ) -> np.ndarray:
+        """Calculate class probabilities for RGB pixel"""
+        # For RGB, we calculate entropy based on color space uncertainty
+        r, g, b = pixel_value
         
-        # Create gas chamber configuration
-        chamber = GasChamberConfiguration(
-            width=width,
-            height=height,
-            atoms=atoms,
-            global_temperature=temperature,
-            total_processing_capacity=self._calculate_total_processing_capacity(atoms)
+        # Create probability distribution in RGB space
+        # This is a simplified model - in practice, would use learned distributions
+        color_variance = np.var([r, g, b])
+        
+        # Higher variance = higher entropy
+        base_entropy = color_variance / (255 * 255)
+        
+        # Create uniform distribution with entropy-dependent spread
+        num_probable_classes = max(1, int(base_entropy * self.num_classes))
+        probabilities = np.zeros(self.num_classes)
+        
+        # Assign probabilities to most likely classes
+        center_class = int(np.mean([r, g, b]))
+        half_spread = num_probable_classes // 2
+        
+        start_idx = max(0, center_class - half_spread)
+        end_idx = min(self.num_classes, center_class + half_spread + 1)
+        
+        probabilities[start_idx:end_idx] = 1.0 / (end_idx - start_idx)
+        
+        return probabilities
+    
+    def calculate_temperature(
+        self, 
+        entropy: float, 
+        min_entropy: float, 
+        max_entropy: float
+    ) -> float:
+        """
+        Calculate computational temperature based on entropy.
+        
+        Higher entropy pixels get higher temperature (more resources).
+        """
+        if max_entropy <= min_entropy:
+            return self.base_temperature
+        
+        # Normalize entropy to [0, 1]
+        normalized_entropy = (entropy - min_entropy) / (max_entropy - min_entropy)
+        
+        # Exponential scaling for temperature
+        temperature = self.base_temperature * np.exp(
+            normalized_entropy * np.log(self.max_temperature / self.base_temperature)
         )
         
-        logger.info(f"🧪 Created gas chamber: {width}x{height}, T={temperature:.1f}K, "
-                   f"total processing capacity: {chamber.total_processing_capacity:.2f}")
-        
-        return chamber
+        return min(temperature, self.max_temperature)
     
-    def reconstruct_via_gas_dynamics(self, 
-                                   target_chamber: GasChamberConfiguration,
-                                   partial_chamber: GasChamberConfiguration,
-                                   max_iterations: int = 1000,
-                                   convergence_threshold: float = 1e-6) -> GasChamberConfiguration:
+    def calculate_internal_energy(
+        self, 
+        pixel_state: PixelState,
+        local_context: np.ndarray
+    ) -> float:
         """
-        Reconstruct image by optimizing gas chamber configuration.
-        
-        Uses molecular dynamics to find optimal oscillatory states.
+        Calculate internal energy of a pixel based on local feature consistency.
         """
+        # Energy based on local feature consistency
+        pixel_value = np.argmax(pixel_state.class_probabilities)
+        local_variance = np.var(local_context)
         
-        logger.info("🔄 Starting gas chamber reconstruction...")
+        # Higher variance = higher energy (less stable)
+        consistency_energy = local_variance / (255 * 255)
         
-        current_chamber = partial_chamber
+        # Add entropy contribution
+        entropy_energy = pixel_state.entropy / np.log2(self.num_classes)
         
-        for iteration in range(max_iterations):
-            # Molecular dynamics step
-            if self.borgia_available:
-                current_chamber = self._borgia_dynamics_step(current_chamber, target_chamber)
-            else:
-                current_chamber = self._local_dynamics_step(current_chamber, target_chamber)
+        # Combine energies
+        total_energy = 0.6 * consistency_energy + 0.4 * entropy_energy
+        
+        return total_energy
+    
+    def calculate_free_energy(self, energy: float, temperature: float, entropy: float) -> float:
+        """Calculate Helmholtz free energy: F = E - T*S"""
+        return energy - temperature * entropy
+    
+    def get_processing_state(self, temperature: float) -> ProcessingState:
+        """Determine processing state based on temperature"""
+        if temperature <= self.state_thresholds[ProcessingState.COLD]:
+            return ProcessingState.COLD
+        elif temperature <= self.state_thresholds[ProcessingState.WARM]:
+            return ProcessingState.WARM
+        elif temperature <= self.state_thresholds[ProcessingState.HOT]:
+            return ProcessingState.HOT
+        else:
+            return ProcessingState.CRITICAL
+    
+    def allocate_resources(self, processing_state: ProcessingState) -> int:
+        """Allocate computational resources based on processing state"""
+        return self.state_resources[processing_state]
+    
+    def process_image_thermodynamically(
+        self, 
+        image: np.ndarray,
+        return_metrics: bool = True
+    ) -> Tuple[np.ndarray, Optional[ThermodynamicMetrics]]:
+        """
+        Process entire image using thermodynamic principles.
+        
+        Args:
+            image: Input image (H, W) or (H, W, C)
+            return_metrics: Whether to return thermodynamic metrics
             
-            # Check convergence
-            error = self._calculate_chamber_error(current_chamber, target_chamber)
+        Returns:
+            Processed image and optional metrics
+        """
+        logger.info("Starting thermodynamic image processing")
+        
+        if len(image.shape) == 2:
+            height, width = image.shape
+            channels = 1
+        else:
+            height, width, channels = image.shape
+        
+        # Initialize pixel states
+        pixel_states = np.empty((height, width), dtype=object)
+        
+        # First pass: Calculate entropy for all pixels
+        entropies = np.zeros((height, width))
+        
+        for i in range(height):
+            for j in range(width):
+                # Get neighborhood
+                neighborhood = self._get_neighborhood(image, i, j)
+                
+                if channels == 1:
+                    pixel_value = image[i, j]
+                else:
+                    pixel_value = image[i, j, :]
+                
+                entropy = self.calculate_pixel_entropy(pixel_value, neighborhood)
+                entropies[i, j] = entropy
+        
+        min_entropy = np.min(entropies)
+        max_entropy = np.max(entropies)
+        
+        # Second pass: Calculate temperatures and initialize states
+        total_resources = 0
+        state_counts = {state: 0 for state in ProcessingState}
+        
+        for i in range(height):
+            for j in range(width):
+                entropy = entropies[i, j]
+                temperature = self.calculate_temperature(entropy, min_entropy, max_entropy)
+                
+                # Get local context for energy calculation
+                local_context = self._get_neighborhood(image, i, j)
+                
+                # Initialize pixel state
+                if channels == 1:
+                    probabilities = self._get_class_probabilities_grayscale(
+                        image[i, j], local_context
+                    )
+                else:
+                    probabilities = self._get_class_probabilities_rgb(
+                        image[i, j, :], local_context
+                    )
+                
+                pixel_state = PixelState(
+                    entropy=entropy,
+                    temperature=temperature,
+                    energy=0.0,  # Will be calculated
+                    free_energy=0.0,  # Will be calculated
+                    processing_resources=0,  # Will be allocated
+                    equilibrium_reached=False,
+                    class_probabilities=probabilities,
+                    neighbors_influence=0.0
+                )
+                
+                # Calculate energy
+                pixel_state.energy = self.calculate_internal_energy(pixel_state, local_context)
+                pixel_state.free_energy = self.calculate_free_energy(
+                    pixel_state.energy, pixel_state.temperature, pixel_state.entropy
+                )
+                
+                # Determine processing state and allocate resources
+                processing_state = self.get_processing_state(temperature)
+                pixel_state.processing_resources = self.allocate_resources(processing_state)
+                
+                pixel_states[i, j] = pixel_state
+                total_resources += pixel_state.processing_resources
+                state_counts[processing_state] += 1
+        
+        logger.info(f"Resource allocation: {dict(state_counts)}")
+        logger.info(f"Total resources allocated: {total_resources}")
+        
+        # Third pass: Iterative equilibrium seeking
+        processed_image = image.copy()
+        equilibrium_iterations = 0
+        
+        for iteration in range(self.max_iterations):
+            energy_changes = []
+            equilibrium_count = 0
             
-            if iteration % 100 == 0:
-                logger.info(f"🔄 Iteration {iteration}: error={error:.6f}, "
-                           f"T={current_chamber.global_temperature:.1f}K")
+            for i in range(height):
+                for j in range(width):
+                    pixel_state = pixel_states[i, j]
+                    
+                    if pixel_state.equilibrium_reached:
+                        equilibrium_count += 1
+                        continue
+                    
+                    # Process pixel with allocated resources
+                    new_state = self._process_pixel_with_resources(
+                        pixel_state, processed_image, i, j
+                    )
+                    
+                    # Check for equilibrium
+                    energy_change = abs(new_state.free_energy - pixel_state.free_energy)
+                    energy_changes.append(energy_change)
+                    
+                    if energy_change < self.equilibrium_threshold:
+                        new_state.equilibrium_reached = True
+                        equilibrium_count += 1
+                    
+                    pixel_states[i, j] = new_state
+                    
+                    # Update processed image
+                    if channels == 1:
+                        processed_image[i, j] = np.argmax(new_state.class_probabilities)
+                    else:
+                        # For RGB, update based on probability distribution
+                        rgb_values = self._probabilities_to_rgb(new_state.class_probabilities)
+                        processed_image[i, j, :] = rgb_values
             
-            if error < convergence_threshold:
-                logger.info(f"✅ Converged after {iteration} iterations")
+            equilibrium_iterations = iteration + 1
+            equilibrium_percentage = equilibrium_count / (height * width) * 100
+            
+            logger.debug(f"Iteration {iteration}: {equilibrium_percentage:.1f}% at equilibrium")
+            
+            # Check global equilibrium
+            if equilibrium_count == height * width:
+                logger.info(f"Global equilibrium reached after {iteration + 1} iterations")
+                break
+            
+            if len(energy_changes) > 0 and np.mean(energy_changes) < self.equilibrium_threshold:
+                logger.info(f"System converged after {iteration + 1} iterations")
                 break
         
-        return current_chamber
-    
-    def adaptive_temperature_reconstruction(self, 
-                                         target_image: np.ndarray,
-                                         masked_image: np.ndarray,
-                                         mask: np.ndarray,
-                                         time_budget: float = 60.0) -> np.ndarray:
-        """
-        Reconstruct image using adaptive temperature control.
-        
-        Higher temperature = more computational capacity = faster convergence.
-        """
-        
-        logger.info("🌡️ Starting adaptive temperature reconstruction...")
-        
-        # Create gas chambers
-        target_chamber = self.image_to_gas_chamber(target_image)
-        partial_chamber = self.image_to_gas_chamber(masked_image)
-        
-        # Apply mask to partial chamber
-        self._apply_mask_to_chamber(partial_chamber, mask)
-        
-        start_time = time.time()
-        temperature = self.default_temperature
-        
-        best_chamber = partial_chamber
-        best_error = float('inf')
-        
-        while time.time() - start_time < time_budget:
-            # Try reconstruction at current temperature
-            reconstructed_chamber = self.reconstruct_via_gas_dynamics(
-                target_chamber, partial_chamber, max_iterations=100
+        # Calculate metrics if requested
+        metrics = None
+        if return_metrics:
+            metrics = self._calculate_thermodynamic_metrics(
+                pixel_states, state_counts, total_resources, equilibrium_iterations
             )
-            
-            # Calculate error
-            error = self._calculate_chamber_error(reconstructed_chamber, target_chamber)
-            
-            if error < best_error:
-                best_chamber = reconstructed_chamber
-                best_error = error
-                logger.info(f"🌡️ New best: T={temperature:.1f}K, error={error:.6f}")
-            
-            # Adaptive temperature increase
-            if error > best_error * 1.1:  # If we're not improving much
-                temperature = min(temperature * 1.5, self.max_temperature)
-                logger.info(f"🔥 Increasing temperature to {temperature:.1f}K")
-            
-            # Update partial chamber temperature
-            self._update_chamber_temperature(partial_chamber, temperature)
         
-        # Convert back to image
-        result_image = self.gas_chamber_to_image(best_chamber)
-        
-        logger.info(f"🌡️ Reconstruction complete: final_T={temperature:.1f}K, "
-                   f"error={best_error:.6f}, time={time.time()-start_time:.1f}s")
-        
-        return result_image
+        logger.info("Thermodynamic processing completed")
+        return processed_image, metrics
     
-    def oscillatory_search(self, 
-                         search_space: Dict[str, Any],
-                         objective_function: callable,
-                         temperature: float = 1000.0,
-                         max_time: float = 1.0) -> Dict[str, Any]:
-        """
-        Navigate vast molecular spaces using oscillatory search.
+    def _get_neighborhood(self, image: np.ndarray, i: int, j: int) -> np.ndarray:
+        """Get neighborhood around pixel (i, j)"""
+        half_size = self.neighborhood_size // 2
+        height, width = image.shape[:2]
         
-        Higher temperature allows faster navigation of solution space.
-        """
+        i_start = max(0, i - half_size)
+        i_end = min(height, i + half_size + 1)
+        j_start = max(0, j - half_size)
+        j_end = min(width, j + half_size + 1)
         
-        logger.info(f"🔍 Starting oscillatory search: T={temperature:.1f}K, "
-                   f"max_time={max_time:.1f}s")
-        
-        # Create oscillatory search agents
-        num_agents = int(temperature / 100)  # More agents at higher temperature
-        agents = []
-        
-        for i in range(num_agents):
-            agent = {
-                'position': self._random_position_in_space(search_space),
-                'velocity': self._random_velocity(temperature),
-                'oscillation_frequency': np.random.uniform(
-                    self.min_oscillation_frequency * temperature / 300,
-                    self.max_oscillation_frequency * temperature / 300
-                ),
-                'best_position': None,
-                'best_value': float('inf')
-            }
-            agents.append(agent)
-        
-        start_time = time.time()
-        global_best_position = None
-        global_best_value = float('inf')
-        
-        iteration = 0
-        while time.time() - start_time < max_time:
-            for agent in agents:
-                # Oscillatory update
-                t = time.time() - start_time
-                oscillation = np.sin(agent['oscillation_frequency'] * t)
-                
-                # Update position with oscillatory component
-                agent['position'] = self._update_oscillatory_position(
-                    agent['position'], agent['velocity'], oscillation, search_space
-                )
-                
-                # Evaluate objective
-                value = objective_function(agent['position'])
-                
-                # Update best positions
-                if value < agent['best_value']:
-                    agent['best_value'] = value
-                    agent['best_position'] = agent['position'].copy()
-                
-                if value < global_best_value:
-                    global_best_value = value
-                    global_best_position = agent['position'].copy()
-            
-            iteration += 1
-            
-            # Log progress
-            if iteration % 1000 == 0:
-                logger.info(f"🔍 Iteration {iteration}: best_value={global_best_value:.6f}")
-        
-        logger.info(f"🔍 Search complete: {iteration} iterations, "
-                   f"best_value={global_best_value:.6f}")
-        
-        return {
-            'best_position': global_best_position,
-            'best_value': global_best_value,
-            'iterations': iteration,
-            'temperature': temperature
-        }
-    
-    def gas_chamber_to_image(self, chamber: GasChamberConfiguration) -> np.ndarray:
-        """Convert gas chamber configuration back to image."""
-        
-        image = np.zeros((chamber.height, chamber.width, 3), dtype=np.uint8)
-        
-        for y in range(chamber.height):
-            for x in range(chamber.width):
-                atom = chamber.atoms[y][x]
-                
-                # Convert oscillation amplitude back to pixel value
-                pixel_value = int(atom.amplitude * 255)
-                
-                # Create RGB from oscillation properties
-                r = pixel_value
-                g = int((atom.frequency / self.max_oscillation_frequency) * 255)
-                b = int((atom.phase / (2 * np.pi)) * 255)
-                
-                image[y, x] = [r, g, b]
-        
-        return image
-    
-    # Helper methods
-    def _calculate_frequency(self, pixel_value: float, temperature: float) -> float:
-        """Calculate oscillation frequency based on pixel value and temperature."""
-        base_frequency = (pixel_value / 255.0) * 10.0  # Base frequency from brightness
-        thermal_factor = temperature / 300.0  # Temperature scaling
-        return base_frequency * thermal_factor
-    
-    def _calculate_processing_capacity(self, pixel_value: float, temperature: float) -> float:
-        """Calculate processing capacity based on pixel value and temperature."""
-        return (pixel_value / 255.0) * (temperature / 300.0)
-    
-    def _determine_molecular_type(self, pixel_value: float) -> str:
-        """Determine molecular type based on pixel value."""
-        if pixel_value < 85:
-            return "slow_molecule"
-        elif pixel_value < 170:
-            return "medium_molecule"
+        if len(image.shape) == 2:
+            neighborhood = image[i_start:i_end, j_start:j_end]
         else:
-            return "fast_molecule"
+            neighborhood = image[i_start:i_end, j_start:j_end, :]
+        
+        return neighborhood
     
-    def _setup_neighbor_connections(self, atoms: List[List[GasAtomPixel]]):
-        """Set up neighbor connections for gas atoms."""
-        height, width = len(atoms), len(atoms[0])
+    def _process_pixel_with_resources(
+        self,
+        pixel_state: PixelState,
+        image: np.ndarray,
+        i: int,
+        j: int
+    ) -> PixelState:
+        """Process pixel using allocated computational resources"""
+        # More resources = more sophisticated processing
+        resources = pixel_state.processing_resources
         
-        for y in range(height):
-            for x in range(width):
-                atom = atoms[y][x]
-                
-                # Connect to 8 neighbors (Moore neighborhood)
-                for dy in [-1, 0, 1]:
-                    for dx in [-1, 0, 1]:
-                        if dy == 0 and dx == 0:
-                            continue
-                        
-                        ny, nx = y + dy, x + dx
-                        if 0 <= ny < height and 0 <= nx < width:
-                            atom.neighbors.append(atoms[ny][nx])
+        # Get current neighborhood
+        neighborhood = self._get_neighborhood(image, i, j)
+        
+        # Update class probabilities based on resources
+        if resources >= 16:  # HOT/CRITICAL processing
+            # Sophisticated neighborhood analysis
+            updated_probabilities = self._sophisticated_probability_update(
+                pixel_state.class_probabilities, neighborhood, pixel_state.temperature
+            )
+        elif resources >= 4:  # WARM processing
+            # Standard neighborhood analysis
+            updated_probabilities = self._standard_probability_update(
+                pixel_state.class_probabilities, neighborhood
+            )
+        else:  # COLD processing
+            # Minimal processing
+            updated_probabilities = pixel_state.class_probabilities
+        
+        # Create new state
+        new_state = PixelState(
+            entropy=pixel_state.entropy,  # Entropy doesn't change during processing
+            temperature=pixel_state.temperature,
+            energy=0.0,  # Will be recalculated
+            free_energy=0.0,  # Will be recalculated
+            processing_resources=pixel_state.processing_resources,
+            equilibrium_reached=pixel_state.equilibrium_reached,
+            class_probabilities=updated_probabilities,
+            neighbors_influence=np.mean(neighborhood)
+        )
+        
+        # Recalculate energy and free energy
+        new_state.energy = self.calculate_internal_energy(new_state, neighborhood)
+        new_state.free_energy = self.calculate_free_energy(
+            new_state.energy, new_state.temperature, new_state.entropy
+        )
+        
+        return new_state
     
-    def _calculate_total_processing_capacity(self, atoms: List[List[GasAtomPixel]]) -> float:
-        """Calculate total processing capacity of gas chamber."""
-        total = 0.0
-        for row in atoms:
-            for atom in row:
-                total += atom.processing_capacity
-        return total
+    def _sophisticated_probability_update(
+        self,
+        current_probs: np.ndarray,
+        neighborhood: np.ndarray,
+        temperature: float
+    ) -> np.ndarray:
+        """Sophisticated probability update using high computational resources"""
+        # Analyze neighborhood patterns
+        neighborhood_flat = neighborhood.flatten()
+        neighborhood_mean = np.mean(neighborhood_flat)
+        neighborhood_std = np.std(neighborhood_flat)
+        
+        # Update probabilities based on neighborhood statistics
+        classes = np.arange(len(current_probs))
+        
+        # Gaussian influence from neighborhood
+        gaussian_influence = np.exp(-0.5 * ((classes - neighborhood_mean) / (neighborhood_std + 1e-6))**2)
+        gaussian_influence = gaussian_influence / np.sum(gaussian_influence)
+        
+        # Combine current probabilities with neighborhood influence
+        # Higher temperature = more influence from neighborhood
+        influence_weight = min(0.8, temperature / self.max_temperature)
+        updated_probs = (1 - influence_weight) * current_probs + influence_weight * gaussian_influence
+        
+        # Renormalize
+        updated_probs = updated_probs / np.sum(updated_probs)
+        
+        return updated_probs
     
-    def _local_dynamics_step(self, 
-                           current_chamber: GasChamberConfiguration,
-                           target_chamber: GasChamberConfiguration) -> GasChamberConfiguration:
-        """Perform local molecular dynamics step."""
+    def _standard_probability_update(
+        self,
+        current_probs: np.ndarray,
+        neighborhood: np.ndarray
+    ) -> np.ndarray:
+        """Standard probability update using moderate computational resources"""
+        neighborhood_mean = np.mean(neighborhood)
         
-        # Simple oscillatory update
-        for y in range(current_chamber.height):
-            for x in range(current_chamber.width):
-                current_atom = current_chamber.atoms[y][x]
-                target_atom = target_chamber.atoms[y][x]
-                
-                # Update oscillation towards target
-                amplitude_error = target_atom.amplitude - current_atom.amplitude
-                current_atom.amplitude += 0.1 * amplitude_error
-                
-                # Update frequency based on temperature
-                current_atom.frequency = self._calculate_frequency(
-                    current_atom.amplitude * 255, current_atom.temperature
-                )
+        # Simple influence based on neighborhood mean
+        classes = np.arange(len(current_probs))
+        distances = np.abs(classes - neighborhood_mean)
         
-        return current_chamber
+        neighborhood_influence = np.exp(-distances / self.base_temperature)
+        neighborhood_influence = neighborhood_influence / np.sum(neighborhood_influence)
+        
+        # Mix with current probabilities
+        updated_probs = 0.7 * current_probs + 0.3 * neighborhood_influence
+        updated_probs = updated_probs / np.sum(updated_probs)
+        
+        return updated_probs
     
-    def _calculate_chamber_error(self, 
-                               chamber1: GasChamberConfiguration,
-                               chamber2: GasChamberConfiguration) -> float:
-        """Calculate error between two gas chambers."""
+    def _probabilities_to_rgb(self, probabilities: np.ndarray) -> np.ndarray:
+        """Convert class probabilities back to RGB values"""
+        # Simple mapping: use expected value
+        expected_value = np.sum(probabilities * np.arange(len(probabilities)))
         
-        total_error = 0.0
-        count = 0
+        # Map to RGB (simplified - in practice would use proper color space mapping)
+        r = int(expected_value) % 256
+        g = int(expected_value * 1.1) % 256
+        b = int(expected_value * 1.2) % 256
         
-        for y in range(chamber1.height):
-            for x in range(chamber1.width):
-                atom1 = chamber1.atoms[y][x]
-                atom2 = chamber2.atoms[y][x]
-                
-                amplitude_error = (atom1.amplitude - atom2.amplitude) ** 2
-                frequency_error = (atom1.frequency - atom2.frequency) ** 2
-                
-                total_error += amplitude_error + frequency_error
-                count += 1
-        
-        return total_error / count if count > 0 else 0.0
+        return np.array([r, g, b])
     
-    def _apply_mask_to_chamber(self, chamber: GasChamberConfiguration, mask: np.ndarray):
-        """Apply mask to gas chamber (0 = unknown, 1 = known)."""
+    def _calculate_thermodynamic_metrics(
+        self,
+        pixel_states: np.ndarray,
+        state_counts: Dict[ProcessingState, int],
+        total_resources: int,
+        equilibrium_iterations: int
+    ) -> ThermodynamicMetrics:
+        """Calculate global thermodynamic metrics"""
+        height, width = pixel_states.shape
+        total_pixels = height * width
         
-        for y in range(chamber.height):
-            for x in range(chamber.width):
-                if mask[y, x] == 0:  # Unknown pixel
-                    atom = chamber.atoms[y][x]
-                    atom.amplitude = 0.0  # Reset amplitude
-                    atom.frequency = self.min_oscillation_frequency
+        # Calculate global metrics
+        total_entropy = 0.0
+        total_temperature = 0.0
+        total_free_energy = 0.0
+        equilibrium_count = 0
+        
+        for i in range(height):
+            for j in range(width):
+                state = pixel_states[i, j]
+                total_entropy += state.entropy
+                total_temperature += state.temperature
+                total_free_energy += state.free_energy
+                if state.equilibrium_reached:
+                    equilibrium_count += 1
+        
+        # Processing efficiency based on resource allocation
+        max_possible_resources = total_pixels * self.state_resources[ProcessingState.CRITICAL]
+        processing_efficiency = 1.0 - (total_resources / max_possible_resources)
+        
+        return ThermodynamicMetrics(
+            total_entropy=total_entropy,
+            average_temperature=total_temperature / total_pixels,
+            total_free_energy=total_free_energy,
+            equilibrium_percentage=equilibrium_count / total_pixels * 100,
+            processing_efficiency=processing_efficiency,
+            resource_allocation={state.value: count for state, count in state_counts.items()}
+        )
     
-    def _update_chamber_temperature(self, chamber: GasChamberConfiguration, temperature: float):
-        """Update temperature of all atoms in chamber."""
+    def get_efficiency_report(self, metrics: ThermodynamicMetrics) -> str:
+        """Generate human-readable efficiency report"""
+        report = f"""
+Thermodynamic Processing Report:
+================================
+Total Entropy: {metrics.total_entropy:.2f}
+Average Temperature: {metrics.average_temperature:.2f}
+Total Free Energy: {metrics.total_free_energy:.2f}
+Equilibrium Achieved: {metrics.equilibrium_percentage:.1f}%
+Processing Efficiency: {metrics.processing_efficiency:.1%}
+
+Resource Allocation:
+{'-' * 20}
+"""
+        for state, count in metrics.resource_allocation.items():
+            percentage = count / sum(metrics.resource_allocation.values()) * 100
+            report += f"{state.capitalize()}: {count} pixels ({percentage:.1f}%)\n"
         
-        chamber.global_temperature = temperature
-        
-        for y in range(chamber.height):
-            for x in range(chamber.width):
-                atom = chamber.atoms[y][x]
-                atom.temperature = temperature
-                atom.frequency = self._calculate_frequency(atom.amplitude * 255, temperature)
-                atom.processing_capacity = self._calculate_processing_capacity(atom.amplitude * 255, temperature)
-    
-    def _random_position_in_space(self, search_space: Dict[str, Any]) -> np.ndarray:
-        """Generate random position in search space."""
-        # Simplified implementation
-        return np.random.randn(10)  # 10-dimensional search space
-    
-    def _random_velocity(self, temperature: float) -> np.ndarray:
-        """Generate random velocity based on temperature."""
-        return np.random.randn(10) * (temperature / 300.0)
-    
-    def _update_oscillatory_position(self, 
-                                   position: np.ndarray,
-                                   velocity: np.ndarray,
-                                   oscillation: float,
-                                   search_space: Dict[str, Any]) -> np.ndarray:
-        """Update position with oscillatory component."""
-        
-        # Oscillatory update
-        oscillatory_component = velocity * oscillation * 0.1
-        new_position = position + oscillatory_component
-        
-        # Bound within search space (simplified)
-        new_position = np.clip(new_position, -10, 10)
-        
-        return new_position
-    
-    def _borgia_dynamics_step(self, 
-                            current_chamber: GasChamberConfiguration,
-                            target_chamber: GasChamberConfiguration) -> GasChamberConfiguration:
-        """Perform Borgia-integrated molecular dynamics step."""
-        
-        # This would integrate with actual Borgia molecular dynamics
-        # For now, use local dynamics
-        logger.info("🧪 Using Borgia molecular dynamics (placeholder)")
-        return self._local_dynamics_step(current_chamber, target_chamber) 
+        return report 

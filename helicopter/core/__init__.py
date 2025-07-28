@@ -48,6 +48,31 @@ from .metacognitive_orchestrator import (
     MetacognitiveInsight
 )
 
+# Paper implementation components
+from .thermodynamic_pixel_engine import (
+    ThermodynamicPixelEngine,
+    ThermodynamicMetrics,
+    ProcessingState,
+    PixelState
+)
+from .hierarchical_bayesian_processor import (
+    HierarchicalBayesianProcessor,
+    BayesianState,
+    HierarchicalResult,
+    ProcessingLevel
+)
+from .reconstruction_validation_metrics import (
+    ReconstructionValidationMetrics,
+    ReconstructionMetrics,
+    ValidationConfig
+)
+from .integrated_processing_engine import (
+    HelicopterProcessingEngine,
+    ProcessingConfiguration,
+    HelicopterResults,
+    create_helicopter_engine
+)
+
 __all__ = [
     'AutonomousReconstructionEngine',
     'PakatiInspiredReconstruction', 
@@ -86,5 +111,21 @@ __all__ = [
     'AnalysisContext',
     'ModuleResult',
     'PipelineState',
-    'MetacognitiveInsight'
+    'MetacognitiveInsight',
+    # Paper implementation components
+    'ThermodynamicPixelEngine',
+    'ThermodynamicMetrics',
+    'ProcessingState',
+    'PixelState',
+    'HierarchicalBayesianProcessor',
+    'BayesianState',
+    'HierarchicalResult',
+    'ProcessingLevel',
+    'ReconstructionValidationMetrics',
+    'ReconstructionMetrics',
+    'ValidationConfig',
+    'HelicopterProcessingEngine',
+    'ProcessingConfiguration',
+    'HelicopterResults',
+    'create_helicopter_engine'
 ] 
