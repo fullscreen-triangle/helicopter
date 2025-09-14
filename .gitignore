@@ -191,7 +191,6 @@ __pycache__/
 # Image files (unless specifically needed)
 *.jpg
 *.jpeg
-*.png
 *.bmp
 *.tiff
 *.tif
