@@ -9,7 +9,6 @@ Based on the mathematical framework from st-stellas-dictionary.tex.
 
 import numpy as np
 import cv2
-from PIL import Image
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.image import extract_patches_2d
