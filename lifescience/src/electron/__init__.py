@@ -22,4 +22,4 @@ from .structures import EMType, UltrastructureType, EMStructure
 from .analyzer import ElectronMicroscopyAnalyzer
 
 # Export main classes
-__all__ = ['ElectronMicroscopyAnalyzer', 'EMType', 'UltrastructureType', 'EMStructure'] 
+__all__ = ['ElectronMicroscopyAnalyzer', 'EMType', 'UltrastructureType','EMStructure'] 
