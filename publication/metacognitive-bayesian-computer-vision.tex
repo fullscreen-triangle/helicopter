@@ -88,7 +88,7 @@ Kundai Farai Sachikonye
 \maketitle
 
 \begin{abstract}
-This paper presents a metacognitive Bayesian computer vision framework that employs formal mathematical verification instead of statistical inference for visual information processing. The system integrates six mathematical components: proof-validated compression analysis using theorem provers (Lean and Coq), gas molecular dynamics modeling with Hamilton's equations, S-entropy coordinate transformation for semantic space navigation, constrained stochastic sampling with semantic gravity fields, Bayesian inference on weighted sample collections, and meta-information extraction for structural pattern identification. Unlike conventional approaches that treat ambiguity as computational noise, the framework utilizes ambiguous information as a computational resource through formal verification of multiple valid interpretations. The system operates through definite observer boundaries implemented via coordinate system constraints, ensuring mathematically well-defined measurement processes. Information elements are modeled as thermodynamic gas molecules evolving toward equilibrium states, then transformed into four-dimensional semantic coordinates where meaning relationships manifest as geometric properties. Constrained sampling employs "pogo stick jumps" with step sizes inversely proportional to local semantic gravity strength, generating samples processed through variational Bayesian inference to extract semantic clusters with quantified uncertainty bounds. Meta-information analysis identifies structural patterns enabling exponential complexity reduction through compression potential estimation. Experimental validation demonstrates $94\%$ correlation with clinical assessments across multiple imaging modalities while maintaining mathematical rigor through machine-checked proof verification of all processing stages. The framework establishes a new paradigm for computer vision systems requiring both high performance and formal mathematical guarantees.
+Presented here is a metacognitive Bayesian computer vision framework that employs formal mathematical verification instead of statistical inference for visual information processing. The system integrates six mathematical components: proof-validated compression analysis using theorem provers, gas molecular dynamics modeling with Hamilton's equations, S-entropy coordinate transformation for semantic space navigation, constrained stochastic sampling with semantic gravity fields, Bayesian inference on weighted sample collections, and meta-information extraction for structural pattern identification. Unlike conventional approaches that treat ambiguity as computational noise, the framework utilizes ambiguous information as a computational resource through formal verification of multiple valid interpretations. The system operates through definite observer boundaries implemented via coordinate system constraints, ensuring mathematically well-defined measurement processes. Information elements are modeled as thermodynamic gas molecules evolving toward equilibrium states, then transformed into four-dimensional semantic coordinates where meaning relationships manifest as geometric properties. Constrained sampling employs "pogo stick jumps" with step sizes inversely proportional to local semantic gravity strength, generating samples processed through variational Bayesian inference to extract semantic clusters with quantified uncertainty bounds. Meta-information analysis identifies structural patterns enabling exponential complexity reduction through compression potential estimation. Experimental validation demonstrates $94\%$ correlation with clinical assessments across multiple imaging modalities while maintaining mathematical rigor through machine-checked proof verification of all processing stages. 
 \end{abstract}
 
 \tableofcontents
@@ -97,11 +97,11 @@ This paper presents a metacognitive Bayesian computer vision framework that empl
 
 The computational processing of visual information has traditionally operated under the assumption that information extraction and pattern recognition constitute sufficient objectives for machine vision systems \cite{szelisky2010computer, forsyth2011computer}. Contemporary approaches in computer vision, while achieving remarkable performance in classification and detection tasks \cite{krizhevsky2012imagenet, he2016deep}, fundamentally lack formal mathematical guarantees regarding the validity of their extracted representations and operate without consideration of observer effects inherent in measurement processes \cite{von2018mathematical}.
 
-This work introduces a metacognitive Bayesian computer vision framework that diverges from conventional approaches in three fundamental aspects. First, unlike traditional systems that rely on statistical inference for pattern validation \cite{bishop2006pattern, murphy2012machine}, our framework employs formal proof systems (Lean \cite{moura2015lean} and Coq \cite{bertot2013interactive}) to mathematically verify each step of the information compression and ambiguity detection process. This represents a paradigmatic shift from probabilistic validation to mathematical certainty in computer vision processing.
+This work introduces a metacognitive Bayesian computer vision framework that diverges from conventional approaches in three fundamental aspects. Firstly, unlike traditional systems that rely on statistical inference for pattern validation \cite{bishop2006pattern, murphy2012machine}, our framework employs formal proof systems (Lean \cite{moura2015lean} and Coq \cite{bertot2013interactive}) to mathematically verify each step of the information compression and ambiguity detection process. This represents a paradigmatic shift from probabilistic validation to mathematical certainty in computer vision processing.
 
-Second, where existing information-theoretic approaches in computer vision focus on minimizing entropy or maximizing information content \cite{cover2006elements, mackay2003information}, our framework specifically identifies and utilizes ambiguous information—data elements possessing multiple valid interpretations—as a computational resource rather than a source of uncertainty to be eliminated. This ambiguity-centric approach fundamentally reframes the relationship between information content and computational utility.
+Secondly, where existing information-theoretic approaches in computer vision focus on minimizing entropy or maximizing information content \cite{cover2006elements, mackay2003information}, our framework specifically identifies and utilizes ambiguous information—data elements possessing multiple valid interpretations—as a computational resource rather than a source of uncertainty to be eliminated. This ambiguity-centric approach fundamentally reframes the relationship between information content and computational utility.
 
-Third, conventional computer vision systems operate as passive measurement devices that extract features without consideration of observer effects \cite{ballard1991animate, aloimonos1988active}. Our framework implements definite observer boundaries through strict coordinate system constraints, recognizing that genuine understanding requires an observer capable of meta-information extraction—the derivation of knowledge about the problem structure rather than problem solutions themselves \cite{hofstadter2007strange}.
+Finally, conventional computer vision systems operate as passive measurement devices that extract features without consideration of observer effects \cite{ballard1991animate, aloimonos1988active}. Our framework implements definite observer boundaries through strict coordinate system constraints, recognizing that genuine understanding requires an observer capable of meta-information extraction—the derivation of knowledge about the problem structure rather than problem solutions themselves \cite{hofstadter2007strange}.
 
 The mathematical foundation of our approach rests on the integration of formal verification theory \cite{harrison2009handbook}, information-theoretic ambiguity quantification \cite{shannon1948mathematical}, and observer-based computational models derived from quantum measurement theory \cite{wheeler1983quantum, zurek2003decoherence}. Unlike hybrid approaches that combine multiple techniques post-hoc \cite{ensemble2012zhou}, our framework achieves mathematical unity through the S-entropy navigation principle, wherein all processing operations converge toward predetermined solution coordinates in a universal problem space.
 
@@ -196,6 +196,31 @@ For formally ambiguous pattern $b$:
 where $\mathcal{C}$ represents the space of contextual interpretations.
 \end{theorem}
 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/test_image_technical.png}
+    \caption{Technical documentation}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/test_image_natural.png}
+    \caption{Natural scene}
+    \end{subfigure}
+    \\
+    \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/test_image_mixed.png}
+    \caption{Mixed content}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/test_image_high_entropy.png}
+    \caption{High-entropy pattern}
+    \end{subfigure}
+    \caption{\textbf{Formal Verification Test Cases.} Representative images from each category subjected to proof-validated compression analysis. Each image undergoes formal mathematical verification where theorem provers validate the correctness of ambiguity detection and compression ratio claims, ensuring mathematical certainty rather than statistical confidence in the extracted representations.}
+    \label{fig:proof-validation-cases}
+    \end{figure}
+
 \subsection{Multiple Meaning Interpretation Framework}
 
 \begin{definition}[Meaning Multiplicity Proof]
@@ -256,7 +281,7 @@ The metacognitive Bayesian processing level emerges from proof characteristics:
 \label{eq:metacognitive-level}
 \end{equation}
 
-\subsection{Verification Algorithm and Computational Implementation}
+\subsection{Verification Algorithm}
 
 The proof validation algorithm proceeds through systematic verification stages:
 
@@ -290,6 +315,8 @@ The proof-validated compression framework provides mathematical completeness gua
 \end{align}
 \end{theorem}
 
+
+
 The computational complexity scales with proof generation and verification:
 
 \begin{equation}
@@ -306,31 +333,6 @@ This proof-validated compression framework establishes the foundational layer fo
 \includegraphics[width=\textwidth]{images/test_images_overview.png}
 \caption{\textbf{Proof-Validated Compression Test Dataset.} Overview of test images used for formal verification of compression and ambiguity detection algorithms. The dataset includes technical documentation, natural scenes, mixed content, and high-entropy patterns, each subjected to machine-checked mathematical proof validation using Lean and Coq theorem provers.}
 \label{fig:proof-validation-overview}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{imgages/test_image_technical.png}
-\caption{Technical documentation}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{images/test_image_natural.png}
-\caption{Natural scene}
-\end{subfigure}
-\\
-\begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{images/test_image_mixed.png}
-\caption{Mixed content}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.45\textwidth}
-\includegraphics[width=\textwidth]{images/test_image_high_entropy.png}
-\caption{High-entropy pattern}
-\end{subfigure}
-\caption{\textbf{Formal Verification Test Cases.} Representative images from each category subjected to proof-validated compression analysis. Each image undergoes formal mathematical verification where theorem provers validate the correctness of ambiguity detection and compression ratio claims, ensuring mathematical certainty rather than statistical confidence in the extracted representations.}
-\label{fig:proof-validation-cases}
 \end{figure}
 
 
@@ -684,6 +686,32 @@ where the unnormalized coordinate vector is:
 \end{equation}
 \end{definition}
 
+\subsection{Theoretical Properties of S-Entropy Coordinates}
+
+\begin{theorem}[Coordinate Space Completeness]
+The S-entropy coordinate space $\mathcal{S}$ provides complete coverage of fundamental semantic dimensions, such that any visual semantic property can be expressed as a linear combination of the cardinal directions.
+\end{theorem}
+
+\begin{proof}
+The cardinal directions form a complete orthogonal basis spanning four fundamental semantic dichotomies: (1) Technical-Emotional, (2) Action-Descriptive, (3) Abstract-Concrete, and (4) Positive-Negative. These dimensions encompass the primary semantic axes identified in cognitive semantic theory, ensuring completeness of representation for visual semantic properties.
+\end{proof}
+
+\begin{theorem}[Transformation Continuity]
+The S-entropy transformation $\mathcal{T}$ is continuous with respect to small perturbations in the visual input.
+\end{theorem}
+
+\begin{proof}
+Each semantic analysis function $\phi_k$ is constructed from continuous image processing operations (convolution, averaging, statistical measures). The composition of continuous functions yields continuity of the overall transformation, ensuring that small changes in visual input produce correspondingly small changes in S-entropy coordinates.
+\end{proof}
+
+\begin{theorem}[Coordinate Invariance Under Semantic-Preserving Transformations]
+S-entropy coordinates remain invariant under transformations that preserve semantic content while altering low-level visual properties.
+\end{theorem}
+
+\begin{proof}
+The semantic analysis functions are designed to extract high-level semantic properties rather than low-level pixel statistics. Transformations such as uniform illumination changes, minor rotations, or small-scale noise additions do not significantly alter the semantic measures, yielding approximately invariant S-entropy coordinates for semantically equivalent inputs.
+\end{proof}
+
 \begin{algorithm}
 \caption{S-Entropy Coordinate Transformation}
 \label{alg:s-entropy-transform}
@@ -714,32 +742,6 @@ where the unnormalized coordinate vector is:
 \RETURN $\mathbf{s}$
 \end{algorithmic}
 \end{algorithm}
-
-\subsection{Theoretical Properties of S-Entropy Coordinates}
-
-\begin{theorem}[Coordinate Space Completeness]
-The S-entropy coordinate space $\mathcal{S}$ provides complete coverage of fundamental semantic dimensions, such that any visual semantic property can be expressed as a linear combination of the cardinal directions.
-\end{theorem}
-
-\begin{proof}
-The cardinal directions form a complete orthogonal basis spanning four fundamental semantic dichotomies: (1) Technical-Emotional, (2) Action-Descriptive, (3) Abstract-Concrete, and (4) Positive-Negative. These dimensions encompass the primary semantic axes identified in cognitive semantic theory, ensuring completeness of representation for visual semantic properties.
-\end{proof}
-
-\begin{theorem}[Transformation Continuity]
-The S-entropy transformation $\mathcal{T}$ is continuous with respect to small perturbations in the visual input.
-\end{theorem}
-
-\begin{proof}
-Each semantic analysis function $\phi_k$ is constructed from continuous image processing operations (convolution, averaging, statistical measures). The composition of continuous functions yields continuity of the overall transformation, ensuring that small changes in visual input produce correspondingly small changes in S-entropy coordinates.
-\end{proof}
-
-\begin{theorem}[Coordinate Invariance Under Semantic-Preserving Transformations]
-S-entropy coordinates remain invariant under transformations that preserve semantic content while altering low-level visual properties.
-\end{theorem}
-
-\begin{proof}
-The semantic analysis functions are designed to extract high-level semantic properties rather than low-level pixel statistics. Transformations such as uniform illumination changes, minor rotations, or small-scale noise additions do not significantly alter the semantic measures, yielding approximately invariant S-entropy coordinates for semantically equivalent inputs.
-\end{proof}
 
 \subsection{Computational Complexity Analysis}
 
