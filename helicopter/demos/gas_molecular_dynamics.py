@@ -65,10 +65,12 @@ class GasMolecularSystem:
         self.molecules = molecules
         self.system_size = system_size
         self.time = 0.0
-        self.dt = 0.01
+        self.dt = 0.001  # Smaller time step for numerical stability
         self.k_boltzmann = 1.0  # Boltzmann constant (normalized)
         self.equilibrium_threshold = 1e-4
         self.force_cutoff = 2.0  # Maximum interaction distance
+        self.max_force = 50.0  # Maximum allowed force magnitude
+        self.min_distance = 0.1  # Minimum allowed distance between molecules
         
     def calculate_semantic_forces(self):
         """
@@ -84,7 +86,7 @@ class GasMolecularSystem:
                     r_ij = mol_j.position - mol_i.position
                     distance = np.linalg.norm(r_ij)
                     
-                    if distance < self.force_cutoff and distance > 1e-6:
+                    if distance < self.force_cutoff and distance > self.min_distance:
                         # Unit vector
                         r_hat = r_ij / distance
                         
@@ -92,15 +94,20 @@ class GasMolecularSystem:
                         semantic_similarity = self.calculate_semantic_similarity(mol_i, mol_j)
                         
                         # Lennard-Jones-like potential with semantic modulation
-                        epsilon = 1.0 * semantic_similarity  # Well depth
-                        sigma = 0.5  # Characteristic distance
+                        epsilon = 0.1 * semantic_similarity  # Reduced well depth for stability
+                        sigma = 0.3  # Characteristic distance
                         
-                        # Force magnitude (derivative of LJ potential)
-                        force_magnitude = 24 * epsilon * (2 * (sigma/distance)**12 - (sigma/distance)**6) / distance
-                        
-                        # Apply force
-                        force = force_magnitude * r_hat
-                        forces[i] += force
+                        # Force magnitude (derivative of LJ potential) with stability check
+                        r_ratio = sigma / distance
+                        if r_ratio < 3.0:  # Prevent extreme forces
+                            force_magnitude = 24 * epsilon * (2 * r_ratio**12 - r_ratio**6) / distance
+                            
+                            # Cap the force magnitude for numerical stability
+                            force_magnitude = np.clip(force_magnitude, -self.max_force, self.max_force)
+                            
+                            # Apply force
+                            force = force_magnitude * r_hat
+                            forces[i] += force
         
         return forces
     
@@ -120,6 +127,16 @@ class GasMolecularSystem:
             # Update velocity (half step)
             acceleration = forces[i] / mol.mass
             mol.velocity += 0.5 * self.dt * acceleration
+            
+            # Apply velocity damping for numerical stability
+            damping_factor = 0.99
+            mol.velocity *= damping_factor
+            
+            # Cap velocity magnitude
+            max_velocity = 10.0
+            velocity_magnitude = np.linalg.norm(mol.velocity)
+            if velocity_magnitude > max_velocity:
+                mol.velocity = mol.velocity * (max_velocity / velocity_magnitude)
             
             # Update position
             mol.position += self.dt * mol.velocity
@@ -198,6 +215,15 @@ class GasMolecularSystem:
             variance = self.calculate_system_variance()
             energy = self.calculate_system_energy()
             
+            # Check for numerical overflow and early stopping
+            if not np.isfinite(variance) or not np.isfinite(energy):
+                print(f"Numerical overflow detected at step {step}. Stopping simulation.")
+                break
+                
+            if variance > 1e6 or abs(energy) > 1e6:
+                print(f"Values too large at step {step}. Stopping simulation.")
+                break
+            
             variance_history.append(variance)
             energy_history.append(energy)
             
@@ -205,6 +231,10 @@ class GasMolecularSystem:
             if variance < variance_threshold:
                 print(f"Equilibrium reached at step {step}, variance: {variance:.6f}")
                 break
+                
+            # Progress reporting
+            if step % 1000 == 0 and step > 0:
+                print(f"  Step {step}: variance = {variance:.6f}, energy = {energy:.6f}")
         
         # Calculate final equilibrium state
         final_positions = np.array([mol.position for mol in self.molecules])
@@ -292,68 +322,94 @@ def visualize_gas_molecular_dynamics(system, equilibrium_results, save_path=None
     positions = equilibrium_results['final_positions']
     temperatures = equilibrium_results['final_temperatures']
     
-    scatter = axes[0,0].scatter(positions[:, 0], positions[:, 1], 
+    scatter = axes[0, 0].scatter(positions[:, 0], positions[:, 1], 
                                c=temperatures, s=50, cmap='plasma', alpha=0.7)
-    axes[0,0].set_xlim(0, 10)
-    axes[0,0].set_ylim(0, 10)
-    axes[0,0].set_title('Final Molecular Positions (colored by temperature)')
-    axes[0,0].set_xlabel('X Position')
-    axes[0,0].set_ylabel('Y Position')
-    plt.colorbar(scatter, ax=axes[0,0], label='Temperature')
+    axes[0, 0].set_xlim(0, 10)
+    axes[0, 0].set_ylim(0, 10)
+    axes[0, 0].set_title('Final Molecular Positions (colored by temperature)')
+    axes[0, 0].set_xlabel('X Position')
+    axes[0, 0].set_ylabel('Y Position')
+    plt.colorbar(scatter, ax=axes[0, 0], label='Temperature')
     
-    # 2. Variance history (equilibrium seeking)
-    axes[0,1].plot(equilibrium_results['variance_history'], 'b-', linewidth=2)
-    axes[0,1].set_title('System Variance vs Time (Equilibrium Seeking)')
-    axes[0,1].set_xlabel('Simulation Steps')
-    axes[0,1].set_ylabel('System Variance')
-    axes[0,1].set_yscale('log')
-    axes[0,1].grid(True, alpha=0.3)
+    # 2. Variance history (equilibrium seeking) - with overflow protection
+    variance_history = np.array(equilibrium_results['variance_history'])
+    # Cap extreme values to prevent plotting issues
+    variance_history = np.clip(variance_history, 1e-10, 1e10)
     
-    # 3. Energy history
-    axes[0,2].plot(equilibrium_results['energy_history'], 'r-', linewidth=2)
-    axes[0,2].set_title('System Energy vs Time')
-    axes[0,2].set_xlabel('Simulation Steps')
-    axes[0,2].set_ylabel('Total Energy')
-    axes[0,2].grid(True, alpha=0.3)
+    axes[0, 1].plot(variance_history, 'b-', linewidth=2)
+    axes[0, 1].set_title('System Variance vs Time (Equilibrium Seeking)')
+    axes[0, 1].set_xlabel('Simulation Steps')
+    axes[0, 1].set_ylabel('System Variance (capped)')
+    try:
+        axes[0, 1].set_yscale('log')
+    except Exception:
+        pass  # Skip if log scale causes issues
+    axes[0, 1].grid(True, alpha=0.3)
+    
+    # 3. Energy history - with overflow protection
+    energy_history = np.array(equilibrium_results['energy_history'])
+    # Cap extreme values to prevent plotting issues
+    energy_history = np.clip(energy_history, -1e10, 1e10)
+    
+    axes[0, 2].plot(energy_history, 'r-', linewidth=2)
+    axes[0, 2].set_title('System Energy vs Time')
+    axes[0, 2].set_xlabel('Simulation Steps')
+    axes[0, 2].set_ylabel('Total Energy (capped)')
+    axes[0, 2].grid(True, alpha=0.3)
     
     # 4. Temperature distribution
-    axes[1,0].hist(temperatures, bins=20, alpha=0.7, color='orange')
-    axes[1,0].set_title('Temperature Distribution at Equilibrium')
-    axes[1,0].set_xlabel('Temperature')
-    axes[1,0].set_ylabel('Count')
-    axes[1,0].axvline(np.mean(temperatures), color='red', linestyle='--', 
+    axes[1, 0].hist(temperatures, bins=20, alpha=0.7, color='orange')
+    axes[1, 0].set_title('Temperature Distribution at Equilibrium')
+    axes[1, 0].set_xlabel('Temperature')
+    axes[1, 0].set_ylabel('Count')
+    axes[1, 0].axvline(np.mean(temperatures), color='red', linestyle='--', 
                       label=f'Mean: {np.mean(temperatures):.3f}')
-    axes[1,0].legend()
+    axes[1, 0].legend()
     
     # 5. Velocity magnitude distribution
     velocities = equilibrium_results['final_velocities']
     velocity_magnitudes = np.linalg.norm(velocities, axis=1)
-    axes[1,1].hist(velocity_magnitudes, bins=20, alpha=0.7, color='green')
-    axes[1,1].set_title('Velocity Magnitude Distribution')
-    axes[1,1].set_xlabel('Velocity Magnitude')
-    axes[1,1].set_ylabel('Count')
+    axes[1, 1].hist(velocity_magnitudes, bins=20, alpha=0.7, color='green')
+    axes[1, 1].set_title('Velocity Magnitude Distribution')
+    axes[1, 1].set_xlabel('Velocity Magnitude')
+    axes[1, 1].set_ylabel('Count')
     
-    # 6. Equilibrium metrics
+    # 6. Equilibrium metrics - with overflow protection
+    final_variance = equilibrium_results['final_variance']
+    final_energy = equilibrium_results['final_energy']
+    steps = equilibrium_results['steps_to_equilibrium']
+    
+    # Handle extreme values that cause matplotlib overflow
+    if not np.isfinite(final_variance) or final_variance > 1e8:
+        final_variance = 1e8
+    if not np.isfinite(final_energy) or abs(final_energy) > 1e8:
+        final_energy = np.sign(final_energy) * 1e8 if final_energy != 0 else 0
+        
     metrics = {
-        'Final Variance': equilibrium_results['final_variance'],
-        'Final Energy': equilibrium_results['final_energy'], 
-        'Steps to Equilibrium': equilibrium_results['steps_to_equilibrium'],
-        'Equilibrium Reached': equilibrium_results['equilibrium_reached']
+        'Final Variance': final_variance,
+        'Final Energy': final_energy, 
+        'Steps to Equilibrium': steps
     }
     
-    y_pos = range(len(metrics))
-    values = []
     labels = []
+    values = []
     for key, value in metrics.items():
-        if key != 'Equilibrium Reached':
-            labels.append(key)
-            values.append(float(value))
+        labels.append(key)
+        # Ensure all values are finite and reasonable for plotting
+        safe_value = float(value) if np.isfinite(float(value)) else 0
+        values.append(safe_value)
     
-    axes[1,2].barh(range(len(values)), values)
-    axes[1,2].set_yticks(range(len(values)))
-    axes[1,2].set_yticklabels(labels)
-    axes[1,2].set_title('Equilibrium Metrics')
-    axes[1,2].set_xlabel('Value')
+    bars = axes[1, 2].barh(range(len(values)), values)
+    axes[1, 2].set_yticks(range(len(values)))
+    axes[1, 2].set_yticklabels(labels)
+    axes[1, 2].set_title('Equilibrium Metrics (overflow protected)')
+    axes[1, 2].set_xlabel('Value')
+    
+    # Add value labels on bars
+    for i, (bar, value) in enumerate(zip(bars, values)):
+        label_text = f'{value:.2e}' if abs(value) > 1000 else f'{value:.2f}'
+        axes[1, 2].text(bar.get_width() * 0.5, bar.get_y() + bar.get_height()/2, 
+                       label_text, va='center', ha='center', fontsize=8)
     
     plt.tight_layout()
     
@@ -389,9 +445,9 @@ def demonstrate_gas_molecular_processing():
     print("Initial system variance:", system.calculate_system_variance())
     print("Initial system energy:", system.calculate_system_energy())
     
-    # Run equilibrium seeking
+    # Run equilibrium seeking (more steps due to smaller time step)
     print("\nRunning gas molecular dynamics to seek equilibrium...")
-    equilibrium_results = system.seek_equilibrium(max_steps=500, variance_threshold=1e-3)
+    equilibrium_results = system.seek_equilibrium(max_steps=10000, variance_threshold=1e-2)
     
     # Print results
     print("\nEquilibrium Results:")

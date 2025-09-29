@@ -292,38 +292,87 @@ class BayesianInferenceEngine:
         weights = posterior_results['posterior_weights']
         
         for i, (mean, cov, weight) in enumerate(zip(means, covariances, weights)):
-            cluster_info = {
-                'cluster_id': i,
-                'center': mean,
-                'uncertainty': np.sqrt(np.diag(cov)),
-                'importance': weight,
-                'volume': np.sqrt(np.linalg.det(cov))
-            }
-            understanding['semantic_clusters'].append(cluster_info)
+            try:
+                # Ensure proper numpy dtypes
+                mean = np.array(mean, dtype=np.float64)
+                cov = np.array(cov, dtype=np.float64)
+                weight = float(weight)
+                
+                # Calculate uncertainty (standard deviation)
+                uncertainty = np.sqrt(np.maximum(np.diag(cov), 1e-12))  # Ensure positive
+                
+                # Calculate volume (determinant of covariance)
+                det_cov = np.linalg.det(cov)
+                volume = float(np.sqrt(np.maximum(det_cov, 1e-12)))
+                
+                cluster_info = {
+                    'cluster_id': int(i),
+                    'center': mean.tolist(),  # Convert to list for JSON serialization
+                    'uncertainty': uncertainty.tolist(),
+                    'importance': weight,
+                    'volume': volume
+                }
+                understanding['semantic_clusters'].append(cluster_info)
+                
+            except Exception as e:
+                print(f"Warning: Error processing cluster {i}: {e}")
+                continue
         
         # Overall uncertainty estimates
+        try:
+            cluster_uncertainties = [np.array(c['uncertainty']) for c in understanding['semantic_clusters']]
+            if cluster_uncertainties:
+                mean_uncertainty = float(np.mean([np.mean(unc) for unc in cluster_uncertainties]))
+            else:
+                mean_uncertainty = 0.0
+        except Exception:
+            mean_uncertainty = 0.0
+            
         understanding['uncertainty_estimates'] = {
-            'total_clusters': len(means),
-            'mean_uncertainty': np.mean([c['uncertainty'] for c in understanding['semantic_clusters']]),
-            'effective_sample_size': posterior_results['effective_sample_size'],
-            'convergence_achieved': posterior_results['convergence']
+            'total_clusters': int(len(means)),
+            'mean_uncertainty': mean_uncertainty,
+            'effective_sample_size': float(posterior_results.get('effective_sample_size', 0)),
+            'convergence_achieved': bool(posterior_results.get('convergence', False))
         }
         
         # Pattern identification
-        understanding['pattern_identification'] = {
-            'dominant_cluster': int(np.argmax(weights)) if len(weights) > 0 else 0,
-            'cluster_separation': self._calculate_cluster_separation(means, covariances),
-            'data_concentration': np.mean(weights) if len(weights) > 0 else 0.0
-        }
+        try:
+            weights_array = np.array(weights, dtype=np.float64)
+            dominant_cluster = int(np.argmax(weights_array)) if len(weights_array) > 0 else 0
+            cluster_separation = self._calculate_cluster_separation(means, covariances)
+            data_concentration = float(np.mean(weights_array)) if len(weights_array) > 0 else 0.0
+            
+            understanding['pattern_identification'] = {
+                'dominant_cluster': dominant_cluster,
+                'cluster_separation': cluster_separation,
+                'data_concentration': data_concentration
+            }
+        except Exception as e:
+            print(f"Warning: Error in pattern identification: {e}")
+            understanding['pattern_identification'] = {
+                'dominant_cluster': 0,
+                'cluster_separation': 0.0,
+                'data_concentration': 0.0
+            }
         
         # Confidence intervals
         for i, (mean, cov) in enumerate(zip(means, covariances)):
-            ci_lower = mean - 1.96 * np.sqrt(np.diag(cov))
-            ci_upper = mean + 1.96 * np.sqrt(np.diag(cov))
-            understanding['confidence_intervals'][f'cluster_{i}'] = {
-                'lower': ci_lower,
-                'upper': ci_upper
-            }
+            try:
+                mean = np.array(mean, dtype=np.float64)
+                cov = np.array(cov, dtype=np.float64)
+                
+                # Calculate 95% confidence intervals
+                std_dev = np.sqrt(np.maximum(np.diag(cov), 1e-12))
+                ci_lower = mean - 1.96 * std_dev
+                ci_upper = mean + 1.96 * std_dev
+                
+                understanding['confidence_intervals'][f'cluster_{i}'] = {
+                    'lower': ci_lower.tolist(),
+                    'upper': ci_upper.tolist()
+                }
+            except Exception as e:
+                print(f"Warning: Error calculating confidence interval for cluster {i}: {e}")
+                continue
         
         print(f"  Identified {len(understanding['semantic_clusters'])} semantic clusters")
         print(f"  Convergence achieved: {understanding['uncertainty_estimates']['convergence_achieved']}")
@@ -335,20 +384,37 @@ class BayesianInferenceEngine:
         if len(means) <= 1:
             return 0.0
         
+        means = np.array(means, dtype=np.float64)
+        covariances = np.array(covariances, dtype=np.float64)
+        
         separations = []
         for i in range(len(means)):
             for j in range(i+1, len(means)):
-                # Mahalanobis distance
-                diff = means[i] - means[j]
-                avg_cov = (covariances[i] + covariances[j]) / 2
                 try:
-                    separation = np.sqrt(diff.T @ np.linalg.inv(avg_cov) @ diff)
-                    separations.append(separation)
-                except:
-                    separation = np.linalg.norm(diff)
-                    separations.append(separation)
+                    # Mahalanobis distance
+                    diff = means[i] - means[j]
+                    avg_cov = (covariances[i] + covariances[j]) / 2
+                    
+                    # Ensure covariance is positive definite
+                    if np.linalg.det(avg_cov) > 1e-12:
+                        separation = float(np.sqrt(diff.T @ np.linalg.inv(avg_cov) @ diff))
+                    else:
+                        separation = float(np.linalg.norm(diff))
+                    
+                    if np.isfinite(separation):
+                        separations.append(separation)
+                        
+                except Exception:
+                    # Fallback to Euclidean distance
+                    try:
+                        diff = means[i] - means[j]
+                        separation = float(np.linalg.norm(diff))
+                        if np.isfinite(separation):
+                            separations.append(separation)
+                    except Exception:
+                        continue
         
-        return np.mean(separations) if separations else 0.0
+        return float(np.mean(separations)) if separations else 0.0
     
     def infer_understanding_from_samples(self, sample_data):
         """
@@ -389,32 +455,68 @@ def visualize_bayesian_inference(inference_results, original_samples=None, save_
     understanding = inference_results['understanding']
     
     # 1. Original samples and inferred clusters
-    if original_samples:
-        sample_positions = np.array([s['position'] for s in original_samples])
-        sample_weights = np.array([s['weight'] for s in original_samples])
+    if original_samples and len(original_samples) > 0:
+        sample_positions = np.array([s['position'] for s in original_samples], dtype=np.float64)
+        sample_weights = np.array([s['weight'] for s in original_samples], dtype=np.float64)
         
-        scatter = axes[0,0].scatter(sample_positions[:, 0], sample_positions[:, 1], 
-                                   c=sample_weights, s=30, alpha=0.6, cmap='viridis')
-        plt.colorbar(scatter, ax=axes[0,0], label='Sample Weight')
+        # Ensure arrays are proper shape and finite
+        if sample_positions.shape[1] >= 2 and len(sample_weights) > 0:
+            # Remove any NaN or inf values
+            valid_mask = np.isfinite(sample_positions).all(axis=1) & np.isfinite(sample_weights)
+            sample_positions = sample_positions[valid_mask]
+            sample_weights = sample_weights[valid_mask]
+            
+            if len(sample_positions) > 0:
+                scatter = axes[0,0].scatter(
+                    sample_positions[:, 0].astype(np.float64), 
+                    sample_positions[:, 1].astype(np.float64), 
+                    c=sample_weights.astype(np.float64), 
+                    s=30, alpha=0.6, cmap='viridis'
+                )
+                plt.colorbar(scatter, ax=axes[0,0], label='Sample Weight')
         
         # Plot inferred cluster centers
-        if len(posterior_results['posterior_means']) > 0:
-            cluster_centers = posterior_results['posterior_means']
-            axes[0,0].scatter(cluster_centers[:, 0], cluster_centers[:, 1], 
-                             c='red', s=200, marker='x', linewidths=3, 
-                             label='Inferred Clusters')
+        if ('posterior_means' in posterior_results and 
+            len(posterior_results['posterior_means']) > 0):
             
-            # Plot confidence ellipses
-            for i, (center, cov) in enumerate(zip(cluster_centers, posterior_results['posterior_covariances'])):
-                eigenvals, eigenvecs = np.linalg.eigh(cov)
-                angle = np.degrees(np.arctan2(eigenvecs[1, 0], eigenvecs[0, 0]))
-                width, height = 2 * 1.96 * np.sqrt(eigenvals)  # 95% confidence
-                
-                ellipse = plt.matplotlib.patches.Ellipse(
-                    center, width, height, angle=angle,
-                    facecolor='none', edgecolor='red', linewidth=2, linestyle='--'
+            cluster_centers = np.array(posterior_results['posterior_means'], dtype=np.float64)
+            
+            if cluster_centers.shape[1] >= 2:
+                axes[0,0].scatter(
+                    cluster_centers[:, 0].astype(np.float64), 
+                    cluster_centers[:, 1].astype(np.float64), 
+                    c='red', s=200, marker='x', linewidths=3, 
+                    label='Inferred Clusters'
                 )
-                axes[0,0].add_patch(ellipse)
+                
+                # Plot confidence ellipses
+                if ('posterior_covariances' in posterior_results and 
+                    len(posterior_results['posterior_covariances']) > 0):
+                    
+                    posterior_covariances = np.array(posterior_results['posterior_covariances'], dtype=np.float64)
+                    
+                    for i, (center, cov) in enumerate(zip(cluster_centers, posterior_covariances)):
+                        try:
+                            # Ensure covariance matrix is valid
+                            cov = np.array(cov, dtype=np.float64)
+                            if cov.shape == (2, 2) and np.linalg.det(cov) > 1e-12:
+                                eigenvals, eigenvecs = np.linalg.eigh(cov)
+                                eigenvals = np.maximum(eigenvals, 1e-12)  # Ensure positive
+                                
+                                angle = float(np.degrees(np.arctan2(eigenvecs[1, 0], eigenvecs[0, 0])))
+                                width = float(2 * 1.96 * np.sqrt(eigenvals[0]))
+                                height = float(2 * 1.96 * np.sqrt(eigenvals[1]))
+                                center_x = float(center[0])
+                                center_y = float(center[1])
+                                
+                                ellipse = plt.matplotlib.patches.Ellipse(
+                                    (center_x, center_y), width, height, angle=angle,
+                                    facecolor='none', edgecolor='red', linewidth=2, linestyle='--'
+                                )
+                                axes[0,0].add_patch(ellipse)
+                        except Exception as e:
+                            print(f"Warning: Could not draw ellipse for cluster {i}: {e}")
+                            continue
         
         axes[0,0].set_title('Original Samples and Inferred Clusters')
         axes[0,0].set_xlabel('X Coordinate')
@@ -422,98 +524,200 @@ def visualize_bayesian_inference(inference_results, original_samples=None, save_
         axes[0,0].legend()
     
     # 2. Posterior cluster weights
-    if len(posterior_results['posterior_weights']) > 0:
-        cluster_indices = range(len(posterior_results['posterior_weights']))
-        axes[0,1].bar(cluster_indices, posterior_results['posterior_weights'])
+    if ('posterior_weights' in posterior_results and 
+        len(posterior_results['posterior_weights']) > 0):
+        
+        weights = np.array(posterior_results['posterior_weights'], dtype=np.float64)
+        cluster_indices = np.arange(len(weights), dtype=int)
+        
+        axes[0,1].bar(cluster_indices, weights)
         axes[0,1].set_title('Posterior Cluster Weights')
         axes[0,1].set_xlabel('Cluster Index')
         axes[0,1].set_ylabel('Weight')
+        
+        # Add value labels on bars
+        for i, weight in enumerate(weights):
+            axes[0,1].text(i, float(weight) + 0.01, f'{float(weight):.3f}', 
+                          ha='center', va='bottom', fontsize=9)
     else:
         axes[0,1].text(0.5, 0.5, 'No clusters\nidentified', 
                       transform=axes[0,1].transAxes, ha='center', va='center')
         axes[0,1].set_title('Posterior Cluster Weights')
     
     # 3. Uncertainty visualization
-    clusters = understanding['semantic_clusters']
-    if clusters:
-        uncertainties = [c['uncertainty'] for c in clusters]
-        importances = [c['importance'] for c in clusters]
+    clusters = understanding.get('semantic_clusters', [])
+    if clusters and len(clusters) > 0:
+        uncertainties = []
+        importances = []
+        
+        for c in clusters:
+            unc = np.array(c.get('uncertainty', [0, 0]), dtype=np.float64)
+            imp = float(c.get('importance', 0.0))
+            
+            # Ensure uncertainty has at least 2 elements
+            if len(unc) < 2:
+                unc = np.array([float(unc[0]) if len(unc) > 0 else 0.0, 0.0])
+            
+            uncertainties.append(unc)
+            importances.append(imp)
         
         for i, (unc, imp) in enumerate(zip(uncertainties, importances)):
-            axes[0,2].scatter(unc[0] if len(unc) > 0 else 0, 
-                             unc[1] if len(unc) > 1 else 0,
-                             s=imp*500, alpha=0.7, label=f'Cluster {i}')
+            if len(unc) >= 2 and np.isfinite(unc).all() and np.isfinite(imp):
+                x_unc = float(unc[0]) if unc[0] > 0 else 0.001
+                y_unc = float(unc[1]) if unc[1] > 0 else 0.001
+                size = float(imp) * 500 if imp > 0 else 10
+                
+                axes[0,2].scatter(x_unc, y_unc, s=size, alpha=0.7, 
+                                 label=f'Cluster {i}')
         
         axes[0,2].set_title('Cluster Uncertainties (size = importance)')
         axes[0,2].set_xlabel('X Uncertainty')
         axes[0,2].set_ylabel('Y Uncertainty')
         if len(clusters) <= 5:
             axes[0,2].legend()
+    else:
+        axes[0,2].text(0.5, 0.5, 'No uncertainty\ndata available', 
+                      transform=axes[0,2].transAxes, ha='center', va='center')
+        axes[0,2].set_title('Cluster Uncertainties')
     
     # 4. Convergence diagnostics
-    convergence_data = {
-        'Effective Sample Size': understanding['uncertainty_estimates']['effective_sample_size'],
-        'Total Clusters': understanding['uncertainty_estimates']['total_clusters'],
-        'Mean Uncertainty': understanding['uncertainty_estimates']['mean_uncertainty'],
-        'Cluster Separation': understanding['pattern_identification']['cluster_separation']
-    }
-    
-    metrics = list(convergence_data.keys())
-    values = list(convergence_data.values())
-    
-    axes[1,0].barh(range(len(metrics)), values)
-    axes[1,0].set_yticks(range(len(metrics)))
-    axes[1,0].set_yticklabels(metrics)
-    axes[1,0].set_title('Inference Quality Metrics')
-    axes[1,0].set_xlabel('Value')
+    try:
+        eff_sample_size = float(understanding.get('uncertainty_estimates', {}).get('effective_sample_size', 0))
+        total_clusters = float(understanding.get('uncertainty_estimates', {}).get('total_clusters', 0))
+        mean_uncertainty = float(understanding.get('uncertainty_estimates', {}).get('mean_uncertainty', 0))
+        cluster_separation = float(understanding.get('pattern_identification', {}).get('cluster_separation', 0))
+        
+        convergence_data = {
+            'Effective Sample Size': eff_sample_size,
+            'Total Clusters': total_clusters,
+            'Mean Uncertainty': mean_uncertainty,
+            'Cluster Separation': cluster_separation
+        }
+        
+        metrics = list(convergence_data.keys())
+        values = [float(v) if np.isfinite(v) else 0.0 for v in convergence_data.values()]
+        
+        y_pos = np.arange(len(metrics))
+        bars = axes[1,0].barh(y_pos, values)
+        axes[1,0].set_yticks(y_pos)
+        axes[1,0].set_yticklabels(metrics)
+        axes[1,0].set_title('Inference Quality Metrics')
+        axes[1,0].set_xlabel('Value')
+        
+        # Add value labels on bars
+        for i, (bar, value) in enumerate(zip(bars, values)):
+            if value > 0:
+                axes[1,0].text(value + max(values) * 0.02, bar.get_y() + bar.get_height()/2, 
+                              f'{value:.2f}', ha='left', va='center', fontsize=9)
+                              
+    except Exception as e:
+        print(f"Warning: Could not create convergence diagnostics: {e}")
+        axes[1,0].text(0.5, 0.5, 'Convergence data\nunavailable', 
+                      transform=axes[1,0].transAxes, ha='center', va='center')
+        axes[1,0].set_title('Inference Quality Metrics')
     
     # 5. Confidence intervals
-    if understanding['confidence_intervals']:
-        cluster_names = list(understanding['confidence_intervals'].keys())
-        n_clusters = len(cluster_names)
-        
-        if n_clusters > 0:
-            # Plot confidence intervals for X coordinate
-            x_positions = range(n_clusters)
-            x_lower = [understanding['confidence_intervals'][name]['lower'][0] 
-                      for name in cluster_names]
-            x_upper = [understanding['confidence_intervals'][name]['upper'][0] 
-                      for name in cluster_names]
-            x_centers = [(l+u)/2 for l, u in zip(x_lower, x_upper)]
-            x_errors = [(u-l)/2 for l, u in zip(x_lower, x_upper)]
+    try:
+        confidence_intervals = understanding.get('confidence_intervals', {})
+        if confidence_intervals and len(confidence_intervals) > 0:
+            cluster_names = list(confidence_intervals.keys())
+            n_clusters = len(cluster_names)
             
-            axes[1,1].errorbar(x_positions, x_centers, yerr=x_errors, 
-                              fmt='o', capsize=5, capthick=2, linewidth=2)
-            axes[1,1].set_title('95% Confidence Intervals (X coordinate)')
-            axes[1,1].set_xlabel('Cluster Index')
-            axes[1,1].set_ylabel('X Coordinate')
-            axes[1,1].set_xticks(x_positions)
+            if n_clusters > 0:
+                # Plot confidence intervals for X coordinate
+                x_positions = np.arange(n_clusters, dtype=int)
+                x_lower = []
+                x_upper = []
+                
+                for name in cluster_names:
+                    lower_data = confidence_intervals[name].get('lower', [0, 0])
+                    upper_data = confidence_intervals[name].get('upper', [0, 0])
+                    
+                    lower_val = float(lower_data[0]) if len(lower_data) > 0 else 0.0
+                    upper_val = float(upper_data[0]) if len(upper_data) > 0 else 0.0
+                    
+                    x_lower.append(lower_val)
+                    x_upper.append(upper_val)
+                
+                x_lower = np.array(x_lower, dtype=np.float64)
+                x_upper = np.array(x_upper, dtype=np.float64)
+                
+                x_centers = (x_lower + x_upper) / 2
+                x_errors = np.abs(x_upper - x_lower) / 2
+                
+                # Ensure all values are finite
+                finite_mask = np.isfinite(x_centers) & np.isfinite(x_errors)
+                if np.any(finite_mask):
+                    axes[1,1].errorbar(
+                        x_positions[finite_mask], 
+                        x_centers[finite_mask], 
+                        yerr=x_errors[finite_mask], 
+                        fmt='o', capsize=5, capthick=2, linewidth=2
+                    )
+                
+                axes[1,1].set_title('95% Confidence Intervals (X coordinate)')
+                axes[1,1].set_xlabel('Cluster Index')
+                axes[1,1].set_ylabel('X Coordinate')
+                axes[1,1].set_xticks(x_positions)
+            else:
+                axes[1,1].text(0.5, 0.5, 'No confidence\nintervals available', 
+                              transform=axes[1,1].transAxes, ha='center', va='center')
+                axes[1,1].set_title('95% Confidence Intervals')
+        else:
+            axes[1,1].text(0.5, 0.5, 'No confidence\nintervals available', 
+                          transform=axes[1,1].transAxes, ha='center', va='center')
+            axes[1,1].set_title('95% Confidence Intervals')
+            
+    except Exception as e:
+        print(f"Warning: Could not create confidence intervals plot: {e}")
+        axes[1,1].text(0.5, 0.5, 'Confidence intervals\nunavailable', 
+                      transform=axes[1,1].transAxes, ha='center', va='center')
+        axes[1,1].set_title('95% Confidence Intervals')
     
     # 6. Summary statistics
-    summary_text = f"""Bayesian Inference Summary
+    try:
+        input_samples = int(inference_results.get('input_samples', 0))
+        inference_method = str(inference_results.get('inference_method', 'unknown'))
+        
+        n_clusters = len(understanding.get('semantic_clusters', []))
+        convergence = understanding.get('uncertainty_estimates', {}).get('convergence_achieved', False)
+        eff_sample_size = float(understanding.get('uncertainty_estimates', {}).get('effective_sample_size', 0))
+        
+        dominant_cluster = int(understanding.get('pattern_identification', {}).get('dominant_cluster', 0))
+        mean_uncertainty = float(understanding.get('uncertainty_estimates', {}).get('mean_uncertainty', 0))
+        cluster_separation = float(understanding.get('pattern_identification', {}).get('cluster_separation', 0))
+        data_concentration = float(understanding.get('pattern_identification', {}).get('data_concentration', 0))
+        
+        summary_text = f"""Bayesian Inference Summary
 
 Input Data:
-• Sample Count: {inference_results['input_samples']}
-• Method: {inference_results['inference_method']}
+• Sample Count: {input_samples}
+• Method: {inference_method}
 
 Posterior Results:
-• Clusters Identified: {len(understanding['semantic_clusters'])}
-• Convergence: {understanding['uncertainty_estimates']['convergence_achieved']}
-• Effective Sample Size: {understanding['uncertainty_estimates']['effective_sample_size']:.1f}
+• Clusters Identified: {n_clusters}
+• Convergence: {convergence}
+• Effective Sample Size: {eff_sample_size:.1f}
 
 Understanding Extracted:
-• Dominant Cluster: {understanding['pattern_identification']['dominant_cluster']}
-• Mean Uncertainty: {understanding['uncertainty_estimates']['mean_uncertainty']:.3f}
-• Cluster Separation: {understanding['pattern_identification']['cluster_separation']:.3f}
-• Data Concentration: {understanding['pattern_identification']['data_concentration']:.3f}
+• Dominant Cluster: {dominant_cluster}
+• Mean Uncertainty: {mean_uncertainty:.3f}
+• Cluster Separation: {cluster_separation:.3f}
+• Data Concentration: {data_concentration:.3f}
 """
-    
-    axes[1,2].text(0.05, 0.95, summary_text, transform=axes[1,2].transAxes,
-                   verticalalignment='top', fontsize=9, fontfamily='monospace')
-    axes[1,2].set_xlim(0, 1)
-    axes[1,2].set_ylim(0, 1)
-    axes[1,2].axis('off')
-    axes[1,2].set_title('Summary')
+        
+        axes[1,2].text(0.05, 0.95, summary_text, transform=axes[1,2].transAxes,
+                       verticalalignment='top', fontsize=9, fontfamily='monospace')
+        axes[1,2].set_xlim(0, 1)
+        axes[1,2].set_ylim(0, 1)
+        axes[1,2].axis('off')
+        axes[1,2].set_title('Summary')
+        
+    except Exception as e:
+        print(f"Warning: Could not create summary statistics: {e}")
+        axes[1,2].text(0.5, 0.5, 'Summary data\nunavailable', 
+                      transform=axes[1,2].transAxes, ha='center', va='center')
+        axes[1,2].set_title('Summary')
     
     plt.tight_layout()
     
@@ -588,7 +792,12 @@ def demonstrate_bayesian_inference():
     print(f"  Effective sample size: {understanding['uncertainty_estimates']['effective_sample_size']:.1f}")
     
     for i, cluster in enumerate(understanding['semantic_clusters']):
-        print(f"  Cluster {i}: center={cluster['center']:.3f}, importance={cluster['importance']:.3f}")
+        center = cluster['center']
+        if isinstance(center, list):
+            center_str = f"[{', '.join(f'{x:.3f}' for x in center)}]"
+        else:
+            center_str = f"{center:.3f}"
+        print(f"  Cluster {i}: center={center_str}, importance={cluster['importance']:.3f}")
     
     # Visualize results
     print("Visualizing Bayesian inference results...")
