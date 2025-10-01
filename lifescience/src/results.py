@@ -16,6 +16,10 @@ import matplotlib.gridspec as gridspec
 from matplotlib.patches import Rectangle
 import seaborn as sns
 from scipy import stats
+from sklearn.metrics import roc_curve, auc, precision_recall_curve, confusion_matrix
+from sklearn.preprocessing import label_binarize
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 
 @dataclass

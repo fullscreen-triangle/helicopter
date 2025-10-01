@@ -196,7 +196,7 @@ __pycache__/
 *.tif
 *.svg
 *.webp
-
+*.zip
 # Video files
 *.mp4
 *.avi
@@ -219,6 +219,10 @@ public/
 
 # Development
 # ===========
+
+lifescience/results/
+lifescience/public/
+
 
 # IDE
 .vscode/
