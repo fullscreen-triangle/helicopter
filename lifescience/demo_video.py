@@ -71,8 +71,8 @@ def load_video_frames(video_path, max_frames=100, skip_frames=1):
         return [], [], {}
 
 
-def analyze_video(video_path, video_type=VideoType.LIVE_CELL, max_frames=50):
-    """Analyze a single video file"""
+def analyze_video(video_path, video_type=VideoType.LIVE_CELL, max_frames=50, output_dir=None):
+    """Analyze a single video file with comprehensive metrics and JSON output"""
     print(f"\n🎥 Analyzing video: {video_path.name}")
     
     # Load video frames
@@ -82,26 +82,38 @@ def analyze_video(video_path, video_type=VideoType.LIVE_CELL, max_frames=50):
         print("❌ No frames loaded")
         return None, None, None
     
-    # Initialize video analyzer
-    analyzer = VideoAnalyzer(video_type=video_type)
+    # Initialize video analyzer with FPS from video info
+    fps = video_info.get('fps', 30.0)
+    analyzer = VideoAnalyzer(video_type=video_type, fps=fps)
     
-    # Run analysis
-    print(f"🔍 Running {video_type.value} analysis...")
+    # Run comprehensive analysis
+    print(f"🔍 Running comprehensive {video_type.value} analysis...")
     results = analyzer.analyze_video(frames, timestamps)
     
-    # Print results
-    print(f"\n📊 Video Analysis Results:")
+    # Save JSON results if output directory provided
+    if output_dir:
+        saved_files = analyzer.save_comprehensive_results(results, output_dir, f"{video_path.stem}_{video_type.value}")
+        print(f"💾 JSON results saved: {list(saved_files.values())}")
+    
+    # Print comprehensive results
+    print(f"\n📊 Comprehensive Video Analysis Results:")
     print(f"   Video type: {results['video_type']}")
     print(f"   Frames processed: {results['num_frames']}")
     print(f"   Duration: {timestamps[-1] - timestamps[0]:.1f} seconds")
+    print(f"   Processing time: {results.get('processing_time', 0):.2f}s")
     
-    # Cell tracking results
+    # Enhanced tracking results
+    tracking_metrics = results.get('tracking_metrics', {})
     tracks = results['tracks']
-    print(f"\n🔬 Cell Tracking:")
+    print(f"\n🔬 Enhanced Cell Tracking:")
     print(f"   Cell tracks detected: {len(tracks)}")
+    print(f"   Tracking accuracy: {tracking_metrics.get('accuracy', 0):.1%}")
+    print(f"   Track completeness: {tracking_metrics.get('completeness', 0):.1%}")
+    print(f"   False positive rate: {tracking_metrics.get('false_positive_rate', 0):.1%}")
+    print(f"   False negative rate: {tracking_metrics.get('false_negative_rate', 0):.1%}")
     
     if tracks:
-        # Show details for first few tracks
+        # Show details for first few tracks with enhanced metrics
         for i, track in enumerate(tracks[:3]):
             displacement = track.get_total_displacement()
             track_duration = track.timestamps[-1] - track.timestamps[0]
@@ -113,17 +125,41 @@ def analyze_video(video_path, video_type=VideoType.LIVE_CELL, max_frames=50):
                 avg_velocity = displacement / track_duration
                 print(f"     Average velocity: {avg_velocity:.2f} pixels/second")
     
-    # Motion analysis
+    # Enhanced motion analysis
     motion_activity = results['motion_activity']
+    peak_frames = results.get('peak_activity_frames', [])
     if motion_activity:
-        print(f"\n📈 Motion Analysis:")
+        print(f"\n📈 Enhanced Motion Analysis:")
         print(f"   Mean activity level: {np.mean(motion_activity):.3f}")
         print(f"   Max activity level: {np.max(motion_activity):.3f}")
         print(f"   Activity variance: {np.std(motion_activity):.3f}")
+        print(f"   Peak activity frames: {len(peak_frames)}")
+    
+    # Behavioral analysis
+    behavior_analysis = results.get('behavior_analysis', {})
+    if behavior_analysis and 'distribution' in behavior_analysis:
+        behaviors = behavior_analysis['distribution']
+        print(f"\n🧬 Behavioral Analysis:")
+        total_cells = sum(behaviors.values())
+        if total_cells > 0:
+            for behavior, count in behaviors.items():
+                percentage = (count / total_cells) * 100
+                print(f"   {behavior.capitalize()}: {count} cells ({percentage:.1f}%)")
+    
+    # Velocity analysis
+    velocity_metrics = results.get('velocity_metrics', {})
+    if velocity_metrics:
+        print(f"\n🏃 Velocity Analysis:")
+        print(f"   Mean velocity: {velocity_metrics.get('mean_velocity', 0):.2f} pixels/second")
+        displacement_metrics = velocity_metrics.get('displacement_metrics', {})
+        if displacement_metrics:
+            print(f"   Mean displacement: {displacement_metrics.get('mean_displacement', 0):.1f} pixels")
+            print(f"   Max displacement: {displacement_metrics.get('max_displacement', 0):.1f} pixels")
+            print(f"   Displacement variance: {displacement_metrics.get('displacement_variance', 0):.1f}")
     
     # Summary statistics
     summary = results['summary']
-    print(f"\n📊 Summary:")
+    print(f"\n📊 Enhanced Summary:")
     print(f"   Total displacement: {summary['total_displacement']:.1f} pixels")
     print(f"   Mean motion activity: {summary['mean_activity']:.3f}")
     
@@ -216,14 +252,15 @@ def main():
         # Use different video type for each video
         video_type = video_types[i % len(video_types)]
         
-        analyzer, results, video_info = analyze_video(video_path, video_type, max_frames=30)
+        # Run comprehensive analysis with JSON output
+        analyzer, results, video_info = analyze_video(video_path, video_type, max_frames=30, output_dir=output_dir)
         
         if analyzer and results:
             # Collect tracks for behavior analysis
             all_tracks.extend(results['tracks'])
             all_results.append(results)
             
-            # Visualize results
+            # Create comprehensive visualizations
             if SAVE_FIGURES or SHOW_FIGURES:
                 # Use first frame as representative frame
                 frames, _, _ = load_video_frames(video_path, max_frames=1)
@@ -231,9 +268,9 @@ def main():
                     fig = analyzer.visualize_results(results, frames[0])
                     
                     if SAVE_FIGURES:
-                        save_path = output_dir / f"video_{video_name}_{video_type.value}.png"
+                        save_path = output_dir / f"video_comprehensive_{video_name}_{video_type.value}.png"
                         fig.savefig(save_path, dpi=300, bbox_inches='tight')
-                        print(f"💾 Saved: {save_path}")
+                        print(f"💾 Comprehensive visualization saved: {save_path}")
                     
                     if SHOW_FIGURES:
                         plt.show()

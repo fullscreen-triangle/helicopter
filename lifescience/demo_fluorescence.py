@@ -22,44 +22,78 @@ from config import get_valid_files, ensure_output_dir, SAVE_FIGURES, SHOW_FIGURE
 from src.fluorescence import FluorescenceAnalyzer, FluorescenceChannel
 
 
-def analyze_fluorescence_image(image_path, channel=FluorescenceChannel.GFP):
-    """Analyze a single fluorescence image"""
+def analyze_fluorescence_image(image_path, channel=FluorescenceChannel.GFP, output_dir=None):
+    """Analyze a single fluorescence image with comprehensive metrics and JSON output"""
     print(f"🔬 Analyzing fluorescence image: {image_path.name}")
     
     # Load image
     image = cv2.imread(str(image_path))
     if image is None:
         print(f"❌ Could not load image: {image_path}")
-        return None
+        return None, None
     
     print(f"📁 Image loaded: {image.shape}")
     
-    # Initialize analyzer
-    analyzer = FluorescenceAnalyzer()
+    # Initialize analyzer with realistic pixel size
+    analyzer = FluorescenceAnalyzer(pixel_size_um=0.065)  # Typical microscopy pixel size
     
-    # Run analysis
-    results = analyzer.analyze_image(image, channel)
+    # Run comprehensive analysis with time series
+    results = analyzer.analyze_image(image, channel, enable_time_series=True, num_time_points=50)
     
-    # Print results
-    print(f"\n📊 Analysis Results ({channel.value}):")
+    # Save JSON results if output directory provided
+    if output_dir:
+        saved_files = analyzer.save_comprehensive_results(results, output_dir, f"{image_path.stem}_{channel.value}")
+        print(f"💾 JSON results saved: {list(saved_files.values())}")
+    
+    # Print comprehensive results
+    print(f"\n📊 Comprehensive Analysis Results ({channel.value}):")
     print(f"   Structures detected: {results['num_structures']}")
+    print(f"   Processing time: {results.get('processing_time', 0):.2f}s")
+    
+    # Show segmentation performance
+    if 'segmentation_dice' in results:
+        print(f"   Segmentation Dice: {results['segmentation_dice']:.3f}")
+        print(f"   Segmentation IoU: {results['segmentation_iou']:.3f}")
+        print(f"   Pixel accuracy: {results['pixel_accuracy']:.3f}")
     
     if results['structures']:
-        # Show details for first few structures
+        # Show details for first few structures with enhanced metrics
         for i, structure in enumerate(results['structures'][:3]):
-            metrics = structure['metrics']
             print(f"\n   Structure {structure['id']}:")
-            print(f"     Mean intensity: {metrics.mean_intensity:.1f}")
-            print(f"     Max intensity: {metrics.max_intensity:.1f}")
-            print(f"     Area: {metrics.area:.0f} pixels")
-            print(f"     Signal-to-noise: {metrics.signal_to_noise:.2f}")
+            print(f"     Mean intensity: {structure['mean_intensity']:.1f} AU")
+            print(f"     Max intensity: {structure['max_intensity']:.1f} AU")
+            print(f"     Area: {structure['area_pixels']:.0f} pixels ({structure['area_um2']:.2f} μm²)")
+            print(f"     Signal-to-noise: {structure['signal_to_noise']:.2f}")
+            print(f"     Contrast: {structure['contrast']:.2f}")
+            print(f"     Eccentricity: {structure['eccentricity']:.3f}")
+            print(f"     Solidity: {structure['solidity']:.3f}")
     
-    # Summary statistics
-    summary = results['summary']
-    print(f"\n📈 Summary Statistics:")
-    print(f"   Total intensity: {summary['total_intensity']:.0f}")
-    print(f"   Mean area: {summary['mean_area']:.1f} pixels")
-    print(f"   Mean SNR: {summary['mean_snr']:.2f}")
+    # Enhanced summary statistics
+    summary = results.get('summary', {})
+    print(f"\n📈 Enhanced Summary Statistics:")
+    print(f"   Total intensity: {summary.get('total_intensity', 0):.0f} AU")
+    print(f"   Mean area: {summary.get('mean_area', 0):.1f} pixels")
+    print(f"   Median area: {summary.get('median_area', 0):.1f} pixels")
+    print(f"   Mean SNR: {summary.get('mean_snr', 0):.2f}")
+    print(f"   Median SNR: {summary.get('median_snr', 0):.2f}")
+    
+    # Intensity distribution
+    intensity_dist = summary.get('intensity_distribution', {})
+    if intensity_dist:
+        print(f"   Intensity range: {intensity_dist.get('min', 0):.1f} - {intensity_dist.get('max', 0):.1f} AU")
+        print(f"   Intensity std: {intensity_dist.get('std', 0):.1f} AU")
+    
+    # Time series results
+    comprehensive_metrics = results.get('comprehensive_metrics')
+    if comprehensive_metrics and hasattr(comprehensive_metrics, 'time_series_data') and comprehensive_metrics.time_series_data:
+        time_series = comprehensive_metrics.time_series_data
+        print(f"\n⏱️  Time Series Analysis:")
+        print(f"   Data points: {len(time_series.get('fluorescence_intensity', []))}")
+        if time_series['fluorescence_intensity']:
+            intensities = time_series['fluorescence_intensity']
+            print(f"   Mean intensity over time: {np.mean(intensities):.1f} AU")
+            print(f"   Photobleaching detected: {intensities[0] > intensities[-1]}")
+            print(f"   SNR over time: {np.mean(time_series['signal_to_noise']):.2f}")
     
     return analyzer, results
 
@@ -153,17 +187,22 @@ def main():
         print(f"\n" + "-" * 40)
         
         channel = channels[i % len(channels)]
-        analyzer, results = analyze_fluorescence_image(image_path, channel)
+        
+        # Run comprehensive analysis with JSON output
+        analyzer, results = analyze_fluorescence_image(image_path, channel, output_dir)
         
         if analyzer and results:
-            # Visualize results
+            # Load original image for visualization
+            original_image = cv2.imread(str(image_path))
+            
+            # Create comprehensive visualizations
             if SAVE_FIGURES or SHOW_FIGURES:
-                fig = analyzer.visualize_results(results)
+                fig = analyzer.visualize_results(results, original_image)
                 
                 if SAVE_FIGURES:
-                    save_path = output_dir / f"fluorescence_{image_name}_{channel.value}.png"
+                    save_path = output_dir / f"fluorescence_comprehensive_{image_name}_{channel.value}.png"
                     fig.savefig(save_path, dpi=300, bbox_inches='tight')
-                    print(f"💾 Saved: {save_path}")
+                    print(f"💾 Comprehensive visualization saved: {save_path}")
                 
                 if SHOW_FIGURES:
                     plt.show()

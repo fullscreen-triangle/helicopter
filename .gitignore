@@ -204,7 +204,8 @@ __pycache__/
 *.mkv
 *.flv
 *.wmv
-
+public/
+*.zip
 # Audio files
 *.wav
 *.mp3
