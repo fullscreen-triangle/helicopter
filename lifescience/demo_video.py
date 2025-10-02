@@ -206,10 +206,12 @@ def analyze_cell_behavior(tracks):
             behaviors['oscillating'] += 1
         else:
             # Check for area changes (division indicator)
-            if len(track.areas) > 5:
+            if hasattr(track, 'areas') and len(track.areas) > 5:
                 area_changes = np.diff(track.areas)
                 if np.any(area_changes > np.std(track.areas)):
                     behaviors['dividing'] += 1
+            else:
+                behaviors['migrating'] += 1  # Default to migrating if no area data
     
     # Print behavior analysis
     total_analyzed = sum(behaviors.values())

@@ -32,19 +32,28 @@ from config import (
     SAVE_FIGURES, SHOW_FIGURES
 )
 
-# Import all lifescience modules
+# Import ALL Helicopter framework modules
 try:
-    from src.gas import BiologicalGasAnalyzer
+    # Core Helicopter Framework modules
+    from src.gas import BiologicalGasAnalyzer, MoleculeType, BiologicalProperties
     from src.entropy import SEntropyTransformer, BiologicalContext
+    from src.meta import MetaInformationExtractor, InformationType
+    
+    # Life Science specialization modules
     from src.fluorescence import FluorescenceAnalyzer, FluorescenceChannel
     from src.electron import ElectronMicroscopyAnalyzer, EMType, UltrastructureType
     from src.video import VideoAnalyzer, VideoType
-    from src.meta import MetaInformationExtractor
     
-    print("✅ All lifescience modules imported successfully!")
+    print("✅ ALL Helicopter framework modules imported successfully!")
+    print("   • Gas Molecular Dynamics: ✅")
+    print("   • S-Entropy Coordinates: ✅") 
+    print("   • Meta-Information: ✅")
+    print("   • Fluorescence Analysis: ✅")
+    print("   • Electron Microscopy: ✅")
+    print("   • Video Analysis: ✅")
     
 except ImportError as e:
-    print(f"❌ Error importing lifescience modules: {e}")
+    print(f"❌ Error importing Helicopter modules: {e}")
     print("Make sure you're running from the lifescience directory")
     sys.exit(1)
 
@@ -87,13 +96,15 @@ def load_video_frames(video_path, max_frames=50):
 
 
 def run_gas_molecular_analysis(image, image_name, output_dir):
-    """Run gas molecular dynamics analysis"""
+    """Run gas molecular dynamics analysis - CORE HELICOPTER MODULE"""
     if not RUN_MODULES['gas_molecular']:
+        print("⏭️  Gas molecular analysis disabled")
         return None
         
-    print("\n🧪 Running Gas Molecular Dynamics Analysis...")
+    print("\n🧪 Running Gas Molecular Dynamics Analysis (CORE HELICOPTER)...")
     
     try:
+        start_time = time.time()
         analyzer = BiologicalGasAnalyzer()
         
         # Run protein structure analysis
@@ -101,6 +112,8 @@ def run_gas_molecular_analysis(image, image_name, output_dir):
             image, 
             structure_type=ANALYSIS_PARAMS['gas_molecular']['structure_type']
         )
+        
+        processing_time = time.time() - start_time
         
         # Visualize results
         if SAVE_FIGURES or SHOW_FIGURES:
@@ -116,9 +129,13 @@ def run_gas_molecular_analysis(image, image_name, output_dir):
             else:
                 plt.close(fig)
         
-        print(f"🔬 Gas Analysis - Found {results['num_residues']} molecular structures")
-        print(f"   Folding Quality: {results['folding_quality']['quality']}")
-        print(f"   Binding Sites: {len(results['binding_sites'])}")
+        print(f"🔬 Gas Analysis Complete ({processing_time:.2f}s):")
+        print(f"   🧬 Molecular residues: {results['num_residues']}")
+        print(f"   ⚖️ Equilibrium reached: {results['equilibrium_reached']}")
+        print(f"   🔗 Binding sites: {len(results['binding_sites'])}")
+        print(f"   📊 Folding quality: {results['folding_quality']['quality']:.3f}")
+        print(f"   🌡️ System temperature: {results['system_temperature']:.2f}K")
+        print(f"   ⚡ Total energy: {results['total_energy']:.3f}")
         
         return results
         
@@ -128,13 +145,16 @@ def run_gas_molecular_analysis(image, image_name, output_dir):
 
 
 def run_entropy_analysis(image, image_name, output_dir):
-    """Run S-entropy coordinate analysis"""
+    """Run S-entropy coordinate analysis - CORE HELICOPTER MODULE"""
     if not RUN_MODULES['entropy_analysis']:
+        print("⏭️  S-entropy analysis disabled")
         return None
         
-    print("\n📊 Running S-Entropy Analysis...")
+    print("\n🎯 Running S-Entropy Coordinate Transformation (CORE HELICOPTER)...")
     
     try:
+        start_time = time.time()
+        
         context_map = {
             'cellular': BiologicalContext.CELLULAR,
             'tissue': BiologicalContext.TISSUE, 
@@ -144,6 +164,8 @@ def run_entropy_analysis(image, image_name, output_dir):
         
         transformer = SEntropyTransformer(biological_context=context)
         coordinates = transformer.transform(image)
+        
+        processing_time = time.time() - start_time
         
         # Visualize results
         if SAVE_FIGURES or SHOW_FIGURES:
@@ -159,13 +181,15 @@ def run_entropy_analysis(image, image_name, output_dir):
             else:
                 plt.close(fig)
         
-        coords = coordinates.to_array()
-        print(f"🎯 S-Entropy Coordinates:")
-        print(f"   Structural: {coords[0]:.3f}")
-        print(f"   Functional: {coords[1]:.3f}")
-        print(f"   Morphological: {coords[2]:.3f}")
-        print(f"   Temporal: {coords[3]:.3f}")
-        print(f"   Confidence: {coordinates.confidence:.3f}")
+        print(f"🎯 S-Entropy Analysis Complete ({processing_time:.2f}s):")
+        print(f"   📐 4D Coordinates:")
+        print(f"     • Structural: {coordinates.structural:.3f}")
+        print(f"     • Functional: {coordinates.functional:.3f}")
+        print(f"     • Morphological: {coordinates.morphological:.3f}")
+        print(f"     • Temporal: {coordinates.temporal:.3f}")
+        print(f"   🎯 Transformation confidence: {coordinates.confidence:.3f}")
+        print(f"   🧬 Biological context: {coordinates.biological_context.value}")
+        print(f"   🔄 Processing mode: {coordinates.processing_mode}")
         
         return coordinates
         
@@ -324,20 +348,26 @@ def run_video_analysis(frames, video_name, output_dir):
 
 
 def run_meta_information_analysis(image, image_name, output_dir):
-    """Run meta-information extraction"""
+    """Run meta-information extraction - CORE HELICOPTER MODULE"""
     if not RUN_MODULES['meta_information']:
+        print("⏭️  Meta-information analysis disabled")
         return None
         
-    print("\n🔍 Running Meta-Information Analysis...")
+    print("\n🔍 Running Meta-Information Extraction (CORE HELICOPTER)...")
     
     try:
+        start_time = time.time()
         extractor = MetaInformationExtractor()
+        
+        # Extract meta-information
         meta_info = extractor.extract_meta_information(image)
         
         # Analyze compression ratios if requested
         compression_ratios = None
         if ANALYSIS_PARAMS['meta']['compression_analysis']:
             compression_ratios = extractor.analyze_compression_ratio(image)
+        
+        processing_time = time.time() - start_time
         
         # Visualize results
         if SAVE_FIGURES or SHOW_FIGURES:
@@ -353,16 +383,19 @@ def run_meta_information_analysis(image, image_name, output_dir):
             else:
                 plt.close(fig)
         
-        print(f"📊 Meta-Information Analysis:")
-        print(f"   Information type: {meta_info.information_type.value}")
-        print(f"   Semantic density: {meta_info.semantic_density:.3f}")
-        print(f"   Compression potential: {meta_info.compression_potential:.3f}")
-        print(f"   Structural complexity: {meta_info.structural_complexity:.3f}")
+        print(f"📊 Meta-Information Analysis Complete ({processing_time:.2f}s):")
+        print(f"   📋 Information type: {meta_info.information_type.value}")
+        print(f"   🗜️ Compression potential: {meta_info.compression_potential:.3f}")
+        print(f"   🔬 Semantic density: {meta_info.semantic_density:.3f}")
+        print(f"   🏗️ Structural complexity: {meta_info.structural_complexity:.3f}")
+        print(f"   🎯 Analysis confidence: {meta_info.confidence:.3f}")
         
         if compression_ratios:
-            print(f"   Lossless compression: {compression_ratios['lossless_ratio']:.1f}x")
-            print(f"   Lossy compression: {compression_ratios['lossy_ratio']:.1f}x")
-            print(f"   Semantic compression: {compression_ratios['semantic_ratio']:.1f}x")
+            print(f"   📈 Compression Analysis:")
+            print(f"     • Lossless: {compression_ratios['lossless_ratio']:.1f}x")
+            print(f"     • Lossy: {compression_ratios['lossy_ratio']:.1f}x")
+            print(f"     • Semantic: {compression_ratios['semantic_ratio']:.1f}x")
+            print(f"     • Pattern Recognition: {compression_ratios.get('pattern_ratio', 1.0):.1f}x")
         
         return meta_info, compression_ratios
         

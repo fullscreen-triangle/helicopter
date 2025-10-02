@@ -238,9 +238,9 @@ class VideoAnalyzer:
         
         # Simplified behavior transitions (would require temporal analysis)
         transitions = {
-            'stationary_to_migrating': np.random.randint(0, behaviors['stationary']),
-            'migrating_to_stationary': np.random.randint(0, behaviors['migrating']),
-            'oscillating_to_migrating': np.random.randint(0, behaviors['oscillating'])
+            'stationary_to_migrating': np.random.randint(0, max(1, behaviors['stationary'])),
+            'migrating_to_stationary': np.random.randint(0, max(1, behaviors['migrating'])),
+            'oscillating_to_migrating': np.random.randint(0, max(1, behaviors['oscillating']))
         }
         
         return {
