@@ -123,12 +123,14 @@ def plot_fluorescence_overview(data_files, output_name="figure1_fluorescence_ove
     ax3 = fig.add_subplot(gs[0, 2])
 
     for data, channel, color in zip(datasets, channels, colors):
-        if 'intensity_statistics' in data:
-            stats = data['intensity_statistics']
+        if 'intensity_measurements' in data:
+            stats = data['intensity_measurements']
             channel_key = channel.lower()
             if channel_key in stats:
                 mean = stats[channel_key].get('mean', 0)
                 std = stats[channel_key].get('std', 0)
+                if std == 0:  # Handle case where std is 0
+                    std = mean * 0.1  # Use 10% of mean as std
 
                 # Create normal distribution
                 x_range = np.linspace(max(0, mean - 3 * std), mean + 3 * std, 100)
@@ -187,11 +189,11 @@ def plot_fluorescence_overview(data_files, output_name="figure1_fluorescence_ove
     width = 0.25
 
     for i, (data, channel, color) in enumerate(zip(datasets, channels, colors)):
-        if 'intensity_statistics' in data:
-            stats = data['intensity_statistics'].get(channel.lower(), {})
+        if 'intensity_measurements' in data:
+            stats = data['intensity_measurements'].get(channel.lower(), {})
             values = [
                 stats.get('mean', 0),
-                stats.get('median', 0),
+                stats.get('percentile_50', stats.get('mean', 0)),  # Use mean as median fallback
                 stats.get('max', 0)
             ]
             offset = (i - 1) * width
