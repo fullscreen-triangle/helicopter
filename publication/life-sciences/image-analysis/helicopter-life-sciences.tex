@@ -73,7 +73,7 @@
 \newcommand{\inner}[2]{\left\langle #1, #2 \right\rangle}
 
 % Title and author information
-\title{\textbf{On the Thermodynamic Consequences of Oscillatory Dynamics in Image Processing: Application of Gas Molecule Models and Heirarchical Meta-Information Data Structures in Life Sciences Image Analysis}}
+\title{\textbf{On the Thermodynamic Consequences of Oscillatory Dynamics in Image Processing: Application of Gas Molecule Models and Hierarchical Meta-Information Data Structures in Life Sciences Image Analysis}}
 
 \author{
 Kundai Farai Sachikonye
@@ -140,6 +140,12 @@ S = -\iint p(x,y) \log p(x,y) \, dx \, dy
 
 where $p(x,y) = \rho(x,y)/U$ represents the normalized probability density of finding information content at position $(x,y)$.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/thermodynamic-intepretation.pdf}
+    \caption{Thermodynamic computer vision framework showing the conceptual transformation from biological image pixels to information gas molecules with thermodynamic properties, establishing the foundation for molecular dynamics, entropy coordinates, and meta-information extraction.}
+    \label{fig:thermodynamic-framework}
+    \end{figure}
 \subsection{Gas Molecular Dynamics Framework}
 
 The gas molecular dynamics approach treats image regions as collections of interacting information molecules. Each molecule carries attributes including position, velocity, and binding affinity. Molecular interactions are governed by potential functions that encode spatial relationships and feature similarities.
@@ -213,12 +219,12 @@ The fluorescence analysis framework operates on the principle that fluorescence 
 
 The framework supports multi-channel analysis with comprehensive colocalization metrics, time-series analysis for dynamic processes, and advanced segmentation algorithms optimized for fluorescence data characteristics. Signal-to-noise ratio optimization and background correction ensure reliable quantitative measurements across diverse experimental conditions.
 
-% FIGURE PROPOSAL: Fluorescence analysis overview and multi-channel capabilities
-% This figure should show: (1) Multi-channel fluorescence image example,
-% (2) Background subtraction methods comparison, (3) Segmentation pipeline visualization,
-% (4) Colocalization analysis workflow
-% Location: After this paragraph
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/figure1_fluorescence_overview.png}
+    \caption{Comprehensive fluorescence microscopy analysis overview showing multi-channel processing capabilities, background subtraction methods, segmentation results, and quantitative measurements across different biological samples.}
+    \label{fig:fluorescence-overview}
+    \end{figure}
 \subsection{Advanced Background Subtraction Methods}
 
 Accurate background subtraction is critical for quantitative fluorescence analysis. The framework implements multiple background estimation methods to accommodate diverse imaging conditions and fluorophore characteristics.
@@ -261,12 +267,12 @@ I_{\text{corrected}}(x,y) = \max(I(x,y) - B(x,y), 0)
 
 where the maximum operation prevents negative intensity values.
 
-% FIGURE PROPOSAL: Background subtraction method comparison
-% This figure should display: (1) Original fluorescence image with background,
-% (2) Gaussian background estimation result, (3) Morphological background result,
-% (4) Rolling ball background result, (5) Corrected images for each method,
-% (6) Quantitative comparison of background removal effectiveness
-% Location: After this subsection
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/figure2_fluorescence_detailed.png}
+    \caption{Detailed fluorescence analysis results showing segmentation performance, intensity measurements, signal-to-noise ratio analysis, morphological characterization, and colocalization metrics with statistical validation.}
+    \label{fig:fluorescence-detailed}
+    \end{figure}
 
 \subsection{Enhanced Segmentation and Structure Detection}
 
@@ -318,6 +324,13 @@ Local maxima in the distance transform serve as watershed seeds:
 
 The watershed algorithm assigns pixels to regions based on topographic analysis of the intensity landscape.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/segmentation-pipeline.pdf}
+    \caption{Fluorescence segmentation pipeline showing the complete workflow from original image through threshold selection, binary segmentation, morphological refinement, distance transform, watershed segmentation, to final segmented structures with boundaries and quantitative analysis.}
+    \label{fig:segmentation-pipeline}
+    \end{figure}
+
 % FIGURE PROPOSAL: Segmentation pipeline visualization
 % This figure should show: (1) Original fluorescence image, (2) Threshold selection visualization,
 % (3) Binary segmentation result, (4) Morphological refinement steps,
@@ -363,11 +376,12 @@ Contrast quantifies the distinction between signal and background:
 
 where $B_{\text{mean},i}$ represents the mean background intensity in the structure region.
 
-% FIGURE PROPOSAL: Quantitative analysis visualization
-% This figure should present: (1) Intensity distribution analysis across structures,
-% (2) Signal-to-noise ratio mapping with color coding, (3) Contrast analysis visualization,
-% (4) Statistical distribution plots for all metrics
-% Location: After this subsection
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/figure4_statistical_analysis.png}
+    \caption{Statistical analysis of fluorescence microscopy results showing distribution analysis, correlation studies, performance metrics, and comparative assessment across different imaging conditions and biological samples.}
+    \label{fig:statistical-analysis}
+    \end{figure}
 
 \subsection{Morphological Characterization}
 
@@ -403,12 +417,6 @@ d_{\text{nearest},i} = \min_{j \neq i} \|\mathbf{c}_i - \mathbf{c}_j\|
 
 where $\mathbf{c}_i$ represents the centroid of structure $i$.
 
-% FIGURE PROPOSAL: Morphological analysis results
-% This figure should show: (1) Eccentricity analysis with ellipse fitting visualization,
-% (2) Solidity measurement examples, (3) Spatial distribution analysis,
-% (4) Morphological parameter correlation analysis
-% Location: After this subsection
-
 \subsection{Multi-Channel Colocalization Analysis}
 
 The framework provides comprehensive colocalization analysis for multi-channel fluorescence data, enabling investigation of molecular interactions and spatial relationships.
@@ -442,15 +450,17 @@ The overlap coefficient measures the degree of spatial overlap:
 \text{Overlap} = \frac{\sum_{i} \min(I_1^i, I_2^i)}{\sqrt{\sum_{i} (I_1^i)^2 \sum_{i} (I_2^i)^2}}
 \end{equation}
 
-% FIGURE PROPOSAL: Colocalization analysis visualization
-% This figure should display: (1) Multi-channel overlay images, (2) Pearson correlation scatter plots,
-% (3) Manders' coefficient visualization, (4) Colocalization maps with quantitative metrics,
-% (5) Statistical significance testing results
-% Location: After this subsection
 
 \subsection{Time-Series Analysis and Dynamic Processes}
 
 The framework supports temporal analysis of fluorescence dynamics, including photobleaching correction and kinetic parameter estimation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/figure5_timeseries_detailed.png}
+    \caption{Time-series fluorescence analysis showing temporal dynamics, photobleaching correction, FRAP recovery analysis, kinetic parameter extraction, and dynamic process classification with quantitative metrics.}
+    \label{fig:timeseries-analysis}
+    \end{figure}
 
 \subsubsection{Photobleaching Modeling}
 
@@ -480,11 +490,12 @@ I_{\text{norm}}(t) = A(1 - e^{-t/\tau})
 
 where $A$ is the mobile fraction and $\tau$ is the recovery time constant.
 
-% FIGURE PROPOSAL: Time-series analysis visualization
-% This figure should show: (1) Photobleaching curve fitting examples, (2) FRAP recovery analysis,
-% (3) Kinetic parameter extraction, (4) Dynamic process classification,
-% (5) Temporal correlation analysis
-% Location: After this subsection
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/figure6_fluorescence_comparative_summary.png}
+    \caption{Comparative fluorescence analysis summary showing performance across different sample types, method comparison, accuracy assessment, and integrated analysis results demonstrating framework effectiveness.}
+    \label{fig:fluorescence-comparative}
+    \end{figure}
 
 \subsection{Segmentation Quality Assessment}
 
@@ -515,12 +526,22 @@ Overall segmentation accuracy is measured as:
 \begin{equation}
 \text{Accuracy} = \frac{\text{Correctly classified pixels}}{\text{Total pixels}}
 \end{equation}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/fluorescence_multi_channel.png}
+    \caption{Multi-channel fluorescence overlay}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/fluorescence_cellular_structure.png}
+    \caption{Cellular structure analysis}
+    \end{subfigure}
+    \caption{Multi-channel fluorescence microscopy results showing channel overlay analysis and cellular structure characterization with quantitative colocalization metrics.}
+    \label{fig:multichannel-fluorescence}
+    \end{figure}
 
-% FIGURE PROPOSAL: Segmentation quality assessment
-% This figure should present: (1) Ground truth vs segmentation comparison,
-% (2) Dice coefficient visualization, (3) IoU analysis, (4) Pixel accuracy mapping,
-% (5) Quality metric distributions across datasets
-% Location: After this subsection
+
 
 \subsection{Integration with Thermodynamic Framework}
 
@@ -548,11 +569,6 @@ U_{\text{fluor}}(\mathbf{r}) = -\alpha \sum_i I_i \exp\left(-\frac{|\mathbf{r} -
 
 where $\alpha$ is the coupling strength and the negative sign creates attractive potential wells at high-intensity regions.
 
-% FIGURE PROPOSAL: Thermodynamic integration visualization
-% This figure should show: (1) Fluorescence structures as molecular systems,
-% (2) Intensity-based energy landscapes, (3) Molecular dynamics evolution,
-% (4) Equilibrium configurations reflecting fluorescence organization
-% Location: After this subsection
 
 \subsection{Computational Performance and Optimization}
 
@@ -579,11 +595,25 @@ T_{\text{total}} = \max_c(T_{\text{channel},c}) + T_{\text{colocalization}}
 
 where channel-specific processing occurs in parallel and colocalization analysis follows sequentially.
 
-% FIGURE PROPOSAL: Performance analysis and optimization results
-% This figure should display: (1) Processing time vs image size analysis,
-% (2) Memory usage optimization, (3) Parallel processing efficiency,
-% (4) Computational complexity scaling
-% Location: After this subsection
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/fluorescence_fluorescence_cell_gfp.png}
+    \caption{GFP fluorescence cell}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/fluorescence_high_res_tissue_dapi.png}
+    \caption{DAPI high-res tissue}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/fluorescence_cellular_structure_rfp.png}
+    \caption{RFP cellular structure}
+    \end{subfigure}
+    \caption{Individual fluorescence sample analysis results showing GFP cell characterization, DAPI tissue imaging, and RFP cellular structure analysis with quantitative metrics and thermodynamic integration.}
+    \label{fig:individual-fluorescence}
+    \end{figure}
 
 The fluorescence microscopy analysis framework provides comprehensive quantitative analysis capabilities specifically designed for fluorescence imaging characteristics. The integration of advanced background subtraction, multi-channel colocalization analysis, and time-series processing enables detailed investigation of biological processes while maintaining compatibility with the thermodynamic computer vision approach.
 
@@ -597,11 +627,12 @@ The electron microscopy analysis framework operates on three primary imaging mod
 
 The fundamental approach treats electron microscopy images as thermodynamic systems where electron density variations correspond to information molecule distributions. High-density regions (dark areas in TEM) represent information-rich biological structures, while low-density regions correspond to background or embedding medium. This interpretation enables the application of gas molecular dynamics principles to ultrastructural analysis.
 
-% FIGURE PROPOSAL: EM modality comparison and analysis pipeline
-% This figure should show: (1) Representative TEM, SEM, and Cryo-EM images,
-% (2) Modality-specific preprocessing parameters, (3) Structure detection results for each type,
-% (4) Comparative analysis workflow
-% Location: After this paragraph
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/electron-microscope-modality.pdf}
+    \caption{Electron microscopy modality comparison and analysis pipeline showing TEM, SEM, and Cryo-EM imaging characteristics, modality-specific parameter optimization, structure detection workflows, and comparative analysis framework for ultrastructural characterization.}
+    \label{fig:em-modality-comparison}
+    \end{figure}
 
 \subsection{Modality-Specific Analysis Parameters}
 
@@ -643,11 +674,26 @@ A_{\text{min}} &= 50 \text{ pixels}
 
 The lower thresholds accommodate the reduced contrast typical of cryo-preserved biological specimens.
 
-% FIGURE PROPOSAL: Parameter optimization results
-% This figure should display: (1) Edge detection results for each modality with different parameters,
-% (2) Structure detection sensitivity analysis, (3) Optimal parameter selection curves,
-% (4) False positive/negative trade-offs
-% Location: After this subsection
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/electron_cellular_structure.png}
+    \caption{Cellular structure analysis}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/electron_fluorescence_cell.png}
+    \caption{Fluorescence cell EM}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/electron_high_res_tissue.png}
+    \caption{High-resolution tissue}
+    \end{subfigure}
+    \caption{Electron microscopy analysis results showing cellular structure characterization, fluorescence-correlated electron microscopy, and high-resolution tissue analysis with ultrastructural classification and morphological quantification.}
+    \label{fig:electron-microscopy-results}
+    \end{figure}
+
 
 \subsection{Ultrastructure Detection and Classification}
 
@@ -695,11 +741,7 @@ I_{\text{mean}} = \frac{1}{A}\sum_{(x,y) \in \text{Structure}} I(x,y)
 
 The mean intensity provides information about electron density and structural composition.
 
-% FIGURE PROPOSAL: Morphological feature extraction visualization
-% This figure should show: (1) Original EM image with detected contours,
-% (2) Area measurement visualization, (3) Circularity analysis examples,
-% (4) Intensity distribution mapping
-% Location: After this subsection
+
 
 \subsection{Biological Structure Classification}
 
@@ -763,11 +805,7 @@ Membrane structures are identified by elongated morphology and specific intensit
 \end{cases}
 \end{align}
 
-% FIGURE PROPOSAL: Structure classification examples
-% This figure should present: (1) Mitochondria detection with scoring visualization,
-% (2) Nuclear identification results, (3) Vesicle classification examples,
-% (4) Membrane structure detection, (5) Classification confidence mapping
-% Location: After this subsection
+
 
 \subsection{Classification Confidence and Validation}
 
@@ -795,11 +833,6 @@ The final structure type assignment follows:
 
 This winner-takes-all approach assigns each structure to the category with the highest classification score.
 
-% FIGURE PROPOSAL: Confidence analysis and validation
-% This figure should show: (1) Confidence score distribution across structure types,
-% (2) Threshold optimization analysis, (3) Classification accuracy vs confidence relationship,
-% (4) False positive/negative analysis
-% Location: After this subsection
 
 \subsection{Statistical Analysis and Summary Generation}
 
@@ -828,12 +861,6 @@ Summary statistics are computed for key morphological parameters:
 
 These statistics provide quantitative measures of structural organization and analysis reliability.
 
-% FIGURE PROPOSAL: Statistical analysis visualization
-% This figure should display: (1) Structure type distribution pie chart,
-% (2) Area distribution histograms by type, (3) Circularity vs area scatter plots,
-% (4) Confidence distribution analysis
-% Location: After this subsection
-
 \subsection{Integration with Thermodynamic Framework}
 
 The electron microscopy analysis integrates with the broader thermodynamic computer vision framework through structure-based molecular property assignment and energy landscape analysis.
@@ -860,11 +887,7 @@ U_{\text{ultra}}(\mathbf{r}) = \sum_i \epsilon_i \exp\left(-\frac{|\mathbf{r} - 
 
 This potential field reflects the influence of ultrastructural organization on information molecule dynamics.
 
-% FIGURE PROPOSAL: Thermodynamic integration visualization
-% This figure should show: (1) EM structures converted to molecular representation,
-% (2) Energy landscape visualization, (3) Molecular dynamics evolution in ultrastructural context,
-% (4) Equilibrium configurations reflecting biological organization
-% Location: After this subsection
+
 
 \subsection{Computational Implementation and Optimization}
 
@@ -895,11 +918,6 @@ Processing efficiency is optimized through:
 \item Cached classification parameters
 \end{itemize}
 
-% FIGURE PROPOSAL: Implementation workflow and performance analysis
-% This figure should present: (1) Processing pipeline flowchart,
-% (2) Computational complexity analysis, (3) Processing time vs image size,
-% (4) Memory usage optimization results
-% Location: After this subsection
 
 The electron microscopy analysis framework provides comprehensive ultrastructural analysis capabilities that integrate seamlessly with the thermodynamic computer vision approach. The modality-specific parameter optimization and rule-based classification system enable accurate identification of biological structures across different electron microscopy techniques, while the thermodynamic integration facilitates system-level analysis of ultrastructural organization.
 
@@ -911,10 +929,6 @@ The gas molecular dynamics framework treats biological image analysis as a therm
 
 The fundamental premise rests on the correspondence between image features and gas molecules. Each significant image region is represented as an information gas molecule with thermodynamic properties including position, velocity, mass, and interaction parameters. The system evolution follows classical molecular dynamics principles, where intermolecular forces drive the system toward minimum energy configurations that reflect biological organization.
 
-% FIGURE PROPOSAL: Conceptual diagram showing the transformation from image pixels to information gas molecules
-% This figure should illustrate: (1) Original biological image, (2) Feature detection and segmentation, 
-% (3) Conversion to molecular representation with position, velocity vectors, and interaction radii
-% Location: After this paragraph
 
 \subsection{Information Gas Molecule Definition}
 
@@ -960,11 +974,6 @@ where $\alpha$ is a positive constant representing the entropy production rate. 
 U_i = K_i + S_i T_i
 \end{equation}
 
-% FIGURE PROPOSAL: Time evolution of thermodynamic properties for a representative molecule
-% This figure should show: (1) Temperature vs time, (2) Entropy vs time, (3) Internal energy vs time, 
-% (4) Kinetic energy vs time, demonstrating equilibration behavior
-% Location: After this subsection
-
 \subsection{Intermolecular Interaction Potential}
 
 The interaction between molecules $i$ and $j$ is governed by a modified Lennard-Jones potential that incorporates biological similarity:
@@ -998,6 +1007,13 @@ The size parameter $\sigma_{ij}$ represents the average interaction radius:
 
 where individual size parameters $\sigma_i$ are derived from the spatial extent of the corresponding image features.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/intermolecular-potential-forces.pdf}
+    \caption{Gas molecular dynamics framework showing intermolecular potential forces, Lennard-Jones interactions, biological similarity factors, and equilibrium clustering behavior for thermodynamic image analysis.}
+    \label{fig:gas-molecular-forces}
+    \end{figure}
+
 \subsection{Force Calculation and System Evolution}
 
 The force acting on molecule $i$ due to all other molecules is computed as the negative gradient of the total potential energy:
@@ -1023,10 +1039,7 @@ The equations of motion are integrated using the velocity Verlet algorithm with 
 
 where $\mathbf{a}_i(t) = \mathbf{F}_i(t)/m_i$ is the acceleration and $\gamma$ is the damping coefficient representing thermal coupling to a heat bath.
 
-% FIGURE PROPOSAL: Force field visualization showing intermolecular interactions
-% This figure should display: (1) Molecular positions as circles with size proportional to σ, 
-% (2) Force vectors as arrows, (3) Color coding for molecule types, (4) Potential energy contours
-% Location: After this subsection
+
 
 \subsection{Image-to-Molecule Conversion}
 
@@ -1065,10 +1078,6 @@ C_i = \frac{4\pi A_i}{P_i^2}
 
 with $P_i$ being the perimeter of contour $i$. The compactness measure distinguishes between folded (high compactness) and unfolded (low compactness) protein configurations.
 
-% FIGURE PROPOSAL: Protein structure analysis pipeline
-% This figure should show: (1) Original protein image, (2) Adaptive threshold result, 
-% (3) Contour detection overlay, (4) Final molecular representation with properties
-% Location: After this subsubsection
 
 \subsubsection{Cellular Structure Analysis}
 
@@ -1094,10 +1103,7 @@ where $(a,b)$ represents the center coordinates, $r$ is the radius, and the summ
 
 Each detected structure generates a molecule with biological properties corresponding to its inferred function and cellular location.
 
-% FIGURE PROPOSAL: Cellular structure detection results
-% This figure should display: (1) Original cellular image, (2) Nuclear detection with circles, 
-% (3) Organelle contours with classification labels, (4) Final molecular system representation
-% Location: After this subsubsection
+
 
 \subsection{System Properties and Equilibrium Analysis}
 
@@ -1131,11 +1137,6 @@ Equilibrium is assessed through energy stability analysis. The system is conside
 
 where $\epsilon_{\text{eq}}$ is the equilibrium threshold and $\Delta t$ is the analysis window duration.
 
-% FIGURE PROPOSAL: System equilibration dynamics
-% This figure should show: (1) Total energy vs time with equilibration curve, 
-% (2) Temperature evolution, (3) Entropy production, (4) Energy variance indicating equilibrium
-% Location: After this subsection
-
 \subsection{Biological Clustering and Interpretation}
 
 The equilibrium configuration reveals biological organization through molecular clustering. Clusters are identified using spatial proximity criteria:
@@ -1165,11 +1166,6 @@ The biological interpretation is derived from cluster analysis:
 
 where $f$ represents a rule-based interpretation system that maps cluster configurations to biological meanings.
 
-% FIGURE PROPOSAL: Biological clustering results
-% This figure should illustrate: (1) Equilibrium molecular positions with cluster boundaries, 
-% (2) Cluster size distribution histogram, (3) Biological function mapping, 
-% (4) Spatial organization with biological interpretation
-% Location: After this subsection
 
 \subsection{Application-Specific Adaptations}
 
@@ -1216,11 +1212,27 @@ E_{\text{norm}} &= \frac{1}{1 + |E_{\text{total}}|} \\
 \text{Health Score} &= f(\rho_{\text{org}}, E_{\text{norm}})
 \end{align}
 
-% FIGURE PROPOSAL: Application-specific analysis results
-% This figure should present: (1) Protein folding quality assessment with compactness visualization, 
-% (2) Binding site identification with activity mapping, (3) Cellular process classification examples, 
-% (4) Health assessment scoring visualization
-% Location: After this subsection
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/gas_molecular_cellular_structure.png}
+    \caption{Cellular structure dynamics}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/gas_molecular_fluorescence_cell.png}
+    \caption{Fluorescence cell dynamics}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/gas_molecular_high_res_tissue.png}
+    \caption{High-resolution tissue dynamics}
+    \end{subfigure}
+    \caption{Gas molecular dynamics analysis results showing cellular structure evolution, fluorescence cell molecular behavior, and high-resolution tissue dynamics with equilibrium clustering and biological interpretation.}
+    \label{fig:gas-molecular-results}
+    \end{figure}
+
+
 
 \subsection{Computational Implementation}
 
@@ -1242,11 +1254,6 @@ The integration time step is chosen to maintain numerical accuracy while ensurin
 
 where $m_{\text{avg}}$ and $\epsilon_{\text{avg}}$ are average molecular mass and interaction strength, respectively.
 
-% FIGURE PROPOSAL: Computational workflow diagram
-% This figure should outline: (1) Image input and preprocessing, (2) Feature extraction and molecule creation, 
-% (3) System initialization and parameter setting, (4) Molecular dynamics evolution, 
-% (5) Equilibrium analysis and biological interpretation, (6) Results visualization
-% Location: After this subsection
 
 The gas molecular dynamics framework provides a thermodynamically grounded approach to biological image analysis that reveals organizational principles through emergent clustering behavior. The method transforms static image data into dynamic molecular systems whose equilibrium configurations reflect underlying biological structure and function.
 \section{S-Entropy Coordinate System and Meta-Information Framework}
@@ -1255,15 +1262,16 @@ The gas molecular dynamics framework provides a thermodynamically grounded appro
 
 The S-Entropy coordinate system provides a four-dimensional semantic representation space for biological image analysis. This framework transforms conventional spatial image coordinates into entropy-based coordinates that capture fundamental aspects of biological organization: structural complexity, functional activity, morphological diversity, and temporal dynamics. The coordinate system enables quantitative analysis of biological patterns through thermodynamically motivated measures.
 
-The S-Entropy transformation maps image data $I(x,y)$ to a four-dimensional coordinate vector $\mathbf{S} = (\xi_1, \xi_2, \xi_3, \xi_4)$ where each dimension represents a distinct aspect of biological information organization. The coordinate space is bounded within $[-1, 1]^4$ to ensure numerical stability and enable comparative analysis across different biological systems.
+The S-Entropy transformation maps image data $I(x,y)$ to a four-dimensional coordinate vector $\mathbf{S} = (\xi_1, \xi_2, \xi_3, \xi_4)$ where each dimension represents a distinct aspect of biological information organization. The coordinate space is bounded within $[-1, 1]^{4}$ to ensure numerical stability and enable comparative analysis across different biological systems.
 
 The fundamental premise underlying S-Entropy coordinates is that biological images contain information organized across multiple semantic dimensions that cannot be adequately captured by traditional spatial or frequency domain representations. The entropy-based approach quantifies the distribution and organization of information content, providing insights into biological structure and function.
 
-% FIGURE PROPOSAL: Conceptual diagram of S-Entropy coordinate transformation
-% This figure should show: (1) Original biological image, (2) Four analysis pathways for each dimension,
-% (3) Resulting 4D coordinate vector, (4) Biological interpretation mapping
-% Location: After this paragraph
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/st-stellas-entropy.pdf}
+    \caption{S-Entropy coordinate transformation conceptual framework showing the four-dimensional semantic space transformation, analysis pathways for structural complexity, functional activity, morphological diversity, and temporal dynamics, with biological interpretation mapping and coordinate space properties.}
+    \label{fig:entropy-transformation-concept}
+    \end{figure}
 \subsection{Four-Dimensional Coordinate Definition}
 
 The S-Entropy coordinate system consists of four orthogonal dimensions, each capturing distinct aspects of biological organization:
@@ -1339,10 +1347,6 @@ For static images, the temporal dynamics coordinate estimates dynamic potential 
 
 where $I_L$ and $I_R$ represent the left and horizontally flipped right halves of the image, respectively. This asymmetry measure provides insight into potential dynamic behavior and directional organization.
 
-% FIGURE PROPOSAL: Four-dimensional coordinate analysis breakdown
-% This figure should display: (1) Original image, (2) Edge detection result for ξ₁, 
-% (3) Gradient magnitude map for ξ₂, (4) Laplacian variance for ξ₃, (5) Asymmetry analysis for ξ₄
-% Location: After this subsection
 
 \subsection{Biological Context Integration}
 
@@ -1392,10 +1396,25 @@ Coordinate normalization enables comparative analysis across different scales:
 
 Normalized coordinates preserve directional information while removing magnitude effects.
 
-% FIGURE PROPOSAL: Coordinate space visualization and properties
-% This figure should show: (1) 3D projection of coordinate space with sample points,
-% (2) Distance metric visualization, (3) Magnitude distribution, (4) Normalized coordinate comparison
-% Location: After this subsection
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/fluorescence_comprehensive_cellular_structure_rfp.png}
+    \caption{RFP cellular analysis}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/fluorescence_comprehensive_fluorescence_cell_gfp.png}
+    \caption{GFP cell analysis}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/fluorescence_comprehensive_high_res_tissue_dapi.png}
+    \caption{DAPI tissue analysis}
+    \end{subfigure}
+    \caption{Comprehensive fluorescence analysis across different fluorophores showing RFP cellular structure analysis, GFP cell characterization, and DAPI tissue organization with integrated thermodynamic framework results.}
+    \label{fig:comprehensive-fluorescence}
+    \end{figure}
 
 \subsection{Biological Interpretation Framework}
 
@@ -1427,11 +1446,12 @@ Secondary characteristics are identified from non-dominant dimensions with signi
 
 This multi-dimensional analysis provides comprehensive biological characterization beyond single-parameter descriptions.
 
-% FIGURE PROPOSAL: Biological interpretation examples
-% This figure should present: (1) Sample coordinate vectors with interpretations,
-% (2) Dominant dimension analysis results, (3) Secondary characteristic identification,
-% (4) Context-dependent interpretation variations
-% Location: After this subsection
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/figure_comparative_summary.png}
+    \caption{Comprehensive analysis summary showing integrated results across all modules, performance metrics, accuracy improvements through module integration, computational efficiency gains, and biological interpretation validation.}
+    \label{fig:comprehensive-summary}
+    \end{figure}
 
 \subsection{Trajectory Analysis for Temporal Data}
 
@@ -1470,11 +1490,6 @@ Trajectory patterns are classified based on geometric properties:
 \end{cases}
 \end{align}
 
-% FIGURE PROPOSAL: Trajectory analysis visualization
-% This figure should show: (1) 3D trajectory plots in coordinate space,
-% (2) Temporal evolution of each coordinate dimension, (3) Trajectory length analysis,
-% (4) Pattern classification examples
-% Location: After this subsection
 
 \subsection{Meta-Information Extraction Framework}
 
@@ -1536,11 +1551,6 @@ C_{\text{struct}} = \min\left(1, \frac{\text{Var}(X)}{\text{Mean}(X)^2 + \epsilo
 
 where $\epsilon$ is a small regularization constant.
 
-% FIGURE PROPOSAL: Meta-information analysis results
-% This figure should display: (1) Information type classification examples,
-% (2) Semantic density visualization with high-gradient regions highlighted,
-% (3) Compression potential analysis, (4) Structural complexity measurements
-% Location: After this subsection
 
 \subsection{Integration with Gas Molecular Dynamics}
 
@@ -1568,12 +1578,6 @@ The molecular dynamics evolution is guided by S-Entropy gradients:
 
 where $\kappa$ is the entropy coupling strength and $\nabla \xi_4$ represents the spatial gradient of the temporal dynamics coordinate.
 
-% FIGURE PROPOSAL: Integration visualization
-% This figure should show: (1) S-Entropy coordinate field overlaid on molecular positions,
-% (2) Property modulation effects on molecular interactions, (3) Entropy-guided force fields,
-% (4) Integrated equilibrium configurations
-% Location: After this subsection
-
 \subsection{Computational Implementation and Visualization}
 
 The S-Entropy coordinate system is implemented through modular design with separate components for coordinate transformation, trajectory analysis, and meta-information extraction.
@@ -1591,30 +1595,19 @@ The transformation pipeline processes biological images through sequential analy
 \item Coordinate assembly and biological interpretation
 \end{enumerate}
 
-\subsubsection{Visualization Framework}
-
-The visualization framework provides multiple representations of S-Entropy coordinates:
-
-\begin{itemize}
-\item \textbf{Radar Charts}: Four-dimensional coordinate visualization in polar format
-\item \textbf{Bar Charts}: Individual coordinate component analysis
-\item \textbf{3D Trajectories}: Temporal evolution in three-dimensional projections
-\item \textbf{Time Series}: Coordinate evolution over temporal sequences
-\end{itemize}
-
-% FIGURE PROPOSAL: Comprehensive visualization examples
-% This figure should present: (1) Radar chart examples for different biological samples,
-% (2) 3D trajectory visualization, (3) Time series evolution plots,
-% (4) Comparative analysis across multiple samples
-% Location: After this subsection
-
-The S-Entropy coordinate system provides a mathematically rigorous framework for quantifying biological organization across multiple semantic dimensions. The integration with meta-information extraction enables comprehensive analysis of information content and structural complexity, while the coordinate-based approach facilitates systematic comparison and classification of biological samples. The framework's modular design and visualization capabilities support both exploratory analysis and quantitative biological research applications.
 
 \section{Cross-Module Integration and Synergistic Analysis}
 
 \subsection{Theoretical Framework for Module Interdependence}
 
 The thermodynamic computer vision framework presented in this work operates through the coordinated integration of three primary computational modules: Gas Molecular Dynamics, S-Entropy Coordinate System, and Meta-Information Extraction. These modules are not independent analytical tools but rather interconnected components of a unified thermodynamic system. The efficacy of the framework emerges from the synergistic interactions between these modules, where each component amplifies and refines the analytical capabilities of the others.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/cross-module-interaction.pdf}
+    \caption{Cross-module integration framework showing synergistic interactions between Gas Molecular Dynamics, S-Entropy Coordinate System, and Meta-Information Extraction modules with information flow, feedback mechanisms, and thermodynamic consistency.}
+    \label{fig:cross-module-integration}
+    \end{figure}
 
 The mathematical foundation for module integration rests on the concept of thermodynamic coupling, where information flows between subsystems modify the energy landscape of the overall system. Consider the coupled system energy $E_{\text{total}}$ expressed as:
 
@@ -1664,6 +1657,27 @@ where $h_k$ represents the coordinate calculation function for dimension $k$, we
 The Meta-Information Extraction module operates as the synthesis layer that combines insights from molecular dynamics and S-Entropy coordinates to produce high-level biological interpretations. This module receives both the detailed molecular configuration data and the abstracted coordinate representations, enabling multi-scale analysis of biological systems.
 
 The meta-information extraction process leverages molecular clustering patterns to identify regions of interest, uses S-Entropy coordinates to characterize these regions semantically, and applies thermodynamic principles to assess the stability and significance of identified patterns. This multi-input approach enables more robust and biologically meaningful interpretations than would be possible with any single module operating in isolation.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/meta_cellular_structure.png}
+    \caption{Cellular structure meta-info}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/meta_fluorescence_cell.png}
+    \caption{Fluorescence cell meta-info}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/meta_high_res_tissue.png}
+    \caption{High-res tissue meta-info}
+    \end{subfigure}
+    \caption{Meta-information extraction results showing information type classification, semantic density analysis, compression potential assessment, and structural complexity quantification across different biological samples.}
+    \label{fig:meta-information-results}
+    \end{figure}
+
 
 The synthesis process can be expressed as a function $\Phi$ that maps the combined module outputs to biological interpretations:
 
