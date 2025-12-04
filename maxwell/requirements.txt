@@ -1,0 +1,24 @@
+# Core dependencies
+numpy>=1.20.0
+scipy>=1.7.0
+scikit-image>=0.18.0
+scikit-learn>=1.0.0
+opencv-python>=4.5.0
+matplotlib>=3.3.0
+networkx>=2.6.0
+
+# Data processing
+pandas>=1.3.0
+pillow>=8.0.0
+
+# Optional hardware interfaces
+pyserial>=3.5  # For sensor communication
+sounddevice>=0.4.0  # For acoustic sensor
+screen-brightness-control>=0.20.0  # For display
+
+# Development dependencies (optional)
+pytest>=6.0.0
+pytest-cov>=2.12.0
+black>=21.0
+mypy>=0.910
+flake8>=3.9.0

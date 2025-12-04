@@ -1,0 +1,68 @@
+# Maxwell HCCC Algorithm Configuration
+
+# Algorithm parameters
+algorithm:
+  lambda_stream: 0.5              # Balance between ambiguity and stream coherence
+  coherence_threshold: 1.0        # A_coherence for convergence
+  max_iterations: 1000            # Maximum processing iterations
+  allow_revisitation: true        # Allow region revisitation
+  max_compound_order: 5           # Maximum order of compound BMDs
+
+# Hardware stream parameters
+hardware:
+  devices:
+    display: true
+    network: true
+    acoustic: true
+    accelerometer: true
+    em: true
+    optical: true
+  coupling_strength: 1.0          # Phase-lock coupling strength
+  measurement_interval: 0.1       # Seconds between measurements
+
+# Segmentation parameters
+segmentation:
+  method: 'slic'                  # 'slic', 'felzenszwalb', 'watershed', 'hierarchical'
+  n_segments: 50                  # Number of regions
+  compactness: 10.0               # SLIC compactness
+  sigma: 1.0                      # Gaussian smoothing
+
+# Feature extraction
+features:
+  color_bins: 8                   # Color histogram bins
+  texture_scales: 4               # Texture analysis scales
+  edge_bins: 8                    # Edge orientation bins
+
+# Validation parameters
+validation:
+  biological:
+    gamma_frequency: 40.0         # Hz
+    n_bmds_per_moment: 1.0e31     # Theoretical
+  physical:
+    temperature: 310.0            # Kelvin (body temperature)
+    boltzmann_constant: 1.380649e-23  # J/K
+
+# Visualization parameters
+visualization:
+  dpi: 300                        # Figure DPI
+  figsize: [12, 8]                # Figure size (width, height)
+  colormap: 'viridis'             # Colormap for processing sequence
+  save_format: 'png'              # 'png', 'pdf', 'svg'
+
+# Performance parameters
+performance:
+  prune_threshold: 0.25           # Richness quantile for compound pruning
+  stability_window: 10            # Window for convergence stability check
+  richness_saturation: 0.1        # Growth rate threshold for saturation
+
+# Paths
+paths:
+  output: 'results'               # Output directory
+  cache: '.cache'                 # Cache directory
+  data: 'data'                    # Data directory
+
+# Logging
+logging:
+  level: 'INFO'                   # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  file: 'maxwell.log'             # Log file path (null for no file logging)
