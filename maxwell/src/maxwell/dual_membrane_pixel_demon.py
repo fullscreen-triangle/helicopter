@@ -27,7 +27,7 @@ from typing import List, Dict, Tuple, Optional, Any, Callable
 from enum import Enum
 import logging
 
-from pixel_maxwell_demon import (
+from .pixel_maxwell_demon import (
     PixelMaxwellDemon,
     SEntropyCoordinates,
     MolecularDemon,

@@ -36,6 +36,8 @@ Date: 2024
 """
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import cv2
 import sys
@@ -47,7 +49,7 @@ import time
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
-from maxwell.pixel_maxwell_demon import PixelDemonGrid
+from maxwell.simple_pixel_grid import PixelDemonGrid
 from maxwell.dual_membrane_pixel_demon import DualMembranePixelDemon
 from maxwell.virtual_detectors import (
     VirtualThermometer,
@@ -57,8 +59,7 @@ from maxwell.virtual_detectors import (
     VirtualRamanSpectrometer,
     VirtualMassSpectrometer,
     VirtualPhotodiode,
-    VirtualInterferometer,
-    ConsilienceEngine
+    VirtualInterferometer
 )
 
 
