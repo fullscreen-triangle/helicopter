@@ -197,20 +197,40 @@ __pycache__/
 *.svg
 *.webp
 *.zip
-# Video files
+# Video files (STRICT - exclude all videos and animations)
 *.mp4
 *.avi
 *.mov
 *.mkv
 *.flv
 *.wmv
-public/
-*.zip
+*.webm
+*.m4v
+*.mpg
+*.mpeg
+*.3gp
+*.gif
+*.gifv
+
 # Audio files
 *.wav
 *.mp3
 *.flac
 *.aac
+*.ogg
+*.wma
+*.m4a
+
+# Large binary files
+*.bin
+*.dat
+public/
+*.zip
+*.tar
+*.gz
+*.bz2
+*.7z
+*.rar
 
 # Medical imaging
 *.dcm
@@ -338,3 +358,38 @@ htmlcov/
 # Benchmarks
 benchmark_results/
 *.bench
+
+# Pixel Maxwell Demon outputs
+# ============================
+
+# Validation outputs
+multi_modal_validation/
+spectral_multiplexing_validation/
+motion_picture_validation/
+multi_modal_motion_picture/
+
+# NPY result files (keep small ones, exclude large arrays)
+# Uncomment the line below if NPY files become too large:
+# *.npy
+
+# Generated visualizations (keep PNG, exclude large media)
+npy_visualizations/
+publication_panels/
+virtual_imaging_results/
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# Exceptions (keep these small assets)
+!assets/*.gif
+!assets/*.mp4
+!README_assets/

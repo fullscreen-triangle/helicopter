@@ -1,0 +1,258 @@
+\section{Categorical Temporal Encoding}
+
+We establish a mathematical foundation for encoding temporal coordinates in wavelength sequences. Traditional temporal encoding uses mechanical or electronic state (shutter open/closed) to demarcate time intervals. We prove that wavelength identity provides an equivalent, and in some cases superior, temporal coordinate system.
+
+\subsection{Temporal Coordinate Systems}
+
+\begin{definition}[Conventional Temporal Coordinates]
+In shutter-based imaging, time coordinate $t$ is parameterized by shutter state $\sigma(t) \in \{0, 1\}$ where $\sigma(t) = 1$ indicates open shutter (photon collection) and $\sigma(t) = 0$ indicates closed shutter (readout). The temporal sample sequence is:
+
+\begin{equation}
+\mathcal{T}_{\text{conv}} = \{t_n : \sigma(t_n) = 1, n \in \mathbb{Z}\}
+\end{equation}
+\end{definition}
+
+\begin{definition}[Categorical Temporal Coordinates]
+In spectral-multiplexed imaging, time coordinate $t$ is parameterized by active wavelength $\lambda(t)$ from discrete set $\{\lambda_1, \ldots, \lambda_M\}$. The temporal sample sequence is:
+
+\begin{equation}
+\mathcal{T}_{\text{cat}} = \{(t, \lambda(t)) : \lambda(t) \in \{\lambda_j\}_{j=1}^M, t \in \mathbb{R}^+\}
+\end{equation}
+\end{definition}
+
+The key distinction: conventional coordinates use binary state ($\sigma \in \{0,1\}$) while categorical coordinates use wavelength identity ($\lambda \in \{\lambda_j\}$). For $M$ wavelengths, categorical system has $M$ temporal channels vs. one binary channel.
+
+\subsection{S-Entropy Temporal Coordinates}
+
+We extend the categorical pixel Maxwell demon S-entropy framework to temporal domain.
+
+\begin{definition}[Temporal S-Entropy Coordinates]
+For spectro-temporal signal $I(t, \lambda)$, define three orthogonal entropy coordinates:
+
+\begin{align}
+S_k(t) &= -\sum_{j=1}^M p_j(t) \log p_j(t) \quad \text{(Knowledge entropy)} \\
+S_t(t) &= \left\|\frac{\partial I}{\partial t}\right\|_2 \quad \text{(Temporal entropy)} \\
+S_e(t) &= \int_0^t S_t(\tau) \, d\tau \quad \text{(Evolutionary entropy)}
+\end{align}
+
+where $p_j(t) = I(t, \lambda_j) / \sum_k I(t, \lambda_k)$ is normalized spectral distribution.
+\end{definition}
+
+\textbf{Physical interpretation}:
+\begin{itemize}
+\item $S_k$: Shannon entropy of wavelength distribution at time $t$ (which wavelengths carry information)
+\item $S_t$: Rate of temporal change (how fast scene evolves)
+\item $S_e$: Cumulative change from initial time (total information accumulated)
+\end{itemize}
+
+\begin{theorem}[Entropy Monotonicity]
+For physical light emission processes, evolutionary entropy $S_e(t)$ is strictly monotonic:
+
+\begin{equation}
+\frac{dS_e}{dt} = S_t(t) > 0 \quad \forall t
+\end{equation}
+
+provided scene undergoes any dynamics ($\partial I/\partial t \neq 0$).
+\end{theorem}
+
+\begin{proof}
+Light emission from source at wavelength $\lambda_j$ increases thermodynamic entropy by $\Delta S_{\text{therm}} = k_B \ln \Omega$ where $\Omega$ is number of photon microstates. For $n_j$ photons emitted:
+
+\begin{equation}
+\Delta S_{\text{therm}} = k_B n_j \left(\ln\frac{V_f}{V_i} + \frac{3}{2}\ln\frac{T_f}{T_i}\right)
+\end{equation}
+
+where $V_i \to V_f$ is phase space expansion and $T_i \to T_f$ is temperature change. Since photon emission is irreversible ($V_f > V_i$), $\Delta S_{\text{therm}} > 0$ always.
+
+The information-theoretic entropy $S_t = \|\partial I/\partial t\|_2$ tracks thermodynamic entropy production:
+
+\begin{equation}
+S_t \propto \sqrt{\sum_j \left(\frac{\partial n_j}{\partial t}\right)^2} = \sqrt{\sum_j \dot{n}_j^2}
+\end{equation}
+
+Since $\dot{n}_j \geq 0$ (photons only created, not destroyed), $S_t > 0$ whenever any source is active. Therefore $dS_e/dt = S_t > 0$, proving strict monotonicity.
+\end{proof}
+
+\subsection{Wavelength-Time Conjugacy}
+
+\begin{theorem}[Wavelength-Time Duality]
+\label{thm:wl_time_duality}
+Temporal coordinate $t$ and wavelength coordinate $\lambda$ are conjugate variables satisfying uncertainty relation:
+
+\begin{equation}
+\Delta t \cdot \Delta \lambda \geq \frac{c}{2\pi f}
+\end{equation}
+
+where $c$ is speed of light, $f$ is light source cycle frequency, and $\Delta t$, $\Delta \lambda$ are coordinate uncertainties.
+\end{theorem}
+
+\begin{proof}
+Light source $j$ at wavelength $\lambda_j$ active during time interval $\tau_j$. Temporal localization: $\Delta t \geq \tau_j$. 
+
+Spectral bandwidth from Fourier uncertainty:
+\begin{equation}
+\Delta \nu = \frac{1}{2\pi \tau_j}
+\end{equation}
+
+Converting to wavelength via $\lambda = c/\nu$:
+\begin{equation}
+\Delta \lambda = \frac{c}{\nu^2} \Delta \nu = \frac{c}{\nu^2} \cdot \frac{1}{2\pi \tau_j}
+\end{equation}
+
+For $\nu = c/\lambda_j$ and $\tau_j \leq 1/(Mf)$:
+\begin{equation}
+\Delta t \cdot \Delta \lambda \geq \tau_j \cdot \frac{\lambda_j^2}{2\pi \tau_j c} = \frac{\lambda_j^2}{2\pi c} \geq \frac{\lambda_{\min}^2}{2\pi c}
+\end{equation}
+
+For $\lambda_{\min} \sim c/f$ (wavelength corresponding to cycle frequency):
+\begin{equation}
+\Delta t \cdot \Delta \lambda \geq \frac{c^2/(f^2)}{2\pi c} = \frac{c}{2\pi f}
+\end{equation}
+
+proving the uncertainty relation.
+\end{proof}
+
+This conjugacy implies wavelength can serve as temporal coordinate when $\Delta \lambda$ is precisely known (narrow-band sources). The temporal resolution $\Delta t$ then achieves its minimum bound $c/(2\pi f \Delta \lambda)$.
+
+\subsection{Information-Theoretic Optimality}
+
+\begin{theorem}[Optimal Temporal Encoding]
+Among all temporal encoding schemes with $M$ discrete states cycling at frequency $f$, categorical wavelength encoding achieves maximum temporal information:
+
+\begin{equation}
+I_{\text{cat}} = \log_2 M \quad \text{bits per cycle}
+\end{equation}
+
+This is the information-theoretic maximum for $M$-ary signaling.
+\end{theorem}
+
+\begin{proof}
+Any $M$-state temporal encoding can convey at most $\log_2 M$ bits per state transition (Shannon's source coding theorem). For wavelength encoding:
+
+\begin{itemize}
+\item State space: $\{\lambda_1, \ldots, \lambda_M\}$ ($M$ states)
+\item State duration: $1/(Mf)$ per wavelength
+\item Cycle time: $1/f$
+\item States per cycle: $M$
+\end{itemize}
+
+If all $M$ wavelengths equiprobable ($p_j = 1/M$), Shannon entropy is:
+\begin{equation}
+H = -\sum_{j=1}^M \frac{1}{M} \log_2 \frac{1}{M} = \log_2 M
+\end{equation}
+
+This is maximal entropy for $M$-state discrete system, proving optimality.
+
+For comparison, binary shutter encoding ($M=2$: open/closed) conveys:
+\begin{equation}
+I_{\text{shutter}} = \log_2 2 = 1 \text{ bit per cycle}
+\end{equation}
+
+Spectral encoding with $M=5$ wavelengths:
+\begin{equation}
+I_{\text{cat}} = \log_2 5 \approx 2.32 \text{ bits per cycle}
+\end{equation}
+
+Thus 2.32$\times$ information gain over binary shutter.
+\end{proof}
+
+\subsection{Temporal Coordinate Transformation}
+
+\begin{proposition}[Wavelength-to-Time Mapping]
+Given wavelength sequence $\{\lambda(t_k)\}_{k=0}^K$ sampled at detector rate, temporal coordinate $t$ can be reconstructed as:
+
+\begin{equation}
+t = t_0 + \frac{1}{Mf} \sum_{k=1}^K \mathbb{I}[\lambda(t_k) = \lambda_j] + \frac{j-1}{Mf}
+\end{equation}
+
+where $\mathbb{I}[\cdot]$ is indicator function and $j$ is index of currently active wavelength.
+\end{proposition}
+
+\begin{proof}
+Each full cycle of $M$ wavelengths advances time by $1/f$. Within cycle, wavelength $\lambda_j$ indicates temporal position $(j-1)/(Mf)$ to $j/(Mf)$. 
+
+Let $n_{\text{cycles}}$ be number of complete cycles, $n_{\text{partial}}$ be position within current cycle:
+\begin{align}
+n_{\text{cycles}} &= \left\lfloor \frac{K}{M} \right\rfloor \\
+n_{\text{partial}} &= K \mod M
+\end{align}
+
+Time elapsed:
+\begin{equation}
+t - t_0 = \frac{n_{\text{cycles}}}{f} + \frac{n_{\text{partial}}}{Mf} = \frac{K}{Mf}
+\end{equation}
+
+which is equivalent to stated formula.
+\end{proof}
+
+\subsection{Multi-Scale Temporal Hierarchy}
+
+The wavelength encoding naturally creates hierarchical temporal structure:
+
+\begin{definition}[Temporal Hierarchy Levels]
+Define temporal scales:
+\begin{align}
+\tau_{\text{fine}} &= \frac{1}{Mf} \quad \text{(single wavelength duration)} \\
+\tau_{\text{cycle}} &= \frac{1}{f} \quad \text{(full wavelength cycle)} \\
+\tau_{\text{coarse}} &= \frac{N_{\text{avg}}}{f} \quad \text{(averaged over $N_{\text{avg}}$ cycles)}
+\end{align}
+\end{definition}
+
+At each scale, temporal features are resolved:
+\begin{itemize}
+\item $\tau_{\text{fine}}$: Intra-cycle dynamics (resolved by wavelength identity)
+\item $\tau_{\text{cycle}}$: Inter-cycle dynamics (resolved by cycle phase)
+\item $\tau_{\text{coarse}}$: Long-term trends (resolved by cycle averaging)
+\end{itemize}
+
+\begin{lemma}[Scale Invariance]
+Information content per unit time is independent of observational timescale:
+
+\begin{equation}
+\frac{I(\tau)}{\tau} = \text{const} \cdot Mf \quad \forall \tau \geq \tau_{\text{fine}}
+\end{equation}
+
+where $I(\tau)$ is information accumulated over timescale $\tau$.
+\end{lemma}
+
+\begin{proof}
+At timescale $\tau$, number of wavelength samples is $n = \tau \cdot Mf$. If samples independent:
+\begin{equation}
+I(\tau) = n \cdot \log_2 M = \tau \cdot Mf \cdot \log_2 M
+\end{equation}
+
+Therefore:
+\begin{equation}
+\frac{I(\tau)}{\tau} = Mf \log_2 M = \text{const}
+\end{equation}
+
+independent of $\tau$, proving scale invariance.
+\end{proof}
+
+This scale invariance is the mathematical origin of fractal temporal structure (Theorem~\ref{thm:fractal_structure}, proved in Section 5).
+
+\subsection{Categorical vs. Shutter-Based: Formal Comparison}
+
+\begin{theorem}[Strict Superiority of Categorical Encoding]
+For $M \geq 3$ wavelengths and full-rank detector response matrix, categorical temporal encoding strictly dominates shutter-based encoding in:
+\begin{enumerate}
+\item Temporal information capacity: $I_{\text{cat}}/I_{\text{shutter}} = \log_2 M > 1$
+\item Photon collection efficiency: $\eta_{\text{cat}}/\eta_{\text{shutter}} = 1/(1-\tau_d/T_s) > 1$
+\item Temporal resolution: $f_N^{\text{cat}}/f_N^{\text{shutter}} = M$
+\end{enumerate}
+
+where $\tau_d$ is dead time in shutter-based system.
+\end{theorem}
+
+\begin{proof}
+Part 1 (Information capacity): Proved above, $I_{\text{cat}} = \log_2 M$ vs. $I_{\text{shutter}} = 1$ bit per cycle.
+
+Part 2 (Photon efficiency): Shutter-based collects photons only during open time $T_s - \tau_d$, efficiency $\eta_{\text{shutter}} = 1 - \tau_d/T_s \sim 0.5-0.7$. Categorical encoding has continuous collection, $\eta_{\text{cat}} = 1$ (LED switching does not affect detector). Ratio: $1/(1-\tau_d/T_s) \sim 1.4-2$.
+
+Part 3 (Temporal resolution): Proved as Theorem~\ref{thm:temporal_resolution} in next section.
+
+All three ratios $> 1$ for $M \geq 3$, proving strict dominance.
+\end{proof}
+
+The categorical encoding framework thus provides mathematical foundation for wavelength-based temporal coordinates, with provable information-theoretic optimality and physical grounding in light emission entropy.
+

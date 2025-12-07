@@ -1,0 +1,89 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+
+\title{Thermodynamic Consequences Information Complementarity: Dual Membrane Pixel Maxwell Demons for Generating Multi-Wavelength and Multi-Modal Images from Single Captures}
+
+\author{
+Kundai Sachikonye \\
+\small \texttt{kundai.sachikonye@wzw.tum.de}
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Traditional optical microscopy faces a fundamental limitation: capturing images at different wavelengths, illumination angles, or modalities requires multiple physical measurements, often destroying or altering the sample. We present a virtual imaging framework based on dual-membrane pixel Maxwell demons that generates images at arbitrary wavelengths and modalities from a single capture without re-imaging. The key innovation is a dual-membrane pixel structure where each pixel possesses two conjugate states—a front face encoding amplitude information and a back face encoding phase information—analogous to voltmeter-ammeter complementarity in electrical circuits. 
+
+Pixel Maxwell demons, categorical observers at each spatial location, query molecular ensembles via zero-backaction observations to extract wavelength-dependent responses, angular scattering patterns, fluorescence spectra, and phase information. From a single 550~nm bright-field capture, we demonstrate generation of virtual images at 650~nm (red) and 450~nm (blue) wavelengths, dark-field illumination at 45°, fluorescence with 561~nm excitation, and phase contrast—five distinct imaging modalities from one measurement, achieving 80\% reduction in physical captures.
+
+Validation on biological microscopy images shows high fidelity (SSIM $>$ 0.92) for virtual images, with optical flow consistency within 2.5~pixels/frame. The framework maintains thermodynamic consistency through hardware-constrained validation via phase-locked reference streams. This approach eliminates sample commitment in microscopy, enabling non-destructive multi-modal analysis critical for irreplaceable biological specimens, live-cell imaging, and high-throughput screening.
+
+\textbf{Keywords:} Virtual imaging, dual-membrane structure, pixel Maxwell demon, multi-wavelength microscopy, categorical computation, zero-backaction observation
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+\subsection{The Sample Commitment Problem}
+
+\input{sections/introduction.tex}
+
+\subsection{Dual-Membrane Pixel Structure}
+\input{sections/pixel-maxwell-demon.tex}
+
+\section{Theoretical Framework}
+
+\subsection{Virtual Wavelength Shifting}
+\input{sections/wavelength-shifting.tex}
+
+\subsection{Illumination Angle Changes}
+\input{sections/illumination-angles.tex}
+
+\subsection{Fluorescence Excitation Changes}
+\input{sections/fluorescence-excitation-changes.tex}
+
+\subsection{Phase Contrast from Amplitude}
+\input{sections/phase-from-amplitude.tex}
+
+\section{Hardware-Constrained Validation}
+\input{sections/hardware-stream.tex}
+
+\section{Implementation and Results}
+\input{sections/results.tex}
+
+\section{Discussion}
+\input{sections/discussion.tex}
+
+\section{Conclusion}
+
+We have demonstrated a virtual imaging framework based on dual-membrane pixel Maxwell demons that generates images at multiple wavelengths and modalities from single captures. The approach achieves 80\% reduction in physical measurements while maintaining high visual fidelity (SSIM $>$ 0.92), solving the sample commitment problem in optical microscopy.
+
+Key achievements include: (1) virtual wavelength shifting (550~nm → 650~nm, 450~nm) without spectral filters or re-imaging, (2) virtual modality changes (bright-field → dark-field, fluorescence, phase contrast) without optical reconfiguration, (3) dual-membrane access to amplitude and phase information simultaneously, and (4) thermodynamic validation ensuring physical consistency.
+
+The framework enables non-destructive multi-modal analysis of irreplaceable samples, reduces photobleaching and phototoxicity in live-cell imaging, accelerates high-throughput screening, and provides retrospective analysis—querying archived images for modalities not captured during acquisition. This establishes categorical computation as a viable approach to expanding imaging capabilities beyond hardware limitations.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
+

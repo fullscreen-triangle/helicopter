@@ -1,0 +1,280 @@
+\section{Extended Ambiguity Calculation with Dual-Membrane Awareness}
+
+\subsection{Network BMD Ambiguity}
+
+The ambiguity of a region with respect to the network BMD quantifies categorical uncertainty in matching region structure to network categorical state.
+
+\begin{definition}[Network BMD Ambiguity]
+\label{def:network_ambiguity}
+The ambiguity of region $R$ with respect to network BMD $\beta^{(\text{network})}$ is:
+\begin{equation}
+A(\beta^{(\text{network})}, R) = \sum_{c \in \mathcal{C}(R)} P(c|R) \cdot D_{\text{KL}}\left(P_{\text{complete}}(c|\beta^{(\text{network}})) \parallel P_{\text{region}}(c|R)\right)
+\end{equation}
+where:
+\begin{itemize}
+\item $\mathcal{C}(R)$: categorical states compatible with region $R$
+\item $P(c|R)$: probability region occupies categorical state $c$ (from image data)
+\item $P_{\text{complete}}(c|\beta^{(\text{network})})$: probability of completing network BMD into state $c$
+\end{itemize}
+\end{definition}
+
+The Kullback-Leibler divergence $D_{\text{KL}}$ measures information required to update network completion distribution to match region distribution. High ambiguity indicates many incompatible completion pathways; low ambiguity indicates strong alignment.
+
+\subsection{Ambiguity from Categorical Richness}
+
+Ambiguity relates directly to categorical richness through completion pathway enumeration.
+
+\begin{theorem}[Ambiguity-Richness Correspondence]
+\label{thm:ambiguity_richness}
+For uniform completion probability distributions, ambiguity equals logarithmic categorical richness:
+\begin{equation}
+A(\beta^{(\text{network})}, R) = k_B T \log R(\beta^{(\text{network})} \circledast R)
+\end{equation}
+where $R(\beta^{(\text{network})} \circledast R)$ is the richness of the compound BMD formed by phase-locking network and region.
+\end{theorem}
+
+\begin{proof}
+Under uniform completion distributions:
+\begin{align}
+P_{\text{complete}}(c|\beta^{(\text{network})}) &= \frac{1}{R(\beta^{(\text{network})})} \\
+P_{\text{region}}(c|R) &= \frac{1}{R(R)}
+\end{align}
+
+The K-L divergence:
+\begin{align}
+D_{\text{KL}} &= \sum_{c} P(c|R) \log\frac{P(c|R)}{P_{\text{complete}}(c|\beta^{(\text{network})})} \\
+&= \sum_{c} \frac{1}{R(R)} \log\frac{R(\beta^{(\text{network})})}{R(R)} \\
+&= \log\frac{R(\beta^{(\text{network})})}{R(R)}
+\end{align}
+
+The compound richness from phase-lock coupling:
+\begin{equation}
+R(\beta^{(\text{network})} \circledast R) \approx R(\beta^{(\text{network})}) \cdot R(R)
+\end{equation}
+
+Thus:
+\begin{equation}
+A = k_B T \sum_{c} P(c|R) D_{\text{KL}} = k_B T \log R(\beta^{(\text{network})}) \approx k_B T \log R(\beta^{(\text{network})} \circledast R)
+\end{equation}
+$\square$
+\end{proof}
+
+High categorical richness corresponds to high ambiguity: many possible completions create uncertainty.
+
+\subsection{Dual-Membrane Ambiguity Decomposition}
+
+In the dual-membrane framework, ambiguity decomposes into observable and hidden face contributions.
+
+\begin{definition}[Dual-Membrane Ambiguity]
+\label{def:dual_ambiguity}
+For dual-membrane network BMD $\beta^{(\text{network})}_{\text{dual}}$ and dual-membrane region $R_{\text{dual}}$, the ambiguity is:
+\begin{equation}
+A_{\text{dual}}(\beta^{(\text{network})}_{\text{dual}}, R_{\text{dual}}) = A_{\text{obs}}(\beta^{(\text{network})}_{\text{obs}}, R_{\text{obs}}) + A_{\text{hidden}}(\beta^{(\text{network})}_{\text{hidden}}, R_{\text{hidden}})
+\end{equation}
+where subscripts ``obs'' and ``hidden'' refer to currently observable and hidden faces respectively.
+\end{definition}
+
+However, only the observable face ambiguity is directly computable:
+\begin{equation}
+A_{\text{obs}}(\beta^{(\text{network})}_{\text{obs}}, R_{\text{obs}}) = \text{computed via Definition } \ref{def:network_ambiguity}
+\end{equation}
+
+The hidden face ambiguity must be derived through conjugate transformation:
+\begin{equation}
+A_{\text{hidden}} = A_{\text{obs}}(\beta^{(\text{network})}_{\text{hidden}}, R_{\text{hidden}}) = A_{\text{obs}}(T(\beta^{(\text{network})}_{\text{obs}}), T(R_{\text{obs}}))
+\end{equation}
+
+This reflects measurement apparatus complementarity (Theorem \ref{thm:apparatus_complementarity}): one can directly measure observable face ambiguity and calculate hidden face ambiguity via transformation, analogous to measuring current and calculating voltage.
+
+\subsection{Conjugate Ambiguity Relationship}
+
+\begin{theorem}[Conjugate Ambiguity Conservation]
+\label{thm:conjugate_ambiguity}
+For phase conjugate transformation, observable and hidden face ambiguities satisfy:
+\begin{equation}
+A_{\text{hidden}}(\beta^{(\text{network})}_{\text{hidden}}, R_{\text{hidden}}) = A_{\text{obs}}(\beta^{(\text{network})}_{\text{obs}}, R_{\text{obs}})
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Phase conjugate inverts knowledge coordinate: $S_{k,\text{back}} = -S_{k,\text{front}}$. From Theorem \ref{thm:ambiguity_richness}, ambiguity depends on categorical richness. For transformations preserving richness:
+\begin{equation}
+R(T(\beta)) = R(\beta)
+\end{equation}
+
+The ambiguity on hidden face:
+\begin{align}
+A_{\text{hidden}} &= k_B T \log R(T(\beta^{(\text{network})})) \\
+&= k_B T \log R(\beta^{(\text{network})}) \\
+&= A_{\text{obs}}
+\end{align}
+
+The conjugate transformation preserves categorical richness while inverting knowledge coordinates, yielding equal ambiguities on both faces. $\square$
+\end{proof}
+
+This theorem validates that information content is conserved across conjugate faces: what is uncertain on the front face remains equally uncertain on the back face, despite the coordinate inversion.
+
+\subsection{Network-Region Compound Ambiguity}
+
+Processing region $R$ with network BMD $\beta^{(\text{network})}$ generates compound $\beta^{(\text{network})} \circledast R$. The compound ambiguity determines whether processing is beneficial.
+
+\begin{definition}[Compound Ambiguity Reduction]
+\label{def:compound_ambiguity}
+The ambiguity reduction from processing region $R$ is:
+\begin{equation}
+\Delta A(R) = A(\beta^{(\text{network})}, R) - A(\beta^{(\text{network})} \circledast R, R)
+\end{equation}
+\end{definition}
+
+Positive $\Delta A(R) > 0$ indicates processing $R$ reduces ambiguity (useful). Negative $\Delta A(R) < 0$ indicates processing $R$ increases ambiguity (warranting revisitation later).
+
+The ambiguity after forming compound:
+\begin{align}
+A(\beta^{(\text{network})} \circledast R, R) &= k_B T \log R((\beta^{(\text{network})} \circledast R) \circledast R) \\
+&= k_B T \log R(\beta^{(\text{network})} \circledast R^{\circledast 2})
+\end{align}
+
+where $R^{\circledast 2} = R \circledast R$ is the region self-compound (typically lower richness than $R$ due to constraint satisfaction).
+
+\subsection{Hierarchical Ambiguity Propagation}
+
+Ambiguity propagates hierarchically through compound BMD structure.
+
+\begin{theorem}[Hierarchical Ambiguity Bounds]
+\label{thm:hierarchical_ambiguity}
+For compound BMD of order $k$ from regions $\{R_{i_1}, \ldots, R_{i_k}\}$:
+\begin{equation}
+k_B T \log\left(\prod_{j=1}^{k} R(R_{i_j})\right) \leq A(\beta^{(k)}_{i_1, \ldots, i_k}, R_{\text{new}}) \leq k_B T \log\left(\sum_{j=1}^{k} R(R_{i_j})\right)
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\textbf{Lower bound:} Phase-lock coupling constrains compound richness through intersection:
+\begin{equation}
+R(\beta^{(k)}) \geq \prod_{j=1}^{k} R(R_{i_j})
+\end{equation}
+(constraints from all regions must be satisfied).
+
+\textbf{Upper bound:} Hierarchical composition generates additional categorical connections:
+\begin{equation}
+R(\beta^{(k)}) \leq \sum_{j=1}^{k} R(R_{i_j}) + \text{interaction terms}
+\end{equation}
+(total richness bounded by sum plus interactions).
+
+From Theorem \ref{thm:ambiguity_richness}, ambiguity scales as $\log R$, yielding stated bounds. $\square$
+\end{proof}
+
+These bounds constrain how ambiguity scales with hierarchical depth, preventing uncontrolled growth or collapse.
+
+\subsection{Stream-Coherent Ambiguity}
+
+The algorithm selects regions based on stream-coherent ambiguity: observable ambiguity minus stream divergence penalty.
+
+\begin{definition}[Stream-Coherent Ambiguity]
+\label{def:stream_coherent_ambiguity}
+The stream-coherent ambiguity of region $R$ is:
+\begin{equation}
+A_{\text{coherent}}(\beta^{(\text{network})}, R, \beta^{(\text{stream})}_{\text{hardware}}) = A(\beta^{(\text{network})}, R) - \lambda \cdot D_{\text{stream}}(\beta^{(\text{network})} \circledast R, \beta^{(\text{stream})}_{\text{hardware}})
+\end{equation}
+where $\lambda > 0$ is the stream coupling parameter.
+\end{definition}
+
+High observable ambiguity $A(\beta^{(\text{network})}, R)$ encourages processing region $R$ (exploration). High stream divergence $D_{\text{stream}}$ discourages it (violates physical constraints). The balance determines selection.
+
+\begin{theorem}[Stream-Coherent Selection Optimality]
+\label{thm:stream_coherent_optimal}
+Selecting regions by maximum stream-coherent ambiguity minimizes expected processing iterations to reach coherence threshold.
+\end{theorem}
+
+\begin{proof}
+The ambiguity reduction per iteration scales with current ambiguity:
+\begin{equation}
+\frac{dA}{di} \propto -A(R_i)
+\end{equation}
+(higher initial ambiguity yields greater reduction upon completion).
+
+The stream divergence penalty ensures physical realizability:
+\begin{equation}
+P(\text{realizable}|R) \propto \exp(-\lambda D_{\text{stream}})
+\end{equation}
+(low divergence means high probability of physical realization).
+
+The expected ambiguity reduction accounting for realization probability:
+\begin{equation}
+\langle \Delta A \rangle = A(R) \cdot P(\text{realizable}|R) \propto A(R) \cdot \exp(-\lambda D_{\text{stream}})
+\end{equation}
+
+For small divergence, $\exp(-\lambda D_{\text{stream}}) \approx 1 - \lambda D_{\text{stream}}$:
+\begin{equation}
+\langle \Delta A \rangle \propto A(R)(1 - \lambda D_{\text{stream}}) = A(R) - \lambda A(R) D_{\text{stream}}
+\end{equation}
+
+Maximizing expected reduction maximizes $A(R) - \lambda D_{\text{stream}} = A_{\text{coherent}}(R)$, establishing optimality. $\square$
+\end{proof}
+
+\subsection{Ambiguity Saturation and Convergence}
+
+As processing continues, per-region ambiguity decreases toward hardware noise floor.
+
+\begin{theorem}[Ambiguity Convergence to Hardware Noise Floor]
+\label{thm:ambiguity_convergence}
+For any region $R$, the network BMD ambiguity converges:
+\begin{equation}
+\lim_{i \to \infty} A(\beta^{(\text{network})}_i, R) = A_{\text{coherence}}
+\end{equation}
+where:
+\begin{equation}
+A_{\text{coherence}} = k_B T \log(R(\beta^{(\text{stream})}_{\text{hardware}}) \cdot \epsilon_{\text{quantum}})
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Each processing iteration reduces ambiguity by completing oscillatory holes. The reduction continues until network BMD richness saturates at hardware stream richness:
+\begin{equation}
+R(\beta^{(\text{network})}_{\infty}) = R(\beta^{(\text{stream})}_{\text{hardware}})
+\end{equation}
+
+Further reduction is impossible because categorical distinctions below hardware measurement precision ($\epsilon_{\text{quantum}}$) are physically inaccessible. The minimum ambiguity:
+\begin{equation}
+A_{\min} = k_B T \log(R(\beta^{(\text{stream})}_{\text{hardware}}) \cdot \epsilon_{\text{quantum}})
+\end{equation}
+represents the hardware noise floor. $\square$
+\end{proof}
+
+The coherence threshold $A_{\text{coherence}}$ is set slightly above this floor to avoid infinite iteration attempting to resolve physically inaccessible categorical distinctions.
+
+\subsection{Revisitation Criterion}
+
+Network evolution can increase region ambiguity, warranting revisitation.
+
+\begin{definition}[Revisitation Ambiguity Increase]
+\label{def:revisitation_ambiguity}
+Region $R'$ processed at step $j$ is revisited at step $i > j$ if network evolution increases its ambiguity:
+\begin{equation}
+A(\beta^{(\text{network})}_i, R') > A(\beta^{(\text{network})}_j, R') + \Delta A_{\text{revisit}}
+\end{equation}
+where $\Delta A_{\text{revisit}}$ is a revisitation threshold preventing oscillation.
+\end{definition}
+
+The ambiguity increase occurs through new compound BMD formation. Compounds created after processing $R'$ at step $j$ form categorical connections to $R'$, opening interpretation pathways invisible during initial processing:
+\begin{equation}
+\mathcal{C}_{\text{connected}}^i(R') \supset \mathcal{C}_{\text{connected}}^j(R')
+\end{equation}
+
+The additional connections increase categorical richness $R(\beta^{(\text{network})}_i \circledast R') > R(\beta^{(\text{network})}_j \circledast R')$, raising ambiguity per Theorem \ref{thm:ambiguity_richness}.
+
+\subsection{Ambiguity Map Visualization}
+
+The spatial distribution of ambiguities provides visual representation of processing difficulty.
+
+\begin{definition}[Pixel Ambiguity Map]
+\label{def:ambiguity_map}
+For pixel demon grid with network BMD $\beta^{(\text{network})}$, the ambiguity map is:
+\begin{equation}
+A_{\text{map}}[i,j] = A(\beta^{(\text{network})}, \text{PMD}_{ij})
+\end{equation}
+where $\text{PMD}_{ij}$ is the pixel Maxwell demon at position $(i,j)$.
+\end{definition}
+
+High ambiguity pixels (bright in visualization) indicate categorical uncertainty requiring resolution. Low ambiguity pixels (dark) indicate network coherence achieved. The ambiguity map evolves throughout processing, highlighting regions needing attention at each iteration.
+
