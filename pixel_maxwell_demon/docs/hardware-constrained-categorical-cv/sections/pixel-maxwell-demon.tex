@@ -82,16 +82,33 @@ For perfect phase synchronization ($\phi_i = \phi_0$ for all $i$), $S_t = 0$. Fo
 
 \subsubsection{Evolutionary Entropy from Frequency Variance}
 
-The evolutionary entropy $S_e$ quantifies heterogeneity in vibrational frequency distribution:
+The evolutionary entropy $S_e$ quantifies the heterogeneity in the vibrational frequency distribution:
 \begin{equation}
 S_e(\mathbf{r}) = \sqrt{\frac{\text{Var}(\{f_i : i \in \mathcal{M}\})}{\langle f \rangle^2}}
 \end{equation}
 
 This is the coefficient of variation of vibrational frequencies. High $S_e$ indicates diverse molecular species with widely varying frequencies (high evolutionary potential); low $S_e$ indicates homogeneous molecular composition (low evolutionary potential).
 
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/multi_modal_detector_analysis.png}
+\caption{\textbf{Signal processing validation across five computational imaging modalities.} 
+Comprehensive analysis demonstrates consistency of categorical coordinate extraction across fluorescence, phase contrast, wavelength-specific, and darkfield imaging modes.
+Each row represents one imaging modality with standardized analysis pipeline: \textbf{(Column 1)} Original image, \textbf{(Column 2)} Phase map via Hilbert transform, \textbf{(Column 3)} 2D power spectrum (log scale), \textbf{(Column 4)} Edge detection (Canny), \textbf{(Column 5)} Circular phase histogram, \textbf{(Column 6)} Gradient magnitude, \textbf{(Column 7)} 2D autocorrelation (central region), \textbf{(Column 8)} Frequency band distribution.
+\textbf{Row A: Fluorescence (561nm).} Original image shows cytoskeletal structures with rhodamine labeling (excitation 561nm, emission 580nm). Phase map reveals $\pm\pi$ phase structure with mean phase $= -0.0012 \pm 1.713$~rad. Power spectrum shows dominant low-frequency component (97.5\% power in low band) indicating smooth spatial structure. Circular phase histogram shows uniform angular distribution, indicating isotropic phase structure. 
+\textbf{Row B: Phase contrast.} Original image shows cellular structures via phase-contrast microscopy (DIC-like contrast). Phase map reveals complex phase structure with mean $= -0.0318 \pm 1.899$~rad, higher variance than fluorescence indicating richer phase information. Power spectrum shows 99.9\% power in low band, indicating very smooth phase gradients. Circular phase histogram shows slight anisotropy (preferential alignment along 45° and 135°). Gradient magnitude mean $= 0.024$. 
+\textbf{Row C: 450nm (blue wavelength).} Original image shows same cellular structures imaged at 450nm (blue light). Phase map, power spectrum, and gradient structure nearly identical to 561nm fluorescence (phase mean $= -0.0012 \pm 1.713$~rad, gradient mean $= 0.024$), demonstrating wavelength-independent categorical structure. Frequency band distribution identical (97.5\% low, 0.9\% mid, 1.6\% high), confirming categorical coordinates are wavelength-invariant.
+\textbf{Row D: 650nm (red wavelength).} Original image at 650nm shows identical structure to 450nm and 561nm. Phase map, power spectrum, gradient magnitude, and all statistical measures identical to within measurement precision (phase mean $= -0.0012$~rad, gradient mean $= 0.024$, frequency bands 97.5\%/0.9\%/1.6\%), providing strong evidence that categorical structure is intrinsic to image content rather than wavelength-dependent.
+\textbf{Row E: Darkfield.} Original image shows cellular structures via darkfield illumination (scattered light only, no direct illumination). Intensity mean $= 0.198 \pm 0.068$ (darker overall than brightfield/fluorescence). Phase map shows mean $= 0.013 \pm 1.713$~rad. 
+\textbf{Cross-modality consistency:} Phase distributions across all five modalities show similar structure (uniform angular distribution, $\pm\pi$ range). Power spectra consistently show dominant low-frequency component (>97\% power), indicating categorical structure is predominantly smooth with localized sharp transitions. 
+\textbf{Wavelength independence:} Three wavelength-specific modalities (450nm, 561nm, 650nm) show identical statistical properties to within measurement precision, demonstrating that categorical coordinates are wavelength-invariant. This supports the claim that categorical structure is intrinsic to image content rather than wavelength-dependent measurement artifact.
+\textbf{Modality-specific variations:} Phase contrast shows highest phase variance (std $= 1.899$~rad) and longest correlation length ($\approx 100$~pixels), indicating phase-contrast imaging preserves more categorical information than intensity-based modalities.}
+\label{fig:signal_processing_multimodal}
+\end{figure*}
+
 \subsection{Virtual Detector Array}
 
-Virtual detectors enable hypothesis testing through categorical coordinate queries without physical apparatus instantiation. Each detector $D \in \mathcal{D}$ is a functional mapping molecular demon states and categorical coordinates to measurement predictions and consistency flags:
+Virtual detectors enable hypothesis testing through categorical coordinate queries without the instantiation of physical apparatus. Each detector $D \in \mathcal{D}$ is a functional mapping molecular demon states and categorical coordinates to measurement predictions and consistency flags:
 \begin{equation}
 D: \mathcal{M} \times \mathbf{S} \to \mathbb{R} \times \{\text{consistent}, \text{inconsistent}\}
 \end{equation}
@@ -111,11 +128,11 @@ Pressure follows from ideal gas law applied to each molecular species:
 P = \sum_{i \in \mathcal{M}} n_i k_B T
 \end{equation}
 
-For atmospheric composition at $T = 288$ K, this yields $P \approx 101.3$ kPa, validating the molecular demon lattice aggregation accuracy.
+For atmospheric composition at $T = 288$ K, this yields $P \approx 101.3$ kPa, validating the accuracy of molecular demon lattice aggregation.
 
 \subsubsection{Virtual Hygrometer}
 
-Relative humidity is the ratio of water vapor partial pressure to saturation vapor pressure:
+Relative humidity is the ratio of the partial pressure of water vapour to the saturation vapour pressure:
 \begin{equation}
 \text{RH} = \frac{n_{\text{H}_2\text{O}} k_B T}{P_{\text{sat}}(T)} \times 100\%
 \end{equation}
@@ -131,7 +148,7 @@ where $\sigma_i(\nu)$ is the absorption cross-section for species $i$ at wavenum
 
 \subsubsection{Virtual Raman Spectrometer}
 
-Raman scattering intensity at frequency shift $\Delta\nu$ from excitation frequency $\nu_0$ is:
+Raman scattering intensity at a frequency shift $\Delta\nu$ from the excitation frequency $\nu_0$ is:
 \begin{equation}
 I_{\text{Raman}}(\Delta\nu) = \sum_{i \in \mathcal{M}} n_i \alpha_i^2 (\nu_0 \pm \Delta\nu)^4
 \end{equation}
@@ -144,7 +161,7 @@ Mass spectrum is a discrete function at molecular mass-to-charge ratios:
 I_{\text{MS}}(m/z) = \sum_{i \in \mathcal{M}} n_i \delta\left(\frac{m}{z} - \frac{m_i}{z_i}\right)
 \end{equation}
 
-For singly ionized molecules ($z_i = 1$), this provides direct species identification through molecular mass.
+For singly ionised molecules ($z_i = 1$), this provides direct species identification through molecular mass.
 
 \subsection{Consilience Engine for Hypothesis Validation}
 

@@ -123,7 +123,7 @@ H(\alpha) = H_0 + M \cdot h \cdot \log \alpha
 where $M$ is number of independent spectral channels contributing information, matching empirical $\beta = M$.
 \end{proof}
 
-The proof establishes that for scenes with 1/f temporal power spectrum (ubiquitous in nature), spectral multiplexing provides information that scales as $M \log \alpha$, where $M = \min(N_{\text{det}}, M_{\text{sources}})$ is number of independent channels.
+The proof establishes that for scenes with a 1/f temporal power spectrum (ubiquitous in nature), spectral multiplexing provides information that scales as $M \log \alpha$, where $M = \min(N_{\text{det}}, M_{\text{sources}})$ is the number of independent channels.
 
 \subsection{Implications for Slow-Motion Reconstruction}
 
@@ -143,11 +143,11 @@ where $C \propto 1/M$ depends inversely on spectral diversity.
 \alpha_{\max} = \exp\left[\frac{M(\epsilon_{\max} - \epsilon_0)}{C}\right]
 \end{equation}
 
-Maximum magnification increases \textit{exponentially} with number of spectral channels.
+Maximum magnification increases \textit{exponentially} with the number of spectral channels.
 
 \subsection{Wavelet Decomposition}
 
-The fractal structure admits natural wavelet decomposition:
+The fractal structure admits a natural wavelet decomposition:
 
 \begin{equation}
 I(t, \lambda) = \sum_{k=0}^K \sum_{j=1}^M \sum_n c_{kjn} \psi_{kn}(t) \delta(\lambda - \lambda_j)
@@ -155,13 +155,58 @@ I(t, \lambda) = \sum_{k=0}^K \sum_{j=1}^M \sum_n c_{kjn} \psi_{kn}(t) \delta(\la
 
 where $\psi_{kn}(t)$ are wavelets at scale $2^{-k}$ and position $n$, and $c_{kjn}$ are wavelet coefficients.
 
-\textbf{Key property}: Coefficients satisfy self-similarity:
+\textbf{Key property}: The coefficients satisfy self-similarity:
 
 \begin{equation}
 \langle |c_{kjn}|^2 \rangle \propto 2^{-\beta k}
 \end{equation}
 
 with $\beta = M$ as predicted by fractal theory.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/spectral_gap_filling.png}
+    \caption{\textbf{Validation of Theorem 2: Spectral gap filling through detector diversity.}
+    \textbf{Top row:} Test signal with gap locations (ground truth: black solid line; gaps highlighted in pink, 
+    cyan, blue for Gap 1, Gap 2, Gap 3 respectively; signal amplitude range: -1.5 to +1.5 over 100 ms); 
+    Scenario 1—single detector gap (10 ms, detector D3 missing 30–40 ms): reconstructed signal (red) vs. ground 
+    truth (black dashed), RMSE = 0.0124, $R^2$ = 0.9998; Scenario 2—multiple gaps (3× 10 ms, detectors D3, D5, D7 
+    missing): reconstructed (blue) vs. truth (black dashed), RMSE = 0.0129, $R^2$ = 0.9998; Scenario 3—large gap 
+    (50 ms, detector D3 missing 30–80 ms): reconstructed (purple) vs. truth (black dashed), RMSE = 0.0129, 
+    $R^2$ = 0.9998.
+    %
+    \textbf{Second row:} Reconstruction error by scenario (bar chart: RMSE in blue, MAE in orange—all scenarios 
+    achieve RMSE $<$ 0.013, confirming robust gap filling); Spectral coverage matrix showing which detectors 
+    respond to which wavelengths (10 detectors × 5 sources, heatmap: green = strong response, magenta = weak 
+    response—detector D3 responds primarily to $\lambda_1$ and $\lambda_2$, enabling gap filling by other detectors 
+    covering same wavelengths); Gap filling at $t=35$ ms (detector D3 missing 30–40 ms): 3 detectors missing 
+    (purple bars below threshold), others compensate (cyan bars above threshold), spectral reconstruction (blue 
+    line) matches ground truth (black dashed) with response threshold (red dashed) at 0.1; Detail view of gap 
+    region (30–45 ms, D3 missing 30–40 ms): reconstructed signal (red) tracks ground truth (black) with peak 
+    deviation $<$ 0.2 amplitude units (13\% of signal range).
+    %
+    \textbf{Third row:} Error vs. gap duration (single detector missing): RMSE increases from 0.01244 (no gap) 
+    to 0.01256 (50 ms gap), $<$1\% degradation confirming spectral diversity compensates for extended outages; 
+    Error vs. number of gaps (simultaneous detector failures): RMSE remains $<$ 0.013 until 6+ detectors fail 
+    (60\% loss), then rises sharply—system tolerates up to 50\% detector loss with $<$5\% error increase; 
+    Temporal error distribution (RMSE in 10 ms sliding windows): heatmap shows uniform error $\approx$ 0.012 across 
+    all time windows and gap scenarios (No Gap, Gap 1, Gap 2, Gap 3), confirming temporal consistency; Spectral 
+    redundancy polar plot showing detector coverage per wavelength ($\lambda_1$: 8 detectors, $\lambda_2$: 6 detectors, 
+    $\lambda_3$: 4 detectors, $\lambda_4$: 6 detectors, $\lambda_5$: 10 detectors—high redundancy enables robust 
+    gap filling).
+    %
+    \textbf{Bottom row:} Reconstruction quality ($R^2$ score, 1.0 = perfect): all scenarios achieve $R^2 > 0.999$ 
+    (excellent, green bar dominates), confirming near-perfect reconstruction despite gaps; Transient feature 
+    preservation (pulse detection quality): mean peak error $<$ 0.008 across all scenarios, demonstrating sharp 
+    transients preserved through gap filling; Reconstruction efficiency vs. no reconstruction: single gap = 98.5\%, 
+    multiple gaps = 98.5\%, large gap = 98.5\% (all green bars at 100\%, confirming gap filling achieves same 
+    efficiency as continuous measurement); Gap filling efficiency: single (10 ms) = 98.5\%, multiple (3×10 ms) = 98.5\%, 
+    large (50 ms) = 98.5\% (all scenarios achieve $>$98\% efficiency).
+    }
+    \label{fig:spectral_gap_filling}
+\end{figure}
+
+
 
 \subsection{Multi-Scale Reconstruction Algorithm}
 

@@ -21,7 +21,7 @@ encodes pixel molecular configurations $\theta_{ij}$, optical phases $\Gamma_{ij
 
 \subsubsection{Optical Sensor}
 
-Camera sensors sort photons by wavelength through color filter arrays:
+Camera sensors sort photons by wavelength through colour philtre arrays:
 \begin{equation}
 I_{ij}^{\text{RGB}} = \eta_Q \int_{\lambda} T^{\text{RGB}}(\lambda) \Phi(\lambda, x_{ij}, y_{ij}, t) d\lambda
 \end{equation}
@@ -35,7 +35,41 @@ The sensor BMD state:
 \begin{equation}
 \beta_{\text{sensor}} = \langle \{c_m\}, \{I_{ij}^{\text{RGB}}\}, \{\phi_k^{\text{readout}}\} \rangle
 \end{equation}
-couples directly to environmental molecular composition.
+Couples are directly linked to the environmental molecular composition.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/clock_domains_statistical_analysis.png}
+\caption{\textbf{Multi-scale clock domain statistical analysis} 
+\textbf{(A)} Frequency distribution of hierarchical oscillators spanning 13 orders of magnitude 
+(mean = 7.38 log Hz, median = 8.00 log Hz, $\sigma$ = 2.27), showing concentration around 
+cardiac master oscillator (2.345 Hz) with KDE overlay revealing bimodal structure. 
+\textbf{(B)} Jitter distribution across clock domains (violin plots) demonstrating variance 
+hierarchy: RTC (real-time clock) exhibits lowest jitter ($\sim10^{-5}$ s), while CORE and 
+UNCORE domains show highest stability ($\sim10^{-12}$ s). Median jitter = 7.50$\times10^{-11}$ s, 
+IQR = 3.25$\times10^{-7}$ s. 
+\textbf{(C)} Phase distribution (circular histogram) reveals phase-locking concentration at 
+45° ($\sim$7 events), indicating coherent oscillatory alignment across hierarchical substrates. 
+\textbf{(D)} Correlation matrix (Pearson $r$) shows strong negative correlation between 
+frequency and jitter ($r = -0.916$, $p < 0.001$), validating theoretical prediction that 
+higher-frequency oscillators exhibit lower variance. Phase shows weak positive correlation 
+with frequency ($r = 0.355$) and weak negative correlation with jitter ($r = -0.311$). 
+\textbf{(E)} Timing precision metrics (stacked normalized) quantify multi-component performance: 
+CORE domain achieves highest combined score (frequency + low jitter + precision + Q-factor + 
+relative timing = 4.0), while SYS\_TICK shows lowest (0.3), reflecting 2000-fold dynamic range 
+in oscillatory quality. 
+\textbf{(F)} Overall performance ranking (60\% frequency weight, 40\% jitter weight) establishes 
+objective hierarchy: CORE (1.000) $>$ UNCORE (0.962) $>$ MEMORY (0.959) $>$ BCLK (0.768) $>$ 
+PCIE (0.751) $>$ HPET (0.514) $>$ RTC (0.139) $>$ SYS\_TICK (0.079). This 12.7-fold performance 
+gradient validates hierarchical phase-locking architecture where high-frequency, low-jitter 
+domains (CORE, UNCORE) provide stable substrate for lower-frequency biological oscillators 
+(cardiac 2.345 Hz = SYS\_TICK). All measurements synchronized to Munich Airport caesium atomic 
+clock reference ($\pm$100 ns absolute precision), enabling trans-Planckian validation of 
+O$_2$-enhanced variance minimization framework during sustained locomotion (400 m, 68 s, 
+coherence $C = 0.59 > 0.5$ critical threshold, stability $S = 1.0$).}
+\label{fig:clock_domains_analysis}
+\end{figure}
+
 
 \subsubsection{Network Interface}
 
@@ -107,8 +141,8 @@ Hardware BMDs are not independent. They couple through physical environment:
 \begin{itemize}
 \item Display refresh synchronizes with AC power line frequency (50/60 Hz)
 \item AC power frequency determines EM field oscillations
-\item EM field couples to acoustic noise through power dissipation
-\item Acoustic vibrations couple to accelerometer through mechanical transmission
+\item EM fields couple to acoustic noise through power dissipation
+\item Acoustic vibrations couple to the accelerometer through mechanical transmission
 \item Network packet timing couples to EM fields through transmission hardware
 \item Optical sensor readout couples to display backlight through ambient illumination
 \end{itemize}
@@ -248,7 +282,7 @@ Both prevent unphysical high-ambiguity completions through multi-modal coherence
 
 \subsection{Dual-Membrane Hardware Stream}
 
-In the dual-membrane framework, the hardware stream maintains conjugate face structure:
+In the dual-membrane framework, the hardware stream maintains a conjugate face structure:
 \begin{equation}
 \beta^{(\text{stream})}_{\text{hardware,dual}} = \langle \beta^{(\text{stream})}_{\text{front}}, \beta^{(\text{stream})}_{\text{back}}, F_{\text{stream}}, T \rangle
 \end{equation}
@@ -265,6 +299,52 @@ The stream conjugate faces compose hierarchically:
 
 This dual structure enables stream coherence checking for both observable and hidden network faces, ensuring conjugate relationship preservation throughout processing.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/measurement_times.png}
+\caption{\textbf{Detector Measurement Time Analysis: Computational Performance Benchmarking.} 
+Quantitative analysis of computation time required for each virtual detector, 
+revealing algorithmic complexity and optimization opportunities.
+\textbf{Panel A (Mean Measurement Time per Detector):} Horizontal bar chart 
+showing mean computation time across all images. Detectors ranked by speed 
+(fastest to slowest): (\textit{1}) Photodiode: 4.40 s (simplest, intensity 
+integration), (\textit{2}) IR Spectrometer: 4.45 s (spectral query), (\textit{3}) 
+Raman Spectrometer: 4.61 s (vibrational mode query), (\textit{4}) Mass Spectrometer: 
+4.62 s (molecular weight computation), (\textit{5}) Hygrometer: 9.75 s (water 
+vapor partial pressure), (\textit{6}) Barometer: 17.61 s (momentum flux integration), 
+(\textit{7}) Thermometer: 17.66 s (kinetic energy averaging), (\textit{8}) 
+Interferometer: 32.38 s (slowest, phase unwrapping). Error bars indicate standard 
+deviation across multiple measurements.
+\textbf{Panel B (Measurement Time Distribution):} Box plots showing time 
+distribution for each detector. \textbf{Key observations:} (\textit{Photodiode, 
+IR, Raman, Mass Spec}) Tight distributions (IQR $< 0.5$ s) clustered around 
+4.4–4.6 s, indicating consistent performance. (\textit{Hygrometer}) Moderate 
+distribution (IQR $\approx 1$ s) centered at 9.75 s. (\textit{Barometer, 
+Thermometer}) Overlapping distributions (IQR $\approx 2$ s) at 17.6 s, suggesting 
+similar algorithmic complexity. (\textit{Interferometer}) Wide distribution 
+(IQR $\approx 5$ s) with median 32.38 s, reflecting variable phase unwrapping 
+complexity depending on image content.
+\textbf{Performance Tiers:}
+• \textbf{Tier 1 (Fast):} Photodiode, IR, Raman, Mass Spec (4.4–4.6 s, $< 5$ s) — Simple queries (intensity, spectral response, molecular weight).
+• \textbf{Tier 2 (Moderate):} Hygrometer (9.75 s, $\approx 10$ s) — Intermediate complexity (partial pressure calculation).
+• \textbf{Tier 3 (Slow):} Barometer, Thermometer (17.6 s, $\approx 18$ s) — Complex integration (momentum flux, kinetic energy).
+• \textbf{Tier 4 (Very Slow):} Interferometer (32.38 s, $> 30$ s) — Highest complexity (2D phase unwrapping, branch cut resolution).
+\textbf{Computational Bottleneck Analysis:} The 7.4× speed difference between 
+fastest (photodiode, 4.40 s) and slowest (interferometer, 32.38 s) detectors 
+indicates that phase unwrapping dominates computation time. The clustering of 
+4 detectors around 4.5 s suggests a common computational pathway (Maxwell demon 
+query + spectral response), while thermometer/barometer's 17.6 s reflects 
+additional spatial integration. The interferometer's wide distribution (box plot 
+spread) indicates content-dependent complexity: images with more phase discontinuities 
+require longer unwrapping times.
+\textbf{Optimization Opportunities:}
+• \textbf{Parallelization:} Tier 1 detectors (4.5 s each) can execute simultaneously, yielding effective time = 4.5 s for 4 detectors (4× speedup).
+• \textbf{Phase unwrapping:} Interferometer (32.38 s) could benefit from GPU acceleration or quality-guided unwrapping algorithms (potential 5–10× speedup).
+• \textbf{Thermometer/Barometer:} Spatial integration (17.6 s) could use hierarchical sampling or FFT-based convolution (potential 2–3× speedup).}
+\label{fig:measurement_times}
+\end{figure}
+
+
 \subsection{Pixel Demon as Hardware Interface}
 
 Pixel Maxwell demons provide the interface between physical hardware measurements and categorical image representation.
@@ -280,7 +360,7 @@ where $\beta_{ij}^{(\text{pixel})}$ is the dual-membrane BMD state of pixel demo
 
 This stream is measured through zero-backaction categorical queries (Theorem \ref{thm:zero_backaction}) at each pixel location. The pixel demons aggregate molecular ensemble properties without particle-level interaction, providing continuous hardware reality measurement directly from the image representation itself.
 
-The pixel demon stream composes with external hardware stream:
+The pixel demon stream composes with the external hardware stream:
 \begin{equation}
 \beta^{(\text{stream})}_{\text{complete}} = \beta^{(\text{stream})}_{\text{hardware}} \circledast \beta^{(\text{stream})}_{\text{pixel}}
 \end{equation}

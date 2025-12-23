@@ -86,6 +86,25 @@ A_{\text{hidden}} = A_{\text{obs}}(\beta^{(\text{network})}_{\text{hidden}}, R_{
 
 This reflects measurement apparatus complementarity (Theorem \ref{thm:apparatus_complementarity}): one can directly measure observable face ambiguity and calculate hidden face ambiguity via transformation, analogous to measuring current and calculating voltage.
 
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/categorical_depth_analysis.png}
+\caption{\textbf{Categorical depth emerges naturally from dual-membrane thickness without stereo correspondence or depth sensors.} 
+Depth is defined as the separation between front and back faces: $d_S = |S_{k,\text{front}} - S_{k,\text{back}}|$, providing inherent 3D information from 2D observations.
+\textbf{(A)} 3D categorical depth surface showing depth as a function of spatial position (1024×1024 pixels). 
+\textbf{(B)} Depth heatmap (2D projection) revealing spatial organization. Yellow regions (high depth, $d_S \approx 1.0$) indicate strong categorical distinction between front and back faces, corresponding to well-defined categorical states. Purple regions (low depth, $d_S \approx 0.2$) indicate weak distinction, corresponding to transitional or ambiguous states. 
+\textbf{(C)} Depth distribution histogram showing left-skewed distribution with peak at $d_S = 0.853$ (median, green line) and mean at $d_S = 0.805$ (yellow line). Skewness $= -1.187$ indicates left tail; kurtosis $= 1.100$ indicates platykurtic (flatter than Gaussian) shape. 
+\textbf{(D)} Cross-sections through depth field at middle row (blue, horizontal) and middle column (red, vertical). 
+\textbf{(E)} Depth gradient magnitude map $|\nabla d_S|$ showing edge structure. High gradients (red, $|\nabla d_S| \approx 0.40$) mark categorical boundaries where depth changes rapidly; low gradients (black, $|\nabla d_S| \approx 0.05$) mark homogeneous regions. Gradient magnitude mean $= 0.024 \pm 0.031$, indicating predominantly smooth depth field with localized sharp transitions.
+\textbf{(F)} Depth layers segmented by categorical separation into 5 discrete levels: Layer 1 (cyan, $d_S < 0.2$, 2\% of pixels), Layer 2 (yellow, $0.2 \leq d_S < 0.4$, 3\%), Layer 3 (magenta, $0.4 \leq d_S < 0.6$, 5\%), Layer 4 (orange, $0.6 \leq d_S < 0.8$, 15\%), Layer 5 (green, $d_S \geq 0.8$, 75\%). Layered structure emerges automatically from membrane thickness without manual segmentation or depth priors.
+\textbf{(G)} Depth contours (isodepth curves) showing topological structure. Contour density indicates rate of depth change: sparse contours (left, $\Delta d_S \approx 0.1$ per 100 pixels) indicate gradual variation; dense contours (center, $\Delta d_S \approx 0.3$ per 50 pixels) indicate rapid transitions. 
+\textbf{(H)} EM wavelength penetration as a function of categorical depth. Penetration fraction computed as $P(\lambda) = \int_0^{d_{\text{max}}} T(\lambda, d) \, dd$ where $T(\lambda, d)$ is wavelength-dependent transmittance. Results: UV (400nm) penetrates 45.0\%, blue (450nm) 50.5\%, green (550nm) 41.1\%, red (650nm) 45.0\%, near-IR (850nm) 54.5\%, mid-IR (2500nm) 100.0\% (full penetration). Wavelength-dependent penetration provides spectral signature of categorical depth, enabling multi-modal depth estimation.
+\textbf{(I)} Cumulative depth distribution showing quantile structure: Q25 $= 0.707$ (25\% of pixels have $d_S < 0.707$), Q50 (median) $= 0.853$, Q75 $= 0.963$. Steep rise between $d_S = 0.7$ and $d_S = 0.9$ indicates concentration of pixels in high-depth regime, consistent with histogram bimodality.
+\textbf{(J)} Radial depth profile from image center (0,0) showing monotonic increase from $d_S \approx 0.5$ at center to $d_S \approx 0.85$ at periphery (500 pixels radial distance). Radial gradient $\nabla_r d_S \approx 7 \times 10^{-4}$ per pixel indicates systematic depth variation correlated with radial distance, suggesting categorical structure has radial symmetry component.
+Statistical summary: mean $= 0.8046$, median $= 0.8534$, std $= 0.1772$, min $= 0.0000$, max $= 1.0000$, range $= 1.0000$, Q25 $= 0.7068$, Q75 $= 0.9634$, skewness $= -1.1874$, kurtosis $= 1.1003$.}
+\label{fig:categorical_depth}
+\end{figure*}
+
 \subsection{Conjugate Ambiguity Relationship}
 
 \begin{theorem}[Conjugate Ambiguity Conservation]
