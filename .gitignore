@@ -367,17 +367,57 @@ multi_modal_validation/
 spectral_multiplexing_validation/
 motion_picture_validation/
 multi_modal_motion_picture/
+lunar_paper_validation/
 
-# NPY result files (keep small ones, exclude large arrays)
-# Uncomment the line below if NPY files become too large:
-# *.npy
+# NPY result files (numpy arrays can be huge)
+*.npy
 
 # Generated visualizations (keep PNG, exclude large media)
 npy_visualizations/
 publication_panels/
 virtual_imaging_results/
 
-# LaTeX build artifacts
+# Result directories (contain large files)
+results/
+**/results/
+output/
+**/output/
+experiments/
+**/experiments/
+
+# Data files (CSV, JSON can be very large)
+# Already excluded globally above, but reinforce here
+*.csv
+*.json
+*.jsonl
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+
+# Video and animation files (STRICT - no exceptions in main dirs)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.gif
+*.gifv
+*.webm
+*.flv
+
+# Large image files (exclude generated validation images)
+*validation*.png
+*VALIDATION*.png
+*demonstration*.png
+*DEMONSTRATION*.png
+*reconstruction*.png
+*RECONSTRUCTION*.png
+*analysis*.png
+*ANALYSIS*.png
+
+# LaTeX build artifacts (all outputs except source)
 *.aux
 *.bbl
 *.blg
@@ -388,8 +428,33 @@ virtual_imaging_results/
 *.toc
 *.lof
 *.lot
+*.log
+*.pdf
+*.dvi
+*.ps
 
-# Exceptions (keep these small assets)
+# Lunar surface paper outputs
+pixel_maxwell_demon/docs/lunar-surface/*.pdf
+pixel_maxwell_demon/docs/lunar-surface/*.aux
+pixel_maxwell_demon/docs/lunar-surface/*.bbl
+pixel_maxwell_demon/docs/lunar-surface/*.blg
+pixel_maxwell_demon/docs/lunar-surface/*.log
+pixel_maxwell_demon/docs/lunar-surface/*.out
+pixel_maxwell_demon/docs/lunar-surface/*.toc
+pixel_maxwell_demon/docs/lunar-surface/*.synctex.gz
+pixel_maxwell_demon/docs/lunar-surface/fix_symbols.py
+pixel_maxwell_demon/docs/lunar-surface/lunar-surface-submission.zip
+
+# ArXiv submission files
+*-arxiv.pdf
+*-submission.zip
+
+# Exceptions (ONLY keep tiny assets in specific folders)
 !assets/*.gif
 !assets/*.mp4
-!README_assets/
+!README_assets/*.gif
+!README_assets/*.mp4
+# Exception: keep small documentation PNGs in docs (but not validation results)
+!**/docs/**/*.png
+pixel_maxwell_demon/lunar_paper_validation/**/*.png
+pixel_maxwell_demon/docs/lunar-surface/figures/*.png
