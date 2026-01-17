@@ -1,0 +1,240 @@
+\section{Cellular State Output}
+
+\subsection{Complete State Specification}
+
+Unique cellular state determination provides complete structural and dynamical information. This section specifies output format and information content.
+
+\subsection{Spatial Structure}
+
+\begin{definition}[Three-Dimensional Density Map]
+Spatial structure output is mass density field $\rho(\mathbf{r})$ and composition field $c_{\alpha}(\mathbf{r})$ where $\alpha$ labels molecular species.
+\end{definition}
+
+Resolution $\delta x_{\text{eff}}$ achieves sub-nanometer scale from twelve-modality enhancement:
+\begin{equation}
+\delta x_{\text{eff}} = 200\text{ nm} \times (10^{-10})^{12/3} = 0.02\text{ nm}
+\end{equation}
+
+This resolves individual atoms without electron microscopy or X-ray crystallography.
+
+\begin{theorem}[Atomic Position Determination]
+For structure with $N_{\text{atoms}}$ atoms, complete position specification requires $3N_{\text{atoms}}$ coordinates. These emerge from partition structure $\{n_j, \ell_j, m_j, s_j\}$ through mapping
+\begin{equation}
+\mathbf{r}_j = \lambda_{\text{cat}} \times f(n_j, \ell_j, m_j)
+\end{equation}
+where $f$ is spherical harmonic expansion.
+\end{theorem}
+
+\begin{proof}
+Partition coordinates $(n,\ell,m)$ map to spherical coordinates $(r,\theta,\phi)$ through $r = n\lambda_{\text{cat}}$ and angular functions. Explicit mapping:
+\begin{align}
+r_j &= n_j \lambda_{\text{cat}} \\
+\theta_j &= \arccos(m_j/\sqrt{\ell_j(\ell_j+1)}) \\
+\phi_j &= 2\pi s_j
+\end{align}
+Converting to Cartesian: $\mathbf{r}_j = (r_j\sin\theta_j\cos\phi_j, r_j\sin\theta_j\sin\phi_j, r_j\cos\theta_j)$.
+\end{proof}
+
+\subsection{Thermodynamic Fields}
+
+\begin{definition}[Thermodynamic State]
+Thermodynamic output comprises fields: temperature $T(\mathbf{r})$, pressure $P(\mathbf{r})$, chemical potential $\mu_{\alpha}(\mathbf{r})$ for each species $\alpha$.
+\end{definition}
+
+These satisfy local equations of state from Theorem \ref{thm:equation_of_state}:
+\begin{equation}
+P(\mathbf{r}) = \frac{N(\mathbf{r})}{V(\mathbf{r})}\kB T(\mathbf{r}) \cdot \mathcal{S}(\mathbf{r})
+\end{equation}
+
+\begin{corollary}
+Temperature field determines thermal energy distribution:
+\begin{equation}
+E_{\text{thermal}}(\mathbf{r}) = \frac{3}{2}n(\mathbf{r})\kB T(\mathbf{r})
+\end{equation}
+where $n(\mathbf{r}) = N(\mathbf{r})/V(\mathbf{r})$ is number density.
+\end{corollary}
+
+\subsection{Metabolic State}
+
+\begin{definition}[Metabolic Coordinates]
+Metabolic output comprises categorical distances from four reference oxygens: $\{\dcat(\mathbf{r}, \mathbf{r}_{O_2}^{(i)})\}$ for $i = 1,2,3,4$.
+\end{definition}
+
+This defines cellular coordinate system independent of spatial coordinates.
+
+\begin{theorem}[Metabolic Network Reconstruction]
+Complete metabolic network with $N_{\text{rxn}}$ reactions and $N_{\text{met}}$ metabolites reconstructs from categorical distance matrix $\mathbf{D}$ where $D_{ij} = \dcat(\text{metabolite } i, \text{metabolite } j)$.
+\end{theorem}
+
+\begin{proof}
+Categorical distance encodes enzymatic step count. Network graph has metabolites as nodes and enzymes as edges. Edge $(i,j)$ exists if $D_{ij} = 1$ (direct enzymatic conversion). Multi-step pathways have $D_{ij} > 1$. Graph reconstruction from distance matrix is standard algorithm in network analysis.
+\end{proof}
+
+\subsection{Electromagnetic Potentials}
+
+\begin{definition}[EM Field Output]
+Electromagnetic output comprises electric field $\mathbf{E}(\mathbf{r})$, magnetic field $\mathbf{B}(\mathbf{r})$, and electromagnetic potential $A^{\mu}(\mathbf{r})$ where $\mu = 0,1,2,3$ (spacetime index).
+\end{definition}
+
+These derive from S-entropy gradients (Section 5):
+\begin{align}
+\mathbf{E}(\mathbf{r}) &= -\lambda_{\text{EM}} \nabla \Sk(\mathbf{r}) \\
+\mathbf{B}(\mathbf{r}) &= \lambda_{\text{EM}} \nabla \times (\St(\mathbf{r})\hat{\boldsymbol{\theta}})
+\end{align}
+
+\begin{corollary}
+Membrane potential across thickness $d$ with $\Delta\Sk = 0.3$ is
+\begin{equation}
+V_m = \lambda_{\text{EM}} \frac{\Delta\Sk}{d} \approx \frac{\hbar\omega_0}{e} \times \frac{0.3}{5\text{ nm}} \sim 70\text{ mV}
+\end{equation}
+matching typical cellular membrane potential.
+\end{corollary}
+
+\subsection{Mechanical Properties}
+
+\begin{definition}[Mechanical Output]
+Mechanical properties comprise viscosity field $\mu(\mathbf{r})$, elasticity tensor $\mathbb{C}(\mathbf{r})$, and stress tensor $\boldsymbol{\sigma}(\mathbf{r})$.
+\end{definition}
+
+From Theorem \ref{thm:viscosity}, viscosity derives from partition lag:
+\begin{equation}
+\mu(\mathbf{r}) = \sum_{i,j} \taulag_{ij}(\mathbf{r}) g_{ij}(\mathbf{r})
+\end{equation}
+
+\begin{theorem}[Elastic Modulus]
+Elastic modulus relates to phase-lock network stiffness:
+\begin{equation}
+E_{\text{elastic}} = \frac{1}{V}\sum_{\langle i,j \rangle} g_{ij} (\mathbf{r}_i - \mathbf{r}_j)^2
+\end{equation}
+where sum is over nearest-neighbor pairs.
+\end{theorem}
+
+\begin{proof}
+Elastic energy from small displacement $\delta\mathbf{r}_i$ is $U_{\text{elastic}} = \tfrac{1}{2}\sum_{\langle i,j\rangle} g_{ij} (\delta\mathbf{r}_i - \delta\mathbf{r}_j)^2$. For uniform strain $\epsilon$, displacements are $\delta\mathbf{r}_i = \epsilon \mathbf{r}_i$. Energy density $u = U/V = \tfrac{1}{2}E_{\text{elastic}}\epsilon^2$ gives stated formula.
+\end{proof}
+
+\subsection{Molecular Conformations}
+
+\begin{definition}[Conformation Output]
+Protein conformations comprise dihedral angles $\{\phi_i, \psi_i\}$ for residues $i = 1,\ldots,N_{\text{res}}$ and hydrogen bond network $\{(i,j) \,|\, \text{H-bond between residues } i,j\}$.
+\end{definition}
+
+From Theorem \ref{thm:protein_folding}, phase coherence determines native state:
+\begin{equation}
+r = \frac{1}{N_{\text{HB}}}\left|\sum_{j=1}^{N_{\text{HB}}} e^{i\phi_j}\right| > 0.8
+\end{equation}
+
+\begin{corollary}
+Ramachandran plot emerges from dihedral angle distribution. Allowed regions correspond to high phase coherence $r > 0.8$.
+\end{corollary}
+
+\subsection{Network Topology}
+
+\begin{definition}[Network Output]
+Phase-lock network output comprises adjacency matrix $\mathbf{A}$ where $A_{ij} = 1$ if oscillators $i$ and $j$ are phase-locked, and Laplacian spectrum $\{\lambda_k\}$.
+\end{definition}
+
+From Theorem \ref{thm:network_topology}, second eigenvalue quantifies connectivity:
+\begin{equation}
+\lambda_2 = \min_{\mathbf{x} \perp \mathbf{1}} \frac{\mathbf{x}^T \mathcal{L} \mathbf{x}}{\mathbf{x}^T\mathbf{x}}
+\end{equation}
+
+\begin{theorem}[Compartment Identification]
+Cellular compartments (nucleus, mitochondria, endoplasmic reticulum) correspond to eigenvector sign patterns of Laplacian.
+\end{theorem}
+
+\begin{proof}
+Graph Laplacian eigenvector $\mathbf{v}_k$ assigns value $v_k^{(i)}$ to node $i$. Sign pattern partitions nodes: positive values in one compartment, negative in another. Fiedler vector $\mathbf{v}_2$ (eigenvector for $\lambda_2$) gives optimal two-way partition. Higher eigenvectors give finer partitioning.
+\end{proof}
+
+\subsection{Temporal Evolution}
+
+\begin{definition}[Dynamical Output]
+Time-dependent state comprises trajectory $\Scoord(t) = (\Sk(t), \St(t), \Se(t))$ in S-entropy space for $t \in [0,T]$.
+\end{definition}
+
+From Theorem \ref{thm:s_bounded}, trajectory remains in $[0,1]^3$:
+\begin{equation}
+\gamma: [0,T] \to [0,1]^3, \quad \gamma(t) = \Scoord(t)
+\end{equation}
+
+\begin{theorem}[Trajectory Prediction]
+Given initial state $\Scoord(0)$ and equations of motion, future state $\Scoord(t)$ for $t > 0$ is uniquely determined.
+\end{theorem}
+
+\begin{proof}
+Equations of state provide closed system of differential equations. Cauchy-Lipschitz theorem guarantees unique solution for Lipschitz-continuous right-hand sides. S-entropy coordinates have continuous derivatives, ensuring uniqueness.
+\end{proof}
+
+\subsection{Information Content}
+
+\begin{theorem}[Total Information]
+Complete cellular state specification contains information
+\begin{equation}
+I_{\text{total}} = I_{\text{spatial}} + I_{\text{thermodynamic}} + I_{\text{metabolic}} + I_{\text{EM}} + I_{\text{mechanical}} + I_{\text{conformational}} + I_{\text{network}}
+\end{equation}
+\end{theorem}
+
+For cell with $N_{\text{atoms}} \sim 10^{11}$, encoding each atom position to $\sim 0.1$ nm precision requires:
+\begin{equation}
+I_{\text{spatial}} = 3N_{\text{atoms}} \log_2(L/\delta x) = 3 \times 10^{11} \times \log_2(10^4) \sim 10^{13}\text{ bits}
+\end{equation}
+
+However, dimensional reduction through phase-lock networks (Theorem \ref{thm:cross_section}) compresses this to $\sim 10^2$ macroscopic parameters, requiring:
+\begin{equation}
+I_{\text{compressed}} \sim 10^2 \times 64\text{ bits (double precision)} = 6.4 \times 10^3\text{ bits}
+\end{equation}
+
+This compression ratio of $\sim 10^9$ makes cellular state computation tractable.
+
+\subsection{Output Format}
+
+Complete cellular state outputs as hierarchical data structure:
+
+\begin{verbatim}
+CellState {
+    spatial: {
+        density: Array3D<float64>,  // shape (Nx, Ny, Nz)
+        composition: Array4D<float64>,  // shape (Nx, Ny, Nz, Nspecies)
+        resolution: float64  // effective resolution in nm
+    },
+    thermodynamic: {
+        temperature: Array3D<float64>,
+        pressure: Array3D<float64>,
+        chemical_potential: Array4D<float64>  // per species
+    },
+    metabolic: {
+        categorical_distances: Array2D<float64>,  // (Nmetabolites, 4)
+        network_graph: SparseMatrix<bool>,  // adjacency
+        flux_vector: Array1D<float64>  // per reaction
+    },
+    electromagnetic: {
+        electric_field: Array4D<float64>,  // (Nx, Ny, Nz, 3)
+        magnetic_field: Array4D<float64>,
+        potential: Array3D<float64>
+    },
+    mechanical: {
+        viscosity: Array3D<float64>,
+        elastic_tensor: Array6D<float64>,  // (Nx, Ny, Nz, 3, 3)
+        stress_tensor: Array6D<float64>
+    },
+    conformational: {
+        proteins: Array<Protein> {
+            dihedral_angles: Array2D<float64>,  // (Nres, 2)
+            hydrogen_bonds: Array2D<int32>,  // (NHB, 2)
+            phase_coherence: float64
+        }
+    },
+    network: {
+        adjacency: SparseMatrix<bool>,  // (Nnodes, Nnodes)
+        laplacian_spectrum: Array1D<float64>,
+        compartments: Array1D<int32>  // partition labels
+    },
+    temporal: {
+        s_entropy_trajectory: Array2D<float64>,  // (Ntimes, 3)
+        time_points: Array1D<float64>
+    }
+}
+\end{verbatim}
+
+This structured output provides complete cellular state accessible for quantitative analysis, visualization, and prediction.

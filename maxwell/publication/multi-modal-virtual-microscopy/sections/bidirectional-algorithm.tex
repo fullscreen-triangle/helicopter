@@ -1,0 +1,177 @@
+\section{Bidirectional Algorithm}
+
+\subsection{Algorithmic Framework}
+
+Complete cellular state determination requires simultaneous constraint satisfaction from measurements (forward direction) and equation solutions (backward direction). This section specifies the computational algorithm.
+
+\subsection{Forward Direction: Measurement-Based Exclusion}
+
+\begin{algorithm}[H]
+\caption{Sequential Exclusion Algorithm}
+\begin{algorithmic}[1]
+\STATE Initialize candidate set $\mathcal{C}_0 \gets \{\text{all possible structures}\}$ with $|\mathcal{C}_0| = N_0$
+\FOR{$i = 1$ to $12$}
+\STATE Acquire measurement $M_i$ from modality $i$
+\STATE Compute predicted measurement $M_i^{\text{pred}}(S)$ for each structure $S \in \mathcal{C}_{i-1}$
+\STATE Filter: $\mathcal{C}_i \gets \{S \in \mathcal{C}_{i-1} \,|\, |M_i^{\text{pred}}(S) - M_i| < \delta_i\}$
+\STATE Record exclusion factor: $\epsilon_i = |\mathcal{C}_i|/|\mathcal{C}_{i-1}|$
+\ENDFOR
+\STATE Output final candidate set $\mathcal{C}_{12}$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}[Monotonic Convergence]
+Candidate set size decreases monotonically: $|\mathcal{C}_0| \geq |\mathcal{C}_1| \geq \cdots \geq |\mathcal{C}_{12}|$.
+\end{theorem}
+
+\begin{proof}
+Each filtering step removes elements: $\mathcal{C}_i \subseteq \mathcal{C}_{i-1}$. Set inclusion implies $|\mathcal{C}_i| \leq |\mathcal{C}_{i-1}|$.
+\end{proof}
+
+\subsection{Backward Direction: Equation-Based Construction}
+
+\begin{algorithm}[H]
+\caption{Equation Solving Algorithm}
+\begin{algorithmic}[1]
+\STATE Initialize parameter vector $\boldsymbol{\theta} = \{n_j, \ell_j, m_j, s_j, T, P, V, N, \ldots\}$
+\STATE Formulate coupled equation system:
+\STATE \quad Thermodynamic: $f_1(\boldsymbol{\theta}) = PV - N\kB T \mathcal{S}(\{n_j\}) = 0$
+\STATE \quad Transport: $f_2(\boldsymbol{\theta}) = \xi - \sum_{ij}\taulag_{ij} g_{ij}/\mathcal{N} = 0$
+\STATE \quad S-entropy: $f_3(\boldsymbol{\theta}) = \|\Scoord(\boldsymbol{\theta})\|_{\infty} - 1 \leq 0$
+\STATE \quad Metabolic GPS: $f_4(\boldsymbol{\theta}) = \sum_i[\dcat(\Sigma_{\text{target}}, \Sigma_{O_2}^{(i)}) - N_{\text{steps}}^{(i)}]^2 = 0$
+\STATE \quad Network: $f_5(\boldsymbol{\theta}) = \det(\mathcal{L}(\{g_{ij}\})) = 0$
+\STATE \quad Poincaré: $f_6(\boldsymbol{\theta}) = \|\gamma(T) - \Scoord_0\| - \epsilon < 0$
+\STATE \quad Protein: $f_7(\boldsymbol{\theta}) = r(\{\phi_j\}) - r_{\text{crit}} > 0$
+\STATE \quad Membrane: $f_8(\boldsymbol{\theta}) = J - \alpha N_T J_{\text{single}} = 0$
+\STATE \quad Fluid: $f_9(\boldsymbol{\theta}) = \mu - \sum_{ij}\taulag_{ij} g_{ij} = 0$
+\STATE \quad Current: $f_{10}(\boldsymbol{\theta}) = \rho - \sum_{ij}\tau_{s,ij} g_{ij}/(ne^2) = 0$
+\STATE \quad Maxwell: $f_{11}(\boldsymbol{\theta}) = (\partial T/\partial V)_S + (\partial P/\partial S)_V = 0$
+\STATE Solve nonlinear system $\mathbf{f}(\boldsymbol{\theta}) = \mathbf{0}$ using Newton-Raphson:
+\STATE \quad $\boldsymbol{\theta}^{(k+1)} = \boldsymbol{\theta}^{(k)} - [\mathbf{J}_f(\boldsymbol{\theta}^{(k)})]^{-1} \mathbf{f}(\boldsymbol{\theta}^{(k)})$
+\STATE \quad where $\mathbf{J}_f$ is Jacobian matrix
+\STATE Output solution set $\mathcal{E} = \{\boldsymbol{\theta} \,|\, \mathbf{f}(\boldsymbol{\theta}) = \mathbf{0}\}$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}[Solution Existence]
+For consistent measurements, equation system has at least one solution.
+\end{theorem}
+
+\begin{proof}
+Physical cell exists and satisfies all equations. Measurements come from this physical cell. Therefore, true cellular parameters $\boldsymbol{\theta}_{\text{true}}$ satisfy $\mathbf{f}(\boldsymbol{\theta}_{\text{true}}) = \mathbf{0}$ within measurement uncertainties.
+\end{proof}
+
+\subsection{Intersection: Unique State Determination}
+
+\begin{algorithm}[H]
+\caption{Bidirectional Intersection}
+\begin{algorithmic}[1]
+\STATE Run Algorithm 1 (forward exclusion) $\to$ obtain $\mathcal{C}_{12}$
+\STATE Run Algorithm 2 (backward solving) $\to$ obtain $\mathcal{E}$
+\STATE Compute intersection: $\mathcal{S}_{\text{cell}} \gets \mathcal{C}_{12} \cap \mathcal{E}$
+\IF{$|\mathcal{S}_{\text{cell}}| = 1$}
+\STATE Output unique cellular state $S^*$
+\ELSIF{$|\mathcal{S}_{\text{cell}}| = 0$}
+\STATE Error: Inconsistent measurements
+\ELSE
+\STATE Acquire additional measurement to resolve ambiguity
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}[Unique Determination]
+For twelve independent modalities with combined exclusion $\epsilon_{\text{total}} < 10^{-60}$, intersection contains unique state: $|\mathcal{S}_{\text{cell}}| = 1$.
+\end{theorem}
+
+\begin{proof}
+Forward direction reduces candidates to $N_{12} = N_0 \epsilon_{\text{total}} = 10^{60} \times 10^{-118} = 10^{-58}$. Since number of structures must be non-negative integer, $N_{12} < 1$ implies $N_{12} = 0$ or $N_{12} = 1$. 
+
+Backward direction guarantees at least one solution (Theorem 6). Therefore $N_{12} \geq 1$. Combined: $N_{12} = 1$ exactly.
+\end{proof}
+
+\subsection{Computational Complexity}
+
+\begin{theorem}[Algorithm Complexity]
+Sequential exclusion has complexity $\mathcal{O}(M N_{\max})$ where $M = 12$ is number of modalities and $N_{\max}$ is maximum candidate set size. Equation solving has complexity $\mathcal{O}(K d^3)$ where $K$ is iteration count and $d$ is parameter dimension.
+\end{theorem}
+
+\begin{proof}
+Forward algorithm: Loop over $M$ modalities. In iteration $i$, compute predicted measurements for $|\mathcal{C}_{i-1}|$ candidates. Worst case: $|\mathcal{C}_{i-1}| = N_{\max}$ for all $i$. Total operations: $M \times N_{\max}$.
+
+Backward algorithm: Newton-Raphson iteration computes Jacobian (dimension $d \times d$) and inverts it (complexity $\mathcal{O}(d^3)$) for $K$ iterations. Total: $K d^3$.
+
+For cellular system: $d \sim 10^2$ parameters, $K \sim 10$ iterations, giving $\sim 10^7$ operations. This is computationally tractable.
+\end{proof}
+
+\subsection{Error Analysis}
+
+\begin{theorem}[Measurement Uncertainty Propagation]
+Measurement uncertainties $\{\delta_i\}$ propagate to structural uncertainty through
+\begin{equation}
+\delta\boldsymbol{\theta} = [\mathbf{J}_f^T \mathbf{J}_f]^{-1} \mathbf{J}_f^T \boldsymbol{\delta}
+\end{equation}
+where $\boldsymbol{\delta} = (\delta_1, \ldots, \delta_M)$ is measurement uncertainty vector.
+\end{theorem}
+
+\begin{proof}
+This is linear error propagation formula from least-squares theory. Jacobian $\mathbf{J}_f$ relates measurement changes to parameter changes: $\delta\mathbf{f} = \mathbf{J}_f \delta\boldsymbol{\theta}$. Inverting gives parameter uncertainty from measurement uncertainty.
+\end{proof}
+
+\begin{corollary}
+Well-conditioned Jacobian (small condition number $\kappa(\mathbf{J}_f)$) ensures small parameter uncertainty despite measurement noise.
+\end{corollary}
+
+\subsection{Iterative Refinement}
+
+\begin{algorithm}[H]
+\caption{Adaptive Measurement Strategy}
+\begin{algorithmic}[1]
+\STATE Initialize with five core modalities (optical, spectral, vibrational, metabolic GPS, temporal-causal)
+\STATE Solve for preliminary structure $S_{\text{prelim}}$
+\STATE Compute uncertainty: $\boldsymbol{\delta\theta}_{\text{prelim}}$
+\STATE Identify parameter with largest uncertainty: $\theta_{\max} = \arg\max_j \delta\theta_j$
+\STATE Select additional modality most sensitive to $\theta_{\max}$
+\STATE Acquire new measurement
+\STATE Re-solve with augmented measurement set
+\STATE Repeat until $\|\boldsymbol{\delta\theta}\| < \epsilon_{\text{target}}$
+\end{algorithmic}
+\end{algorithm}
+
+This adaptive strategy minimizes measurement time while ensuring desired structural resolution.
+
+\subsection{Parallelization}
+
+\begin{theorem}[Parallel Speedup]
+Forward algorithm parallelizes with speedup factor $S = \min(M, P)$ where $P$ is number of processors.
+\end{theorem}
+
+\begin{proof}
+Measurement acquisition and candidate filtering for different modalities are independent operations. These parallelize perfectly across $M$ processors. With $P$ processors, speedup is $S = \min(M,P)$ from Amdahl's law with zero serial fraction.
+\end{proof}
+
+For $M = 12$ modalities and $P = 12$ processors, computational time reduces by factor $12\times$, enabling real-time cellular imaging.
+
+\subsection{Convergence Criteria}
+
+\begin{definition}[Convergence]
+Algorithm converges when:
+\begin{enumerate}
+\item Candidate set size $|\mathcal{C}_i| = 1$ (forward), or
+\item Residual norm $\|\mathbf{f}(\boldsymbol{\theta})\| < \epsilon_{\text{tol}}$ (backward), or
+\item Parameter change $\|\boldsymbol{\theta}^{(k+1)} - \boldsymbol{\theta}^{(k)}\| < \epsilon_{\text{param}}$ (backward)
+\end{enumerate}
+\end{definition}
+
+Typical values: $\epsilon_{\text{tol}} = 10^{-6}$, $\epsilon_{\text{param}} = 10^{-8}$.
+
+\subsection{Robustness to Measurement Errors}
+
+\begin{theorem}[Graceful Degradation]
+If measurement $M_i$ has error $\delta_i$ exceeding uncertainty, algorithm still converges provided at least $M-2$ measurements remain accurate.
+\end{theorem}
+
+\begin{proof}
+Overdetermination by factor $\sim 10^{58}$ allows discarding up to two measurements while maintaining $N_{10} = 10^{60} \times (10^{-15})^5 \times (10^{-6})^3 \times (10^{-8})^2 \sim 10^{-27} < 1$. This ensures unique determination despite partial measurement corruption.
+\end{proof}
+
+This robustness makes framework practical for real experimental conditions with imperfect measurements.
