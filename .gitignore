@@ -211,6 +211,11 @@ __pycache__/
 *.3gp
 *.gif
 *.gifv
+*.GIF
+*.MP4
+*.AVI
+*.MOV
+*.MKV
 
 # Audio files
 *.wav
@@ -226,11 +231,18 @@ __pycache__/
 *.dat
 public/
 *.zip
+*.ZIP
 *.tar
 *.gz
 *.bz2
 *.7z
 *.rar
+
+# Explicitly exclude ZIP files in specific directories
+lifescience/public/*.zip
+lifescience/public/*.ZIP
+maxwell/publication/**/*.zip
+pixel_maxwell_demon/**/*.zip
 
 # Medical imaging
 *.dcm
@@ -406,6 +418,25 @@ experiments/
 *.gifv
 *.webm
 *.flv
+*.GIF
+*.MP4
+*.AVI
+*.MOV
+*.MKV
+
+# Explicitly exclude GIF and video files in publication directories
+maxwell/publication/**/*.gif
+maxwell/publication/**/*.GIF
+maxwell/publication/**/*.mp4
+maxwell/publication/**/*.MP4
+maxwell/publication/**/*.avi
+maxwell/publication/**/*.mov
+maxwell/publication/**/*.mkv
+pixel_maxwell_demon/**/*.gif
+pixel_maxwell_demon/**/*.GIF
+pixel_maxwell_demon/**/*.mp4
+pixel_maxwell_demon/**/*.avi
+pixel_maxwell_demon/**/*.mov
 
 # Large image files (exclude generated validation images)
 *validation*.png
@@ -449,11 +480,13 @@ pixel_maxwell_demon/docs/lunar-surface/lunar-surface-submission.zip
 *-arxiv.pdf
 *-submission.zip
 
-# Exceptions (ONLY keep tiny assets in specific folders)
-!assets/*.gif
-!assets/*.mp4
-!README_assets/*.gif
-!README_assets/*.mp4
+# Exceptions (ONLY keep tiny assets in specific folders - REMOVED GIF/VIDEO exceptions)
+# No exceptions for GIF/video files - they are too large for git
+# !assets/*.gif
+# !assets/*.mp4
+# !README_assets/*.gif
+# !README_assets/*.mp4
+
 # Exception: keep small documentation PNGs in docs (but not validation results)
 !**/docs/**/*.png
 pixel_maxwell_demon/lunar_paper_validation/**/*.png
