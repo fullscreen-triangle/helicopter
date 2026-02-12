@@ -18,6 +18,20 @@ For molecular vibrations with $\omega \sim 10^{13}$--$10^{14}$ rad/s, appropriat
 Harmonic network $\mathcal{H} = (V, E)$ comprises vertices $V$ representing vibrational modes $\{\omega_j\}$ and edges $E$ connecting modes with harmonic coincidences. Edge weights quantify coincidence strength: $w_{ij} = |n_i\omega_i - n_j\omega_j|^{-1}$.
 \end{definition}
 
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/co2_molecular_demon_lattice.png}
+    \caption{\textbf{CO$_2$ Molecular Demon Lattice: 4×4×4 Collective Vibrational States.}
+    (A) CO$_2$ molecular demon lattice structure with 64 molecules arranged in 4×4×4 grid showing spatial distribution with color-coded Z-position (0.0--3.0).
+    (B) CO$_2$ vibrational modes fundamental frequencies: Mode 1 ($\nu_1$ sym stretch) 40.17 THz, Mode 2 ($\nu_2$ bend) 20.00 THz, Mode 3 ($\nu_2$ bend) 20.00 THz, Mode 4 ($\nu_3$ asym stretch) 70.42 THz.
+    (C) Vibrational energy levels quantum state energies: Mode 1 (26.62 zJ), Mode 2 (13.25 zJ), Mode 3 (13.25 zJ), Mode 4 (46.66 zJ).
+    (D) Average S-category coordinates collective categorical state showing $s_E = 0.5414$, $s_I = 0.3250$, $s_K = 0.9050$.
+    (E) Observation statistics lattice measurement summary: 64 total molecules, 1128 observations, 17.6 obs/molecule, 4 vibrational modes.
+    (F) Mode consistency across runs reproducibility check comparing Run 1 (red) vs Run 2 (blue) showing excellent agreement across all four modes.
+    (G) Lattice density metrics spatial distribution: 1.0 molecules/site, 17.6 observations/site, 64 total sites.}
+    \label{fig:co2_demon_lattice}
+\end{figure*}
+
 \subsection{Frequency Space Triangulation}
 
 Harmonic relationships constrain frequency space topology, enabling structure prediction.
@@ -87,6 +101,19 @@ where $\chi \sim 0.01$ is anharmonicity constant and $\langle n \rangle$ is aver
 \begin{proof}
 Triangulation uncertainty decreases as $1/\sqrt{K}$ (standard error of mean). Anharmonicity shifts frequencies according to $\omega_{\text{real}} = \omega_0(1 - \chi v)$ where $v$ is vibrational quantum number. For harmonic $n$, effective $v \sim n$, giving error $\chi n \omega$. Averaging over $M$ modes by central limit theorem: $\sigma_{\chi} = \chi\langle n \rangle\omega/\sqrt{M}$. Combining errors in quadrature yields stated formula.
 \end{proof}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/vibration_field_mapper_panel.png}
+    \caption{\textbf{Quantum partition structure showing atomic orbitals, vibrational modes, and angular momentum distributions.} 
+    \textbf{(A) Negation field map at $Z=1$ (hydrogen).} Electrostatic potential $\phi(\mathbf{r}) = -Z/r = -1/r$ (color map: blue = most negative, red = least negative) creates radial field (white arrows) pointing toward nucleus at origin. Field strength decreases as $1/r^2$, shown by arrow length. At $Z=1$, potential is weakly confining with $\phi \sim -9$ (blue) at nucleus and $\phi \sim 0$ (red) at large radius. This weak confinement produces large atomic radius (Bohr radius $a_0 \sim 0.53$ Å) and low ionization energy ($13.6$ eV). Radial symmetry reflects spherical partition structure of s-orbitals.
+    \textbf{(B) Negation field map at $Z=6$ (carbon).} Stronger nuclear charge creates deeper potential well with $\phi \sim -54$ (dark blue) at nucleus. Field arrows are longer near nucleus, indicating stronger confinement. Potential gradient is steeper, producing smaller atomic radius and higher ionization energy ($11.3$ eV for neutral carbon). Concentric circles in potential map show equipotential surfaces. Stronger confinement leads to more tightly bound electrons and higher orbital energies. The $Z=6$ potential supports multiple bound states (1s, 2s, 2p) with distinct radial nodes.
+    \textbf{(C) Boundary probability distributions.} Radial probability density $|\psi(r)|^2 r^2$ vs. radius for different quantum states. 1s orbital (blue, $n=1, l=0$) peaks at $r \sim 1$ Bohr radius with no nodes. 2s orbital (green, $n=2, l=0$) has one radial node and peaks at $r \sim 5$ Bohr radii. 2p orbital (orange, $n=2, l=1$) peaks at $r \sim 4$ Bohr radii. 3s orbital (red, $n=3, l=0$) has two nodes and peaks at $r \sim 10$ Bohr radii. Higher $n$ states have larger radial extent and more nodes, reflecting higher energy and more complex partition structure. 
+    \textbf{(D) Vibrational modes (harmonic oscillator).} Energy levels $E_\nu = \hbar\omega(\nu + 1/2)$ for quantum harmonic oscillator showing vibrational states $\nu = 0, 1, 2, 3$ (blue, orange, green, red). Ground state $\nu=0$ (blue) has zero-point energy $E_0 = \hbar\omega/2$ and Gaussian wavefunction. Excited states have higher energy and more nodes (oscillations in wavefunction). Classical turning points (where wavefunction amplitude decreases) move outward with increasing $\nu$. Shaded regions show probability density $|\psi_\nu(x)|^2$. Black curve shows classical potential $V(x) = \frac{1}{2}m\omega^2 x^2$. Vibrational partition structure determines molecular IR absorption spectrum.
+    \textbf{(E) IR spectrum - partition oscillations.} Infrared transmittance showing vibrational absorption bands. O-H stretch ($\sim 3500$ cm$^{-1}$) appears as sharp dip due to high-frequency O-H bond vibration. C-H stretch ($\sim 3000$ cm$^{-1}$) shows similar feature. C=O stretch ($\sim 1700$ cm$^{-1}$) is strong absorption from carbonyl group. S-H stretch ($\sim 2600$ cm$^{-1}$) appears at intermediate frequency. Each absorption corresponds to transition between vibrational states ($\Delta\nu = 1$), measuring partition oscillation frequency. 
+    \textbf{(F) Angular complexity distributions.} Phase space topology showing angular momentum states in complex plane. $l=0$ (s-orbital, blue) is spherically symmetric with no angular nodes. $l=1$ (p-orbital, orange) has one angular node, creating dumbbell shape. $l=2$ (d-orbital, red) has two angular nodes, creating cloverleaf pattern. $l=3$ (f-orbital, purple) has three angular nodes, creating complex rosette pattern. Each lobe represents region of high probability density. Number of lobes increases with angular momentum quantum number $l$. }
+    \label{fig:quantum_partition_structure}
+    \end{figure}
 
 \subsection{Application to HCNA Modality}
 

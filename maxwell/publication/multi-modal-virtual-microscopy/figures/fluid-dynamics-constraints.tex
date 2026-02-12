@@ -40,18 +40,18 @@ Fluid satisfies momentum equation
 \begin{equation}
 \rho\left(\frac{\partial\mathbf{v}}{\partial t} + \mathbf{v} \cdot \nabla\mathbf{v}\right) = -\nabla P + \mu \nabla^2 \mathbf{v} + \mathbf{f}
 \end{equation}
-where viscosity is $\mu = \sum_{ij} \taulagij g_{ij}$.
+where viscosity is $\mu = \sum_{ij} \taulag_{ij} g_{ij}$.
 \end{theorem}
 
 \begin{proof}
-Start with partition-based momentum transfer. Particle in state $i$ transitions to state $j$ with rate $\Gamma_{ij} = g_{ij}/\taulagij$. Momentum change is $\Delta\mathbf{p}_{ij} = m(\mathbf{v}_j - \mathbf{v}_i)$. Total momentum transfer rate per volume is
+Start with partition-based momentum transfer. Particle in state $i$ transitions to state $j$ with rate $\Gamma_{ij} = g_{ij}/\taulag_{ij}$. Momentum change is $\Delta\mathbf{p}_{ij} = m(\mathbf{v}_j - \mathbf{v}_i)$. Total momentum transfer rate per volume is
 \begin{equation}
 \frac{d(\rho\mathbf{v})}{dt} = \sum_{ij} n_i \Gamma_{ij} \Delta\mathbf{p}_{ij}
 \end{equation}
 
 For smooth velocity field, expand: $\mathbf{v}_j - \mathbf{v}_i \approx (\mathbf{r}_j - \mathbf{r}_i) \cdot \nabla\mathbf{v} + \tfrac{1}{2}(\mathbf{r}_j - \mathbf{r}_i)(\mathbf{r}_j - \mathbf{r}_i) : \nabla\nabla\mathbf{v}$. First term gives advection $\mathbf{v} \cdot \nabla\mathbf{v}$. Second term gives viscous diffusion $\mu\nabla^2\mathbf{v}$ with viscosity coefficient
 \begin{equation}
-\mu = \rho \sum_{ij} \taulagij g_{ij} (\mathbf{r}_j - \mathbf{r}_i)^2/(6V)
+\mu = \rho \sum_{ij} \taulag_{ij} g_{ij} (\mathbf{r}_j - \mathbf{r}_i)^2/(6V)
 \end{equation}
 
 Pressure gradient $-\nabla P$ arises from thermodynamic equation (Theorem \ref{thm:equation_of_state}). External force $\mathbf{f}$ accounts for body forces.
@@ -59,7 +59,7 @@ Pressure gradient $-\nabla P$ arises from thermodynamic equation (Theorem \ref{t
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{figures/panel_coupling_networks.png}
+    \includegraphics[width=\textwidth]{figures/panel_coupling_networks.pdf}
     \caption{\textbf{Phase-Lock Networks: The Molecular Basis of Viscosity.}
     Fluid molecules are coupled pendulums, their oscillatory phases locked through intermolecular forces. These phase-locks form networks that encode viscosity as accumulated memory. (A) Network structure visualisation: nodes = molecules, edges = phase-lock couplings. Node colour indicates degree (number of connections); edge thickness indicates coupling strength. Dense networks (liquids) have high viscosity; sparse networks (gases) have low viscosity. (B) Coupling strength vs distance: Van der Waals ($g \sim r^{-6}$), dipole-dipole ($g \sim r^{-3}$), and hydrogen bonds (short-range exponential) show distinct decay profiles. Strong, short-range couplings create rigid networks; weak, long-range couplings create flexible networks. (C) Network density and phase: gas ($\rho_G < 0.2$, sparse network), liquid ($0.2 < \rho_G < 0.6$, percolating network), solid ($\rho_G > 0.6$, dense lattice). Phase transitions correspond to network percolation thresholds. (D) Transport as network navigation: molecular transport (highlighted path) proceeds through the phase-lock network, breaking and reforming connections. The viscosity $\mu = \sum \tau_p \cdot g$ is the total memory cost of all phase-lock reconfigurations along the path.}
     \label{fig:coupling_networks}
@@ -70,7 +70,7 @@ Pressure gradient $-\nabla P$ arises from thermodynamic equation (Theorem \ref{t
 \begin{definition}[Partition-Based Reynolds Number]
 Dimensionless Reynolds number is
 \begin{equation}
-\text{Re} = \frac{\rho v L}{\mu} = \frac{\rho v L}{\sum_{ij} \taulagij g_{ij}}
+\text{Re} = \frac{\rho v L}{\mu} = \frac{\rho v L}{\sum_{ij} \taulag_{ij} g_{ij}}
 \end{equation}
 where $v$ is characteristic velocity and $L$ is characteristic length.
 \end{definition}
@@ -122,16 +122,8 @@ From partition lag definition, $\taulag \sim \tau_0 \exp(\dcat/\lambda_T)$ where
 \begin{equation}
 \taulag \sim \exp\left(\frac{\dcat\hbar\omega_0}{\kB T}\right)
 \end{equation}
-Since $\mu \propto \sum \taulagij g_{ij}$ and $g_{ij}$ has weak temperature dependence, viscosity follows Arrhenius form with $E_a = \dcat\hbar\omega_0$.
+Since $\mu \propto \sum \taulag_{ij} g_{ij}$ and $g_{ij}$ has weak temperature dependence, viscosity follows Arrhenius form with $E_a = \dcat\hbar\omega_0$.
 \end{proof}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{figures/panel_transport_coefficients.png}
-    \caption{\textbf{Transport Coefficients: Viscosity as Time Emergence.}
-    All transport coefficients emerge from the interplay between partition lag (time for categorical completion) and coupling strength (phase-lock binding energy). Viscosity, in particular, represents the cost of time emergence in a correlated medium. (A) Viscosity formula: $\mu = \sum_{i,j} \tau_{p,ij} \cdot g_{ij}$ sums partition lag times coupling over all molecular pairs. This is the accumulated memory cost per unit strain---each phase-lock that must break and reform contributes $\tau_p \cdot g$ to viscosity. High viscosity means time passes ``slowly'' at the molecular level. (B) Temperature dependence contrast: gases (viscosity $\propto T^{1/2}$, increases with $T$) vs liquids (viscosity $\propto \exp(E_a/k_B T)$, decreases with $T$). In gases, more collisions = more memory = higher viscosity. In liquids, heat disrupts phase-locks = less memory = lower viscosity. (C) Thermal conductivity: $k \propto g/\tau_p$---strong coupling and fast completion promote heat transfer. Metals have low $\tau_p$ and high $g$ (electron-mediated), hence high conductivity. (D) Unified framework: viscosity ($\tau_p \cdot g$), thermal conductivity ($g/\tau_p$), and diffusivity ($1/(\tau_p \cdot g)$) all emerge from the same partition lag and coupling parameters. Transport is always navigation through apertures while paying the memory cost of phase-lock reconfiguration.}
-    \label{fig:transport_coefficients}
-    \end{figure}
 
 \subsection{Application to Cytoplasmic Streaming}
 
@@ -140,7 +132,7 @@ Cellular cytoplasm exhibits streaming motion driven by motor proteins.
 \begin{example}[Cytoplasmic Viscosity]
 Measured cytoplasmic viscosity is $\mu_{\text{cyto}} \sim 10^{-3}$ Pa·s at $T = 310$ K. From Theorem \ref{thm:viscosity}, with $\taulag \sim 10^{-12}$ s and $g \sim 10^{-21}$ J:
 \begin{equation}
-\mu = \sum_{ij} \taulagij g_{ij} \sim N_{\text{pairs}} \times 10^{-12} \times 10^{-21} \sim 10^{-3}\text{ Pa·s}
+\mu = \sum_{ij} \taulag_{ij} g_{ij} \sim N_{\text{pairs}} \times 10^{-12} \times 10^{-21} \sim 10^{-3}\text{ Pa·s}
 \end{equation}
 requires $N_{\text{pairs}} \sim 10^{30}$, consistent with $\sim 10^{11}$ molecules each participating in $\sim 10^{19}$ pairwise interactions.
 \end{example}

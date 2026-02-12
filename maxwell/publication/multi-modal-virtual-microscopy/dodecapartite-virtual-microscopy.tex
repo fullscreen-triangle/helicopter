@@ -1,6 +1,7 @@
 \documentclass[12pt,a4paper]{article}
 
 % Packages
+\usepackage[utf8]{inputenc}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{mathtools}
 \usepackage{physics}
@@ -14,6 +15,8 @@
 \usepackage{natbib}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{textcomp}
+\usepackage{gensymb}
 
 % Theorem environments
 \newtheorem{theorem}{Theorem}[section]
@@ -36,6 +39,7 @@
 \newcommand{\Se}{S_e}
 \newcommand{\Scoord}{\mathbf{S}}
 \newcommand{\taulag}{\tau_{\mathrm{p}}}
+\newcommand{\taulagij}{\tau_{\mathrm{p},ij}}
 
 \title{Dodecapartite Virtual Microscopy: Complete Cellular State Determination Through Multi-Physics Constraint Satisfaction}
 
@@ -51,7 +55,7 @@ Anonymous \\
 \maketitle
 
 \begin{abstract}
-We establish a mathematical framework for complete cellular state determination through twelve independent constraint modalities operating simultaneously. The framework derives from two axioms: bounded phase space and categorical observation. From these axioms emerge partition coordinates $(n,\ell,m,s)$ with capacity $2n^2$ and S-entropy coordinates $(\Sk,\St,\Se) \in [0,1]^3$. Cellular state at position $\mathbf{r}$ and time $t$ is uniquely determined by eleven coupled equations of state: thermodynamic ($PV = N\kB T \cdot \mathcal{S}$), transport ($\xi = \mathcal{N}^{-1} \sum_{ij} \taulag_{ij} g_{ij}$), S-entropy trajectory (bounded in $[0,1]^3$), metabolic positioning (oxygen triangulation), phase-lock network topology, Poincaré recurrence ($\|\gamma(T) - \Scoord_0\| < \epsilon$), protein folding (phase coherence $r = N^{-1}|\sum_j e^{i\phi_j}|$), membrane flux ($J = \alpha N_T J_{\text{single}}$), fluid dynamics ($\mu = \sum_{ij} \taulag_{ij} g_{ij}$), current flow ($\rho = \sum_{ij} \tau_{s,ij} g_{ij}/(ne^2)$), and Maxwell thermodynamic relations. Twelve measurement modalities provide overdetermination: optical microscopy, spectral analysis, vibrational spectroscopy, metabolic GPS, temporal-causal consistency, harmonic network topology, ideal gas law triangulation, Maxwell relations testing, Poincaré recurrence monitoring, Clausius-Clapeyron verification, entropy triple-point validation, and categorical transition rate limits. Each modality contributes exclusion factor $\epsilon_i$, reducing structural ambiguity from $N_0 \sim 10^{60}$ to unique determination through sequential exclusion $N_{12} = N_0 \prod_{i=1}^{12} \epsilon_i \sim 1$.
+We establish a mathematical framework for complete cellular state determination through twelve independent constraint modalities operating simultaneously. The framework derives from two axioms: bounded phase space and categorical observation. From these axioms emerge partition coordinates $(n,\ell,m,s)$ with capacity $2n^2$ and S-entropy coordinates $(\Sk,\St,\Se) \in [0,1]^3$. Cellular state at position $\mathbf{r}$ and time $t$ is uniquely determined by eleven coupled equations of state: thermodynamic ($PV = N\kB T \cdot \mathcal{S}$), transport ($\xi = \mathcal{N}^{-1} \sum_{ij} \taulagij g_{ij}$), S-entropy trajectory (bounded in $[0,1]^3$), metabolic positioning (oxygen triangulation), phase-lock network topology, Poincaré recurrence ($\|\gamma(T) - \Scoord_0\| < \epsilon$), protein folding (phase coherence $r = N^{-1}|\sum_j e^{i\phi_j}|$), membrane flux ($J = \alpha N_T J_{\text{single}}$), fluid dynamics ($\mu = \sum_{ij} \taulagij g_{ij}$), current flow ($\rho = \sum_{ij} \tau_{s,ij} g_{ij}/(ne^2)$), and Maxwell thermodynamic relations. Twelve measurement modalities provide overdetermination: optical microscopy, spectral analysis, vibrational spectroscopy, metabolic GPS, temporal-causal consistency, harmonic network topology, ideal gas law triangulation, Maxwell relations testing, Poincaré recurrence monitoring, Clausius-Clapeyron verification, entropy triple-point validation, and categorical transition rate limits. Each modality contributes exclusion factor $\epsilon_i$, reducing structural ambiguity from $N_0 \sim 10^{60}$ to unique determination through sequential exclusion $N_{12} = N_0 \prod_{i=1}^{12} \epsilon_i \sim 1$.
 
 The framework operates bidirectionally: forward direction applies measurements to constrain possible structures; backward direction solves equations to predict allowed structures. The intersection yields unique cellular state. We prove rigorously that physical coordinates $\mathbf{x}$ and S-entropy coordinates $\Scoord$ are orthogonal ($[\hat{x}, \hat{\Sk}] = 0$), enabling zero-backaction measurement with trans-Planckian precision. Harmonic coincidence networks provide frequency triangulation enabling structure prediction from partial data. Experimental validation on vanillin achieves 0.89\% error from 9.1\% spectroscopic coverage, confirming theoretical predictions. Atmospheric computation demonstration establishes $\sim 3 \times 10^{13}$ MB storage capacity in 10 cm$^3$ ambient air through categorical addressing, exceeding conventional storage by factor $\sim 10^{10}$.
 
@@ -185,7 +189,7 @@ The dodecapartite framework comprises eleven equations determining cellular stat
 
 Experimental validation confirms theoretical predictions. Vanillin structure prediction achieves 0.89\% error from 9.1\% spectroscopic coverage, demonstrating that partial measurements suffice for complete determination. Harmonic coincidence networks (Section 8) enable frequency triangulation with sub-1\% accuracy when network connectivity satisfies $\langle k \rangle \geq 3$.
 
-Consider the equation system. Thermodynamic equation $PV = N\kB T \cdot \mathcal{S}(V,N,\{n_i,\ell_i,m_i,s_i\})$ determines particle number $N$ and partition structure $\{n_i,\ell_i,m_i,s_i\}$ from pressure, volume, temperature measurements. Transport equation $\xi = \mathcal{N}^{-1} \sum_{ij} \taulag_{ij} g_{ij}$ determines partition lag $\taulag_{ij}$ and coupling strength $g_{ij}$ from measured transport coefficients. S-entropy trajectory constraint bounds state to $[0,1]^3$, eliminating unphysical regions. Metabolic GPS equation $\dcat(\Sigma_{\text{target}}, \Sigma_{O_2^{(i)}}) = N_{\text{steps}}^{(i)}$ determines spatial coordinates from oxygen concentration measurements.
+Consider the equation system. Thermodynamic equation $PV = N\kB T \cdot \mathcal{S}(V,N,\{n_i,\ell_i,m_i,s_i\})$ determines particle number $N$ and partition structure $\{n_i,\ell_i,m_i,s_i\}$ from pressure, volume, temperature measurements. Transport equation $\xi = \mathcal{N}^{-1} \sum_{ij} \taulagij g_{ij}$ determines partition lag $\taulagij$ and coupling strength $g_{ij}$ from measured transport coefficients. S-entropy trajectory constraint bounds state to $[0,1]^3$, eliminating unphysical regions. Metabolic GPS equation $\dcat(\Sigma_{\text{target}}, \Sigma_{O_2^{(i)}}) = N_{\text{steps}}^{(i)}$ determines spatial coordinates from oxygen concentration measurements.
 
 The remaining seven equations (phase-lock network, Poincaré recurrence, protein folding, membrane flux, fluid dynamics, current flow, Maxwell relations) provide additional constraints ensuring consistency. With eleven equations and eleven primary unknowns, system is determined. Twelve measurement modalities provide one redundant constraint, enabling error detection and validation.
 
@@ -314,7 +318,7 @@ We have established complete mathematical framework for cellular state determina
 
 \textbf{First:} From two axioms (bounded phase space, categorical observation), partition coordinates $(n,\ell,m,s)$ with capacity $2n^2$ emerge as geometric necessity. These map to S-entropy coordinates $(\Sk,\St,\Se) \in [0,1]^3$ for macroscopic description.
 
-\textbf{Second:} Cellular state is uniquely determined by eleven coupled equations: thermodynamic state $PV = N\kB T \cdot \mathcal{S}$, transport coefficients $\xi = \mathcal{N}^{-1} \sum_{ij} \taulag_{ij} g_{ij}$, S-entropy trajectory bounded in $[0,1]^3$, metabolic positioning via oxygen triangulation $\dcat = N_{\text{steps}}$, phase-lock network topology, Poincaré recurrence $\|\gamma(T) - \Scoord_0\| < \epsilon$, protein phase coherence $r = N^{-1}|\sum_j e^{i\phi_j}|$, membrane flux $J = \alpha N_T J_{\text{single}}$, fluid viscosity $\mu = \sum_{ij} \taulag_{ij} g_{ij}$, electrical resistivity $\rho = \sum_{ij} \tau_{s,ij} g_{ij}/(ne^2)$, and Maxwell thermodynamic relations.
+\textbf{Second:} Cellular state is uniquely determined by eleven coupled equations: thermodynamic state $PV = N\kB T \cdot \mathcal{S}$, transport coefficients $\xi = \mathcal{N}^{-1} \sum_{ij} \taulagij g_{ij}$, S-entropy trajectory bounded in $[0,1]^3$, metabolic positioning via oxygen triangulation $\dcat = N_{\text{steps}}$, phase-lock network topology, Poincaré recurrence $\|\gamma(T) - \Scoord_0\| < \epsilon$, protein phase coherence $r = N^{-1}|\sum_j e^{i\phi_j}|$, membrane flux $J = \alpha N_T J_{\text{single}}$, fluid viscosity $\mu = \sum_{ij} \taulagij g_{ij}$, electrical resistivity $\rho = \sum_{ij} \tau_{s,ij} g_{ij}/(ne^2)$, and Maxwell thermodynamic relations.
 
 \textbf{Third:} Twelve measurement modalities provide overdetermination: optical (spatial structure), spectral (electronic states), vibrational (molecular bonds), metabolic GPS (oxygen triangulation), temporal-causal (light propagation), harmonic network topology (temperature from phase-lock structure), ideal gas triangulation (PV=NkT triple verification), Maxwell relations (thermodynamic consistency), Poincaré recurrence monitoring (S-entropy trajectory), Clausius-Clapeyron verification (phase equilibrium slopes), entropy triple-point validation (categorical-oscillatory-partition equivalence), categorical transition rate limits (relativistic consistency).
 
@@ -342,6 +346,7 @@ We have established complete mathematical framework for cellular state determina
 
 All theorems proved rigorously. All bounds derived from first principles. All algorithms specified explicitly. Experimental validation confirms <1\% prediction accuracy from partial measurements. Mathematical structure maintained throughout with no empirical parameters. The framework establishes that complete cellular state—including three-dimensional spatial organization, thermodynamic fields, metabolic state, electromagnetic potentials, mechanical properties, molecular conformations, and network topology—emerges necessarily from multi-physics measurements through constraint satisfaction.
 
+\nocite{*}
 \bibliographystyle{plainnat}
 \bibliography{references}
 

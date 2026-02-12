@@ -157,7 +157,7 @@ Transitions between partition states require finite time.
 \begin{definition}[Partition Lag]
 Transition from state $\Sigma_i$ to state $\Sigma_j$ requires time
 \begin{equation}
-\taulag_{ij} = \tau_0 \exp\left(\frac{\dcat(\Sigma_i,\Sigma_j)}{\lambda_T}\right)
+\taulagij = \tau_0 \exp\left(\frac{\dcat(\Sigma_i,\Sigma_j)}{\lambda_T}\right)
 \end{equation}
 where $\tau_0$ is fundamental oscillation period and $\lambda_T$ is thermal coherence length.
 \end{definition}
@@ -174,6 +174,16 @@ where $\omega_0$ is characteristic frequency.
 Thermal energy $\kB T$ enables access to states within energy range $\Delta E \sim \kB T$. From frequency-depth relation, $\Delta E = \Delta n^2 \hbar\omega_0$, giving $\Delta n \sim \sqrt{\kB T/(\hbar\omega_0)}$. Since categorical distance scales linearly with partition depth difference, $\lambda_T \sim \Delta n \sim (\kB T/\hbar\omega_0)^{1/2}$. Precise coefficient analysis gives $\lambda_T = \kB T/(\hbar\omega_0)$.
 \end{proof}
 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/panel_partition_lag.png}
+    \caption{\textbf{Molecular Partition Lag: The Timescale of Categorical Completion.}
+    Partition lag $\tau_p$ is the time required for a categorical state to complete its transition through an aperture. It is the fundamental timescale of fluid dynamics. (A) Partition lag distributions: gases have fast, narrow distributions (free flight between collisions); liquids have intermediate distributions (cage rattling); viscous fluids have slow, broad distributions (extended phase-lock reconfiguration). The distribution shape encodes fluid rheology. (B) Temperature dependence: $\langle\tau_p\rangle \propto \sqrt{m/(k_B T)}$ for gases (kinetic theory); $\langle\tau_p\rangle \propto \exp(E_a/k_B T)$ for liquids (Arrhenius activation). This explains the opposite temperature dependence of viscosity in gases (increases) vs liquids (decreases). (C) Collision vs uncertainty limits: $\tau_p = \max(\tau_{\text{coll}}, \hbar/\Delta E)$. In gases, collisions limit completion; in quantum systems, uncertainty limits completion. (D) Pressure dependence: $\tau_p \propto P^{-1/2}$ at fixed temperature---higher pressure increases collision frequency, reducing partition lag. This explains pressure-viscosity coupling in gases.}
+    \label{fig:partition_lag_fluid}
+    \end{figure}
+
+    
 \subsection{Information Catalysis}
 
 Intermediate states reduce categorical distance.
