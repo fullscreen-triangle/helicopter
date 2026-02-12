@@ -62,7 +62,9 @@ We establish a mathematical framework for complete cellular state determination 
 
 The framework operates bidirectionally: forward direction applies measurements to constrain possible structures; backward direction solves equations to predict allowed structures. The intersection yields unique cellular state. We prove rigorously that physical coordinates $\mathbf{x}$ and S-entropy coordinates $\Scoord$ are orthogonal ($[\hat{x}, \hat{\Sk}] = 0$), enabling zero-backaction measurement with trans-Planckian precision. Harmonic coincidence networks provide frequency triangulation enabling structure prediction from partial data. Experimental validation on vanillin achieves 0.89\% error from 9.1\% spectroscopic coverage, confirming theoretical predictions. Atmospheric computation demonstration establishes $\sim 3 \times 10^{13}$ MB storage capacity in 10 cm$^3$ ambient air through categorical addressing, exceeding conventional storage by factor $\sim 10^{10}$.
 
-We prove that complete three-dimensional cellular structure, including spatial organization, thermodynamic fields, metabolic state, electromagnetic potentials, mechanical properties, molecular conformations, and network topology, emerges necessarily from measurements without requiring optical imaging. All theorems are proved rigorously, all bounds derived from first principles, all algorithms specified explicitly, all predictions validated experimentally. Mathematical structure is maintained throughout with no empirical parameters.
+We extend the framework with multimodal reaction localization, enabling spatial-temporal determination of transient biochemical events. Six propagation modalities---chemical, acoustic, thermal, electromagnetic, vibrational, and categorical---create simultaneous disturbances whose arrival-time surfaces intersect uniquely at reaction locations. The Intersection Theorem proves $\delta r \approx \delta r_{\mathrm{single}} \times \prod_{i} \epsilon_i^{1/3}$, achieving $0.18 \pm 0.08$ nm localization from six modalities. Categorical state counting provides threshold-free detection through discrete partition coordinates, while autocatalytic enhancement extracts spatial information at zero thermodynamic cost via cross-coordinate correlations.
+
+We prove that complete three-dimensional cellular structure, including spatial organization, thermodynamic fields, metabolic state, electromagnetic potentials, mechanical properties, molecular conformations, network topology, and individual reaction locations, emerges necessarily from measurements without requiring optical imaging. All theorems are proved rigorously, all bounds derived from first principles, all algorithms specified explicitly, all predictions validated experimentally. Mathematical structure is maintained throughout with no empirical parameters.
 
 \textbf{Keywords:} multi-physics microscopy, constraint satisfaction, equations of state, partition coordinates, S-entropy space, categorical measurement, zero-backaction observation, harmonic networks
 \end{abstract}
@@ -170,7 +172,7 @@ where $\mathcal{M}_{\text{forward}}$ is measurement-consistent set and $\mathcal
 
 \subsection{Organization}
 
-Section 2 establishes categorical framework and proves partition coordinate theorems. Section 3 develops harmonic coincidence networks for frequency triangulation. Section 4 proves zero-backaction measurement through coordinate orthogonality. Section 5 develops eleven coupled equations of state. Section 6 specifies twelve measurement modalities. Section 7 derives fluid dynamics constraints. Section 8 derives current flow constraints. Section 9 establishes bidirectional algorithm. Section 10 characterizes complete cellular state output. Section 11 presents experimental validation on vanillin and atmospheric computation. Section 12 discusses mathematical structure. Section 13 summarizes principal results.
+Section 2 establishes categorical framework and proves partition coordinate theorems. Section 3 develops harmonic coincidence networks for frequency triangulation. Section 4 proves zero-backaction measurement through coordinate orthogonality. Section 5 develops eleven coupled equations of state. Section 6 specifies twelve measurement modalities. Section 7 derives fluid dynamics constraints. Section 8 derives current flow constraints. Section 9 establishes bidirectional algorithm. Section 10 characterizes complete cellular state output. Section 11 develops multimodal reaction localization through six propagation modalities with sub-nanometer precision. Section 12 presents experimental validation on vanillin and atmospheric computation. Section 13 discusses mathematical structure. Section 14 summarizes principal results.
 
 % Input section files
 \input{sections/categorical-framework}
@@ -182,6 +184,7 @@ Section 2 establishes categorical framework and proves partition coordinate theo
 \input{sections/current-flow-constraints}
 \input{sections/bidirectional-algorithm}
 \input{sections/cellular-state-output}
+\input{sections/reaction-localization}
 \input{sections/experimental-validation}
 
 \section{Discussion}
@@ -315,6 +318,26 @@ Limitation is decoherence: atmospheric collisions every $\sim 1$ ns randomize ph
 
 This establishes that cellular environment naturally provides massively parallel computational substrate. Intracellular molecules ($\sim 10^{11}$ per cell) accessed through categorical coordinates function as distributed memory and processing elements without requiring biological machinery fabrication.
 
+\subsection{Multimodal Reaction Localization}
+
+The dodecapartite framework determines steady-state cellular structure through twelve measurement modalities. Multimodal reaction localization extends this to transient biochemical events through six propagation modalities: chemical, acoustic, thermal, electromagnetic, vibrational, and categorical.
+
+Every reaction creates simultaneous disturbances in all six modalities. Each modality propagates according to distinct physics:
+\begin{itemize}
+    \item \textbf{Chemical}: Diffusive ($\mathcal{T} \sim r^2/D$, arriving in milliseconds)
+    \item \textbf{Acoustic}: Ballistic ($\mathcal{T} \sim r/c$, arriving in nanoseconds)
+    \item \textbf{Thermal}: Diffusive ($\mathcal{T} \sim r^2/\alpha$, arriving in microseconds)
+    \item \textbf{EM}: Instantaneous within Debye length ($\lambda_D \sim 0.5$ nm)
+    \item \textbf{Vibrational}: Quantum oscillator scale ($\delta r_{\text{vib}} \sim 0.1$ nm)
+    \item \textbf{Categorical}: Discrete partition coordinate transitions
+\end{itemize}
+
+The Intersection Theorem proves that arrival-time surfaces from $\geq 3$ modalities at $\geq 4$ observation points intersect at a unique point---the reaction location. Resolution enhancement follows: $\delta r = \delta r_{\text{single}} \times \prod_i \epsilon_i^{1/3}$, achieving $0.18 \pm 0.08$ nm with six modalities.
+
+The categorical modality provides unique advantages. Partition coordinates $(n,\ell,m,s)$ are discrete, enabling exact state counting without threshold uncertainty. While analog modalities suffer from detection noise, categorical observation provides digital precision. Cross-coordinate correlations further enhance localization through autocatalytic information extraction at zero thermodynamic cost---reading correlations that exist independently of measurement.
+
+Applications include enzymatic reaction tracking (following individual catalysis events), metabolic pathway mapping (measuring enzyme co-localization and channeling), and disease detection (identifying mislocalization of pathological reactions). The framework connects directly to metabolic GPS through oxygen triangulation: both determine spatial coordinates from categorical distances measured through different physical mechanisms.
+
 \section{Conclusion}
 
 We have established complete mathematical framework for cellular state determination through multi-physics constraint satisfaction. The principal results are:
@@ -347,7 +370,17 @@ We have established complete mathematical framework for cellular state determina
 
 \textbf{Fourteenth:} Trans-Planckian precision achieved through partition structure: $C(n) = 2n^2$ states at depth $n$ provide $\sim 8$ bits information per partition cell, exceeding Heisenberg-limited Planck cell content.
 
-All theorems proved rigorously. All bounds derived from first principles. All algorithms specified explicitly. Experimental validation confirms <1\% prediction accuracy from partial measurements. Mathematical structure maintained throughout with no empirical parameters. The framework establishes that complete cellular state—including three-dimensional spatial organization, thermodynamic fields, metabolic state, electromagnetic potentials, mechanical properties, molecular conformations, and network topology—emerges necessarily from multi-physics measurements through constraint satisfaction.
+\textbf{Fifteenth:} Multimodal reaction localization enables spatial-temporal determination of transient biochemical events. Six propagation modalities---chemical, acoustic, thermal, electromagnetic, vibrational, and categorical---create simultaneous disturbances whose arrival-time surfaces intersect uniquely at reaction locations.
+
+\textbf{Sixteenth:} The Intersection Theorem proves that arrival-time surfaces from $\geq 3$ modalities at $\geq 4$ observation points determine reaction location uniquely. Resolution enhancement follows $\delta r = \delta r_{\text{single}} \times \prod_i \epsilon_i^{1/3}$, achieving $0.18 \pm 0.08$ nm localization with six modalities.
+
+\textbf{Seventeenth:} Categorical state counting provides threshold-free detection through discrete partition coordinates. While analog modalities suffer from detection noise, the categorical modality enables exact state counting via integer-valued transitions in $(n,\ell,m,s)$ space.
+
+\textbf{Eighteenth:} Autocatalytic enhancement extracts spatial information at zero thermodynamic cost. Cross-coordinate correlations in partition space provide localization enhancement factor $(1 + \alpha_k \rho_k)^{-1/2}$ without work expenditure, because S-coordinates are orthogonal to physical phase space.
+
+\textbf{Nineteenth:} The categorical distance framework unifies steady-state measurement (twelve modalities) and dynamic localization (six propagation modalities) through S-entropy path integrals. Modality-specific categorical distances $\dcat_i$ all correspond to the same physical separation when properly normalized by conversion factors $\kappa_i$.
+
+All theorems proved rigorously. All bounds derived from first principles. All algorithms specified explicitly. Experimental validation confirms <1\% prediction accuracy from partial measurements. Mathematical structure maintained throughout with no empirical parameters. The framework establishes that complete cellular state---including three-dimensional spatial organization, thermodynamic fields, metabolic state, electromagnetic potentials, mechanical properties, molecular conformations, network topology, and individual reaction locations with sub-nanometer precision---emerges necessarily from multi-physics measurements through constraint satisfaction.
 
 \section*{Data Availability}
 
