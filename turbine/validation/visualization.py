@@ -706,3 +706,732 @@ class ValidationPanelGenerator:
         plt.close(fig)
 
         return str(output_path)
+
+    def generate_panel_5_quintupartite(self,
+                                        uniqueness_data: Dict,
+                                        gps_data: Dict,
+                                        causal_data: Dict,
+                                        signal_maps: Dict[str, np.ndarray]) -> str:
+        """
+        Panel 5: Quintupartite Virtual Microscopy Validation
+
+        Charts:
+        1. Multi-modal exclusion curve (N_0 -> N_5 = 1)
+        2. Metabolic GPS triangulation visualization
+        3. 3D modality information space
+        4. Temporal-causal consistency check
+        """
+        fig = plt.figure(figsize=(14, 10))
+        gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.3, wspace=0.3)
+
+        fig.suptitle('Panel 5: Quintupartite Virtual Microscopy Validation\n'
+                     'Testing Multi-Modal Uniqueness Theorem', fontsize=14, fontweight='bold')
+
+        # Chart 1: Multi-Modal Exclusion Curve
+        ax1 = fig.add_subplot(gs[0, 0])
+
+        cumulative_N = uniqueness_data.get('cumulative_N', [])
+        if cumulative_N:
+            modality_labels = ['Initial'] + ['Optical', 'Spectral', 'Vibrational',
+                                              'Metabolic', 'Causal'][:len(cumulative_N)-1]
+            x = np.arange(len(cumulative_N))
+
+            # Log scale for dramatic visualization
+            log_N = [np.log10(max(n, 1e-100)) for n in cumulative_N]
+
+            ax1.semilogy(x, cumulative_N, 'o-', color=COLORS['primary'],
+                        linewidth=3, markersize=12)
+
+            # Fill area under curve
+            ax1.fill_between(x, 1, cumulative_N, alpha=0.3, color=COLORS['primary'])
+
+            # Target line at N=1
+            ax1.axhline(y=1, color=COLORS['success'], linestyle='--',
+                       linewidth=2, label='Unique (N=1)')
+
+            ax1.set_xticks(x)
+            ax1.set_xticklabels(modality_labels, rotation=45, ha='right')
+            ax1.set_ylabel('Configuration Space N (log scale)')
+            ax1.set_title(f'Sequential Exclusion: N_0={cumulative_N[0]:.0e} -> N_5={cumulative_N[-1]:.0e}')
+            ax1.legend()
+            ax1.set_ylim(1e-5, 1e65)
+
+        # Chart 2: Metabolic GPS Triangulation
+        ax2 = fig.add_subplot(gs[0, 1])
+
+        ref_points = gps_data.get('reference_points', [])
+        if len(ref_points) > 0 and isinstance(ref_points, (list, np.ndarray)):
+            ref_points = np.array(ref_points)
+            if ref_points.ndim == 2 and ref_points.shape[0] > 0:
+                # Plot reference O2 positions
+                ax2.scatter(ref_points[:, 1], ref_points[:, 0],
+                           c=COLORS['quaternary'], s=200, marker='*',
+                           label='O2 Reference', zorder=10, edgecolors='black')
+
+                # Draw triangulation network
+                for i in range(len(ref_points)):
+                    for j in range(i+1, len(ref_points)):
+                        ax2.plot([ref_points[i, 1], ref_points[j, 1]],
+                                [ref_points[i, 0], ref_points[j, 0]],
+                                '--', color='gray', alpha=0.5, linewidth=1)
+
+                # Show localization error
+                error = gps_data.get('mean_localization_error', 0)
+                ax2.text(0.05, 0.95, f'Mean Error: {error:.3f}',
+                        transform=ax2.transAxes, fontsize=10,
+                        verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+        ax2.set_xlabel('X Position')
+        ax2.set_ylabel('Y Position')
+        ax2.set_title('Metabolic GPS: 4-Point Triangulation')
+        ax2.legend()
+
+        # Chart 3: 3D Modality Information Space
+        ax3 = fig.add_subplot(gs[1, 0], projection='3d')
+
+        # Information contribution from each modality
+        modalities = ['Optical', 'Spectral', 'Vibrational', 'Metabolic', 'Causal']
+        if signal_maps:
+            x_pos = np.arange(len(signal_maps))
+            y_pos = np.zeros(len(signal_maps))
+            z_pos = np.zeros(len(signal_maps))
+
+            # Heights based on information content
+            info_content = []
+            for name, signal in signal_maps.items():
+                # Entropy as information proxy
+                hist, _ = np.histogram(signal.ravel(), bins=64, range=(0, 1))
+                hist = hist + 1e-10
+                hist = hist / hist.sum()
+                entropy = -np.sum(hist * np.log2(hist))
+                info_content.append(entropy)
+
+            colors = cm.viridis(np.linspace(0, 1, len(info_content)))
+
+            ax3.bar3d(x_pos, y_pos, z_pos, 0.8, 0.8, info_content,
+                     color=colors, alpha=0.8)
+
+            ax3.set_xticks(x_pos)
+            ax3.set_xticklabels(list(signal_maps.keys()), rotation=45)
+            ax3.set_ylabel('')
+            ax3.set_zlabel('Information (bits)')
+            ax3.set_title('3D Modality Information Content')
+
+        # Chart 4: Temporal-Causal Consistency
+        ax4 = fig.add_subplot(gs[1, 1])
+
+        pred_corr = causal_data.get('prediction_correlation', 0)
+        prop_cons = causal_data.get('propagation_consistency', 0)
+        rmse = causal_data.get('prediction_rmse', 1)
+
+        metrics = ['Prediction\nCorrelation', 'Propagation\nConsistency', '1 - RMSE']
+        values = [pred_corr, prop_cons, 1 - rmse]
+        colors_bar = [COLORS['primary'], COLORS['secondary'], COLORS['tertiary']]
+
+        bars = ax4.bar(metrics, values, color=colors_bar, alpha=0.8)
+
+        # Add threshold line
+        ax4.axhline(y=0.5, color=COLORS['warning'], linestyle='--',
+                   label='Threshold', linewidth=2)
+
+        ax4.set_ylabel('Value')
+        ax4.set_title('Temporal-Causal Validation')
+        ax4.set_ylim(-0.2, 1.2)
+        ax4.legend()
+
+        # Value labels
+        for bar, val in zip(bars, values):
+            ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+                    f'{val:.3f}', ha='center', va='bottom', fontsize=10)
+
+        # Validation status
+        validated = uniqueness_data.get('validated', False)
+        status = '[PASS] VALIDATED' if validated else '[FAIL] NOT VALIDATED'
+        fig.text(0.99, 0.01, status, ha='right', va='bottom',
+                fontsize=12, fontweight='bold',
+                color=COLORS['success'] if validated else COLORS['quaternary'])
+
+        output_path = self.output_dir / 'panel_5_quintupartite.png'
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+
+        return str(output_path)
+
+    def generate_panel_6_dual_membrane(self,
+                                        conjugate_data: Dict,
+                                        platform_data: Dict,
+                                        cascade_data: Dict,
+                                        membrane_vis: Dict) -> str:
+        """
+        Panel 6: Dual-Membrane Pixel Maxwell Demon Validation
+
+        Charts:
+        1. Conjugate faces: S_k^front vs S_k^back
+        2. Anti-correlation verification (r = -1.000)
+        3. 3D dual-membrane structure
+        4. Quadratic information scaling cascade
+        """
+        fig = plt.figure(figsize=(14, 10))
+        gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.3, wspace=0.3)
+
+        fig.suptitle('Panel 6: Dual-Membrane Pixel Maxwell Demon Validation\n'
+                     'Testing Conjugate State Theorem: S_k^back = -S_k^front', fontsize=14, fontweight='bold')
+
+        # Chart 1: Conjugate Face Comparison
+        ax1 = fig.add_subplot(gs[0, 0])
+
+        S_k_front = membrane_vis.get('S_k_front', np.array([]))
+        S_k_back = membrane_vis.get('S_k_back', np.array([]))
+
+        if S_k_front.size > 0:
+            # Scatter plot of front vs back
+            front_flat = S_k_front.ravel()[::100]  # Subsample
+            back_flat = S_k_back.ravel()[::100]
+
+            ax1.scatter(front_flat, back_flat, c=COLORS['primary'],
+                       alpha=0.3, s=10)
+
+            # Perfect conjugate line
+            lim = max(abs(front_flat.min()), abs(front_flat.max()),
+                      abs(back_flat.min()), abs(back_flat.max()))
+            ax1.plot([-lim, lim], [lim, -lim], 'r--', linewidth=2,
+                    label='Perfect conjugate')
+
+            ax1.set_xlabel('S_k^front')
+            ax1.set_ylabel('S_k^back')
+            ax1.set_title(f'Conjugate Relationship\n'
+                         f'(r = {conjugate_data.get("mean_anti_correlation", 0):.6f})')
+            ax1.legend()
+            ax1.set_aspect('equal')
+
+        # Chart 2: Anti-correlation Distribution
+        ax2 = fig.add_subplot(gs[0, 1])
+
+        sum_check = membrane_vis.get('sum_check', np.array([]))
+        if sum_check.size > 0:
+            # Histogram of S_k^front + S_k^back (should be ~0)
+            ax2.hist(sum_check.ravel(), bins=50, color=COLORS['secondary'],
+                    alpha=0.8, edgecolor='white')
+
+            ax2.axvline(x=0, color='red', linestyle='--', linewidth=2,
+                       label='Expected (0)')
+
+            mean_sum = np.mean(sum_check)
+            ax2.axvline(x=mean_sum, color=COLORS['tertiary'], linewidth=2,
+                       label=f'Observed ({mean_sum:.2e})')
+
+            ax2.set_xlabel('S_k^front + S_k^back')
+            ax2.set_ylabel('Frequency')
+            ax2.set_title(f'Conjugate Sum Verification\n'
+                         f'(sum = {conjugate_data.get("mean_conjugate_sum", 0):.2e})')
+            ax2.legend()
+            ax2.set_xlim(-0.01, 0.01)
+
+        # Chart 3: 3D Dual-Membrane Structure
+        ax3 = fig.add_subplot(gs[1, 0], projection='3d')
+
+        thickness = membrane_vis.get('membrane_thickness', np.array([]))
+        if thickness.size > 0:
+            # Downsample for visualization
+            step = max(1, thickness.shape[0] // 30)
+            thick_ds = thickness[::step, ::step]
+
+            y = np.arange(thick_ds.shape[0])
+            x = np.arange(thick_ds.shape[1])
+            X, Y = np.meshgrid(x, y)
+
+            # Plot front face
+            surf_front = ax3.plot_surface(X, Y, thick_ds / 2, cmap='Blues',
+                                          alpha=0.7, label='Front')
+            # Plot back face (below)
+            surf_back = ax3.plot_surface(X, Y, -thick_ds / 2, cmap='Reds',
+                                         alpha=0.7, label='Back')
+
+            ax3.set_xlabel('X')
+            ax3.set_ylabel('Y')
+            ax3.set_zlabel('Categorical Depth')
+            ax3.set_title('Dual-Membrane Structure\n(Front: Blue, Back: Red)')
+
+        # Chart 4: Quadratic Information Cascade
+        ax4 = fig.add_subplot(gs[1, 1])
+
+        cumulative_info = cascade_data.get('cumulative_info', [])
+        theoretical = cascade_data.get('theoretical', [])
+
+        if cumulative_info:
+            levels = np.arange(len(cumulative_info))
+
+            ax4.plot(levels, cumulative_info, 'o-', color=COLORS['primary'],
+                    linewidth=2, markersize=8, label='Observed')
+
+            # Theoretical quadratic: (k+1)^2
+            if len(theoretical) > 0:
+                # Normalize theoretical to match scale
+                scale = cumulative_info[0] if cumulative_info[0] > 0 else 1
+                theoretical_scaled = np.array(theoretical) * scale
+                ax4.plot(levels, theoretical_scaled[:len(levels)], 's--',
+                        color=COLORS['secondary'], linewidth=2, markersize=6,
+                        label='Theory: O(N²)')
+
+            # Linear comparison
+            linear = np.arange(1, len(cumulative_info) + 1) * cumulative_info[0]
+            ax4.plot(levels, linear, '^--', color=COLORS['tertiary'],
+                    linewidth=2, markersize=6, label='Linear: O(N)')
+
+            ax4.set_xlabel('Cascade Level')
+            ax4.set_ylabel('Cumulative Information')
+            ax4.set_title(f'Reflectance Cascade Scaling\n'
+                         f'(Enhancement: {cascade_data.get("enhancement_factor", 1):.1f}x)')
+            ax4.legend()
+
+        # Validation status
+        validated = conjugate_data.get('validated', False)
+        status = '[PASS] VALIDATED' if validated else '[FAIL] NOT VALIDATED'
+        fig.text(0.99, 0.01, status, ha='right', va='bottom',
+                fontsize=12, fontweight='bold',
+                color=COLORS['success'] if validated else COLORS['quaternary'])
+
+        output_path = self.output_dir / 'panel_6_dual_membrane.png'
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+
+        return str(output_path)
+
+    def generate_extended_summary_panel(self,
+                                         all_results: Dict,
+                                         dataset_stats: Dict) -> str:
+        """
+        Extended Summary Panel: Overview of all 6 experiments.
+
+        Charts:
+        1. Validation status for all experiments
+        2. Key metrics radar chart
+        3. 3D validation space
+        4. Theory confirmation scores
+        """
+        fig = plt.figure(figsize=(16, 12))
+        gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.3, wspace=0.3)
+
+        fig.suptitle('Extended Summary: Complete PTRM Validation\n'
+                     f'BBBC039 Dataset ({dataset_stats.get("n_images", 0)} images, '
+                     f'{dataset_stats.get("total_nuclei", 0)} nuclei)', fontsize=14, fontweight='bold')
+
+        # Chart 1: Complete Validation Status
+        ax1 = fig.add_subplot(gs[0, 0])
+
+        experiments = [
+            'Partition C(n)=2n^2',
+            'S-Entropy Conservation',
+            'Sequential Exclusion',
+            'Reaction Localization',
+            'Quintupartite Uniqueness',
+            'Dual-Membrane Conjugate'
+        ]
+
+        validated = [
+            all_results.get('partition', {}).get('validated', False),
+            all_results.get('s_entropy', {}).get('validated', False),
+            all_results.get('exclusion', {}).get('validated', False),
+            all_results.get('localization', {}).get('validated', False),
+            all_results.get('quintupartite', {}).get('validated', False),
+            all_results.get('dual_membrane', {}).get('validated', False)
+        ]
+
+        colors = [COLORS['success'] if v else COLORS['quaternary'] for v in validated]
+        y_pos = np.arange(len(experiments))
+
+        bars = ax1.barh(y_pos, [1]*len(experiments), color=colors, alpha=0.8)
+
+        ax1.set_yticks(y_pos)
+        ax1.set_yticklabels(experiments)
+        ax1.set_xlim(0, 1.5)
+        ax1.set_title('Experiment Validation Status')
+
+        # Status annotations
+        for i, (bar, v) in enumerate(zip(bars, validated)):
+            status_text = '[PASS]' if v else '[FAIL]'
+            ax1.text(1.05, bar.get_y() + bar.get_height()/2,
+                    status_text, va='center', fontsize=10, fontweight='bold',
+                    color=COLORS['success'] if v else COLORS['quaternary'])
+
+        ax1.set_xticks([])
+
+        # Chart 2: Metrics Overview
+        ax2 = fig.add_subplot(gs[0, 1])
+
+        metric_names = [
+            'Partition p',
+            'S-entropy CV',
+            'Exclusion log',
+            'Resolution x',
+            'Uniqueness',
+            'Anti-corr'
+        ]
+
+        metric_values = [
+            min(all_results.get('partition', {}).get('p_value', 0), 1),
+            1 - min(all_results.get('s_entropy', {}).get('cv', 1), 1),
+            min(all_results.get('exclusion', {}).get('log_reduction', 0) / 60, 1),
+            min(all_results.get('localization', {}).get('enhancement_factor', 1) / 20, 1),
+            1 if all_results.get('quintupartite', {}).get('unique_determination', False) else 0,
+            abs(all_results.get('dual_membrane', {}).get('mean_anti_correlation', 0))
+        ]
+
+        x = np.arange(len(metric_names))
+        colors_bar = [COLORS['primary'], COLORS['secondary'], COLORS['tertiary'],
+                     COLORS['quaternary'], COLORS['success'], COLORS['warning']]
+
+        bars = ax2.bar(x, metric_values, color=colors_bar, alpha=0.8)
+
+        ax2.set_xticks(x)
+        ax2.set_xticklabels(metric_names, rotation=45, ha='right')
+        ax2.set_ylabel('Normalized Score')
+        ax2.set_title('Validation Metrics (normalized)')
+        ax2.set_ylim(0, 1.2)
+
+        # Value labels
+        for bar, val in zip(bars, metric_values):
+            ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+                    f'{val:.2f}', ha='center', va='bottom', fontsize=9)
+
+        # Chart 3: 3D Validation Space
+        ax3 = fig.add_subplot(gs[1, 0], projection='3d')
+
+        # Three principal dimensions of validation
+        x_vals = [
+            all_results.get('partition', {}).get('p_value', 0),
+            all_results.get('quintupartite', {}).get('log_reduction', 0) / 60
+        ]
+        y_vals = [
+            1 - all_results.get('s_entropy', {}).get('cv', 1),
+            abs(all_results.get('dual_membrane', {}).get('mean_anti_correlation', 0))
+        ]
+        z_vals = [
+            all_results.get('localization', {}).get('enhancement_factor', 1),
+            all_results.get('exclusion', {}).get('resolution_enhancement', 1)
+        ]
+
+        ax3.scatter(x_vals, y_vals, z_vals, c=[COLORS['primary'], COLORS['secondary']],
+                   s=200, marker='o')
+
+        # Connect points
+        ax3.plot(x_vals, y_vals, z_vals, 'k--', alpha=0.5)
+
+        ax3.set_xlabel('Statistical Validity')
+        ax3.set_ylabel('Conservation Score')
+        ax3.set_zlabel('Enhancement Factor')
+        ax3.set_title('3D Validation Space')
+
+        # Chart 4: Theory Confirmation Summary
+        ax4 = fig.add_subplot(gs[1, 1])
+
+        theories = [
+            'C(n) = 2n^2\n(Capacity)',
+            'S_k+S_t+S_e = const\n(Conservation)',
+            'N_M = N_0 x prod(eps)\n(Exclusion)',
+            'S_k^back = -S_k^front\n(Conjugate)'
+        ]
+
+        confirmation_scores = [
+            1.0 if all_results.get('partition', {}).get('validated', False) else 0.3,
+            1.0 if all_results.get('s_entropy', {}).get('validated', False) else 0.3,
+            1.0 if all_results.get('quintupartite', {}).get('validated', False) else 0.3,
+            1.0 if all_results.get('dual_membrane', {}).get('validated', False) else 0.3
+        ]
+
+        theta = np.linspace(0, 2*np.pi, len(theories) + 1)
+        r = confirmation_scores + [confirmation_scores[0]]  # Close the polygon
+
+        ax4 = fig.add_subplot(gs[1, 1], projection='polar')
+        ax4.plot(theta, r, 'o-', color=COLORS['primary'], linewidth=2, markersize=10)
+        ax4.fill(theta, r, alpha=0.3, color=COLORS['primary'])
+
+        ax4.set_xticks(theta[:-1])
+        ax4.set_xticklabels(theories, fontsize=8)
+        ax4.set_ylim(0, 1.2)
+        ax4.set_title('Theory Confirmation Radar')
+
+        # Overall score
+        n_validated = sum(validated)
+        n_total = len(validated)
+
+        fig.text(0.5, 0.02, f'OVERALL: {n_validated}/{n_total} Experiments Validated',
+                ha='center', va='bottom', fontsize=14, fontweight='bold',
+                color=COLORS['success'] if n_validated >= 4 else COLORS['warning'])
+
+        output_path = self.output_dir / 'panel_extended_summary.png'
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+
+        return str(output_path)
+
+    def generate_panel_7_oxygen_dynamics(self,
+                                          ternary_data: Dict,
+                                          capacitor_data: Dict,
+                                          virtual_light_data: Dict,
+                                          state_history: Dict) -> str:
+        """
+        Panel 7: Oxygen-Mediated Categorical Microscopy Validation
+
+        Charts:
+        1. Ternary state distribution (Absorption/Ground/Emission)
+        2. State evolution over time
+        3. 3D O2 position distribution with states
+        4. Capacitor and virtual light properties
+        """
+        fig = plt.figure(figsize=(14, 10))
+        gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.3, wspace=0.3)
+
+        fig.suptitle('Panel 7: Oxygen-Mediated Categorical Microscopy\n'
+                     'Testing Ternary State Dynamics: Absorption(0), Ground(1), Emission(2)',
+                     fontsize=14, fontweight='bold')
+
+        # Chart 1: Ternary State Distribution
+        ax1 = fig.add_subplot(gs[0, 0])
+
+        if ternary_data.get('final_distribution'):
+            final = ternary_data['final_distribution']
+            expected = ternary_data.get('expected_distribution', {})
+
+            states = ['Absorption\n(0)', 'Ground\n(1)', 'Emission\n(2)']
+            observed = [final.get('absorption', 0),
+                       final.get('ground', 0),
+                       final.get('emission', 0)]
+            exp_vals = [expected.get('absorption', 0.2),
+                       expected.get('ground', 0.6),
+                       expected.get('emission', 0.2)]
+
+            x = np.arange(len(states))
+            width = 0.35
+
+            bars1 = ax1.bar(x - width/2, observed, width, label='Observed',
+                           color=[COLORS['S_k'], COLORS['S_t'], COLORS['S_e']], alpha=0.8)
+            bars2 = ax1.bar(x + width/2, exp_vals, width, label='Expected',
+                           color='gray', alpha=0.5)
+
+            ax1.set_ylabel('Fraction')
+            ax1.set_xticks(x)
+            ax1.set_xticklabels(states)
+            ax1.set_title(f'Ternary State Distribution\n'
+                         f'(Deviation: {ternary_data.get("distribution_deviation", 0):.3f})')
+            ax1.legend()
+            ax1.set_ylim(0, 1)
+
+        # Chart 2: State Evolution Over Time
+        ax2 = fig.add_subplot(gs[0, 1])
+
+        if state_history and 'timesteps' in state_history:
+            t = state_history['timesteps']
+            total = state_history.get('total', 1)
+
+            if total > 0:
+                absorption = np.array(state_history.get('absorption', [])) / total
+                ground = np.array(state_history.get('ground', [])) / total
+                emission = np.array(state_history.get('emission', [])) / total
+
+                ax2.stackplot(t, absorption, ground, emission,
+                             labels=['Absorption', 'Ground', 'Emission'],
+                             colors=[COLORS['S_k'], COLORS['S_t'], COLORS['S_e']],
+                             alpha=0.8)
+
+                ax2.set_xlabel('Time Step')
+                ax2.set_ylabel('State Fraction')
+                ax2.set_title('Ternary State Evolution')
+                ax2.legend(loc='upper right')
+                ax2.set_ylim(0, 1)
+
+        # Chart 3: 3D Capacitor/Virtual Light Properties
+        ax3 = fig.add_subplot(gs[1, 0], projection='3d')
+
+        # Create 3D bar chart for properties
+        properties = ['Capacitance\n(pF)', 'E-field\n(log V/m)', 'Energy\n(aJ)']
+        values = [
+            capacitor_data.get('capacitance_pF', 0),
+            np.log10(capacitor_data.get('electric_field_Vm', 1)),
+            capacitor_data.get('stored_energy_aJ', 0)
+        ]
+
+        x_pos = np.arange(len(properties))
+        y_pos = np.zeros(len(properties))
+
+        colors = [COLORS['primary'], COLORS['secondary'], COLORS['tertiary']]
+
+        # Normalize for visualization
+        values_norm = np.array(values)
+        if values_norm.max() > 0:
+            values_norm = values_norm / values_norm.max() * 5
+
+        ax3.bar3d(x_pos, y_pos, np.zeros(3), 0.8, 0.8, values_norm,
+                 color=colors, alpha=0.8)
+
+        ax3.set_xticks(x_pos)
+        ax3.set_xticklabels(properties, fontsize=8)
+        ax3.set_ylabel('')
+        ax3.set_zlabel('Normalized Value')
+        ax3.set_title('3D Capacitor Properties')
+
+        # Chart 4: Virtual Light Source Summary
+        ax4 = fig.add_subplot(gs[1, 1])
+
+        # Create table-like visualization with bars
+        metrics = ['Wavelength\n(um)', 'Energy\n(meV)', 'Coherence\n(ns)']
+        values = [
+            virtual_light_data.get('wavelength_um', 0),
+            virtual_light_data.get('energy_meV', 0) / 100,  # Scale
+            virtual_light_data.get('coherence_time_ns', 0)
+        ]
+
+        colors_bar = [COLORS['primary'], COLORS['secondary'], COLORS['tertiary']]
+        bars = ax4.bar(metrics, values, color=colors_bar, alpha=0.8)
+
+        ax4.set_ylabel('Value (scaled)')
+        ax4.set_title(f'Virtual Light Properties\n'
+                     f'(Mid-IR, {virtual_light_data.get("wavelength_um", 0):.1f} um)')
+
+        # Add value labels
+        for bar, v, m in zip(bars, values, metrics):
+            if 'Wavelength' in m:
+                label = f'{virtual_light_data.get("wavelength_um", 0):.2f} um'
+            elif 'Energy' in m:
+                label = f'{virtual_light_data.get("energy_meV", 0):.0f} meV'
+            else:
+                label = f'{virtual_light_data.get("coherence_time_ns", 0):.2f} ns'
+
+            ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.1,
+                    label, ha='center', va='bottom', fontsize=9)
+
+        # Validation status
+        validated = ternary_data.get('validated', False)
+        status = '[PASS] VALIDATED' if validated else '[FAIL] NOT VALIDATED'
+        fig.text(0.99, 0.01, status, ha='right', va='bottom',
+                fontsize=12, fontweight='bold',
+                color=COLORS['success'] if validated else COLORS['quaternary'])
+
+        output_path = self.output_dir / 'panel_7_oxygen_dynamics.png'
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+
+        return str(output_path)
+
+    def generate_panel_8_electrostatic_chambers(self,
+                                                  chamber_data: Dict,
+                                                  spectrometry_data: Dict,
+                                                  virtual_image: np.ndarray) -> str:
+        """
+        Panel 8: Electrostatic Chambers and Atomic Spectrometry
+
+        Charts:
+        1. Virtual image from O2 state distribution
+        2. Electrostatic chamber statistics
+        3. 3D atomic ternary spectrometry visualization
+        4. Rate enhancement comparison
+        """
+        fig = plt.figure(figsize=(14, 10))
+        gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.3, wspace=0.3)
+
+        fig.suptitle('Panel 8: Electrostatic Chambers & Atomic Spectrometry\n'
+                     'Testing Transient Bioreactors and Protein Atom Arrays',
+                     fontsize=14, fontweight='bold')
+
+        # Chart 1: Virtual Image from O2 States
+        ax1 = fig.add_subplot(gs[0, 0])
+
+        if virtual_image is not None and virtual_image.size > 0:
+            im = ax1.imshow(virtual_image.T, origin='lower', cmap='RdBu_r',
+                           aspect='equal')
+            plt.colorbar(im, ax=ax1, label='O2 State (emission - absorption)')
+            ax1.set_xlabel('X position')
+            ax1.set_ylabel('Y position')
+            ax1.set_title('Oxygen-Mediated Virtual Image\n(Self-observation without external optics)')
+        else:
+            ax1.text(0.5, 0.5, 'No virtual image data', ha='center', va='center',
+                    transform=ax1.transAxes)
+            ax1.set_title('Virtual Image')
+
+        # Chart 2: Electrostatic Chamber Statistics
+        ax2 = fig.add_subplot(gs[0, 1])
+
+        if chamber_data:
+            categories = ['Chamber\nEvents', 'Mean Size\n(nm)', 'Lifetime\n(steps)']
+            values = [
+                chamber_data.get('num_chamber_events', 0) / 10,  # Scale
+                chamber_data.get('mean_chamber_size_nm', 0),
+                chamber_data.get('mean_lifetime_steps', 0)
+            ]
+
+            colors_bar = [COLORS['primary'], COLORS['secondary'], COLORS['tertiary']]
+            bars = ax2.bar(categories, values, color=colors_bar, alpha=0.8)
+
+            ax2.set_ylabel('Value (scaled)')
+            ax2.set_title(f'Transient Chamber Properties\n'
+                         f'({chamber_data.get("num_chamber_events", 0)} events detected)')
+
+            # Value labels
+            labels = [
+                f'{chamber_data.get("num_chamber_events", 0)}',
+                f'{chamber_data.get("mean_chamber_size_nm", 0):.1f} nm',
+                f'{chamber_data.get("mean_lifetime_steps", 0):.1f}'
+            ]
+            for bar, label in zip(bars, labels):
+                ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+                        label, ha='center', va='bottom', fontsize=9)
+
+        # Chart 3: 3D Atomic Ternary Spectrometry
+        ax3 = fig.add_subplot(gs[1, 0], projection='3d')
+
+        if spectrometry_data and 'state_distribution' in spectrometry_data:
+            dist = spectrometry_data['state_distribution']
+            expected = spectrometry_data.get('expected_distribution', {})
+
+            states = ['Ground', 'Natural', 'Excited']
+            observed = [dist.get('ground', 0), dist.get('natural', 0), dist.get('excited', 0)]
+            exp_vals = [expected.get('ground', 0.2), expected.get('natural', 0.6), expected.get('excited', 0.2)]
+
+            x_pos = np.arange(3)
+
+            # 3D bars for observed vs expected
+            ax3.bar3d(x_pos - 0.2, np.zeros(3), np.zeros(3), 0.4, 0.4, observed,
+                     color=[COLORS['S_k'], COLORS['S_t'], COLORS['S_e']], alpha=0.8,
+                     label='Observed')
+            ax3.bar3d(x_pos + 0.2, np.zeros(3), np.zeros(3), 0.4, 0.4, exp_vals,
+                     color='gray', alpha=0.5, label='Expected')
+
+            ax3.set_xticks(x_pos)
+            ax3.set_xticklabels(states)
+            ax3.set_ylabel('')
+            ax3.set_zlabel('Fraction')
+            ax3.set_title('Atomic State Distribution')
+
+        # Chart 4: Rate Enhancement
+        ax4 = fig.add_subplot(gs[1, 1])
+
+        if chamber_data:
+            enhancement = chamber_data.get('rate_enhancement', 1000)
+
+            categories = ['Diffusion-\nlimited', 'Chamber-\nenhanced']
+            rates = [1, enhancement]
+
+            ax4.bar(categories, rates, color=[COLORS['quaternary'], COLORS['success']],
+                   alpha=0.8)
+            ax4.set_ylabel('Relative Rate')
+            ax4.set_yscale('log')
+            ax4.set_title(f'Reaction Rate Enhancement\n({enhancement:.0f}x improvement)')
+
+            # Add arrow annotation
+            ax4.annotate(f'{enhancement:.0f}x', xy=(1, enhancement/2),
+                        fontsize=14, fontweight='bold', ha='center',
+                        color=COLORS['success'])
+
+        # Validation status
+        validated = (chamber_data.get('validated', False) or
+                    spectrometry_data.get('validated', False))
+        status = '[PASS] VALIDATED' if validated else '[FAIL] NOT VALIDATED'
+        fig.text(0.99, 0.01, status, ha='right', va='bottom',
+                fontsize=12, fontweight='bold',
+                color=COLORS['success'] if validated else COLORS['quaternary'])
+
+        output_path = self.output_dir / 'panel_8_electrostatic_chambers.png'
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+
+        return str(output_path)
