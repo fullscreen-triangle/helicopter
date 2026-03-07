@@ -1,19 +1,27 @@
 import Head from "next/head";
-import React from "react";
+import React, { useEffect } from "react";
 import Preloader from "../components/Preloader";
 import Footer from "./footer";
 import MagicCursor from "./magic-cursor";
 
 export default function Layout({ children }) {
+  useEffect(() => {
+    const saved = localStorage.getItem('hammerhead-theme');
+    if (saved === null || saved === 'dark') {
+      document.body.classList.add('dark');
+    }
+  }, []);
+
   return (
     <>
       <Head>
 
-        <meta name="description" content="Name of your web site" />
-        <meta name="author" content="TrendyCoder" />
+        <meta name="description" content="Hammerhead - Partition Calculus Microscopy Framework. Natural language to type-safe morphism chains for categorical imaging." />
+        <meta name="author" content="Helicopter Project" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-        <title>Cavani | Home</title>
+        <title>Hammerhead | Partition Calculus Microscopy</title>
+        <link rel="icon" href="/hammerhead-favicon.ico" />
 
         {/* <!-- STYLES --> */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

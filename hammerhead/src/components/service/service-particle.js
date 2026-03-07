@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { dataImage } from '../../plugin/plugin'
 import Modal from 'react-modal';
-import { SVG_Custom1, SVG_Custom2, SVG_Custom3, SVG_Custom4, SVG_Custom5, SVG_Custom6 } from '../../plugin/svg';
-export default function Service({ ActiveIndex }) {
+import { SVG_Custom1, SVG_Custom3, SVG_Custom4, SVG_Custom6 } from '../../plugin/svg';
 
+export default function Service({ ActiveIndex }) {
     const [isOpen7, setIsOpen7] = useState(false);
     const [modalContent, setModalContent] = useState({});
 
@@ -12,74 +12,50 @@ export default function Service({ ActiveIndex }) {
     }
     const service = [
         {
-            img: "img/news/1.jpg",
+            img: "img/panels/panel_2_resolution.png",
             svg: <SVG_Custom1 />,
-            text: "Developing website involves creating your website, making it one of the most vital parts of your marketing",
-            date: "August 9, 2021",
-            title: "3D Animation",
-            text1: "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
-            text2: "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
-            text3: "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business."
+            text: "17.8x resolution enhancement through categorical completion. Neural outputs match expert manual analysis across all biological targets.",
+            title: "Super-Resolution",
+            text1: "The framework achieves 17.8x resolution enhancement by applying categorical completion theory to microscopy images. Starting from a 200nm optical diffraction baseline, sequential catalyst application reduces effective resolution to 11.2nm.",
+            text2: "Through dual-membrane pixel Maxwell demons, each pixel maintains conjugate states enabling zero-backaction observation. The exclusion factors of twelve independent catalysts multiply to determine the final resolution.",
+            text3: "Results validated across fluorescence microscopy (BBBC039), electron microscopy, and virtual imaging modalities. Neural and expert selections achieve identical enhancement ratios."
         },
         {
-            img: "img/news/2.jpg",
-            svg: <SVG_Custom2 />,
-            text: "Developing website involves creating your website, making it one of the most vital parts of your marketing",
-            date: "August 9, 2021",
-            title: "Explainer Videos",
-            text1: "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
-            text2: "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
-            text3: "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business."
-        },
-        {
-            img: "img/news/3.jpg",
-            svg: <SVG_Custom3 />,
-            text: "Developing website involves creating your website, making it one of the most vital parts of your marketing",
-            date: "August 9, 2021",
-            title: "App Development",
-            text1: "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
-            text2: "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
-            text3: "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business."
-        },
-        {
-            img: "img/news/4.jpg",
+            img: "img/panels/panel_3_s_entropy.png",
             svg: <SVG_Custom4 />,
-            text: "Developing website involves creating your website, making it one of the most vital parts of your marketing",
-            date: "August 9, 2021",
-            title: "Educational Video",
-            text1: "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
-            text2: "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
-            text3: "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business."
+            text: "Machine-precision S-entropy conservation (std 9.9e-17). Information-theoretic proof of zero information loss during categorical observation.",
+            title: "Information Conservation",
+            text1: "S-entropy coordinates (S_k, S_t, S_e) in [0,1]^3 provide a bounded measure of information content at each stage of the imaging pipeline. The conservation law S_k + S_t + S_e = constant is enforced at machine precision.",
+            text2: "The conservation proof demonstrates that categorical observation preserves total information content. Unlike conventional image processing where information is irreversibly lost at each step, morphism chains transform information between components while preserving the total.",
+            text3: "Standard deviation of 9.9e-17 across all test cases confirms machine-precision conservation. The entropy partitions as S_k : S_t : S_e = 0.919 : 0.081 : 10^-5 after full catalyst application."
         },
         {
-            img: "img/news/5.jpg",
-            svg: <SVG_Custom5 />,
-            text: "Developing website involves creating your website, making it one of the most vital parts of your marketing",
-            date: "August 9, 2021",
-            title: "3D Game Art",
-            text1: "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
-            text2: "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
-            text3: "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business."
+            img: "img/panels/panel_4_speed.png",
+            svg: <SVG_Custom3 />,
+            text: "65ms average compilation from natural language to type-safe morphism chains. 27,496x speedup vs expert manual compilation.",
+            title: "Neural Compilation",
+            text1: "Users describe imaging tasks in plain English. The neural compiler parses the intent and generates a type-safe morphism chain through four sequential phases: observe bridge, catalyst selection, cross-attention fusion, and constraint satisfaction.",
+            text2: "The categorical type system ensures pipeline correctness at compile time. Constrained decoding enforces catalyst compatibility, preventing incompatible combinations (e.g., conservation and dissipation catalysts cannot co-occur).",
+            text3: "Average compilation time of 65ms enables interactive, real-time pipeline construction. The 27,496x speedup over expert manual compilation (30+ minutes) democratizes access to categorical imaging methods."
         },
         {
-            img: "img/news/6.jpg",
+            img: "img/panels/panel_5_generalization.png",
             svg: <SVG_Custom6 />,
-            text: "Developing website involves creating your website, making it one of the most vital parts of your marketing",
-            date: "August 9, 2021",
-            title: "Presentations",
-            text1: "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
-            text2: "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
-            text3: "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business."
+            text: "Zero generalization gap across biological targets. 0.900+ Dice segmentation on unseen structures including mitochondria and endoplasmic reticulum.",
+            title: "Universal Generalization",
+            text1: "The framework achieves identical performance on in-distribution and out-of-distribution biological targets, with a generalization gap of effectively zero across nuclei, cell membrane, mitochondria, and endoplasmic reticulum.",
+            text2: "Categorical completion theory guarantees that the framework generalizes to any bounded phase space system. The compositional structure of morphism chains transfers across biological targets through shared catalyst types.",
+            text3: "Curriculum training with progressive complexity builds transferable representations. The model learns to apply known catalyst types to novel targets by reasoning about shared biological properties rather than memorizing specific patterns."
         }
     ]
     return (
         <>
-            {/* <!-- NEWS --> */}
-            <div className={ActiveIndex === 7 ? "cavani_tm_section active animated flipInX" : "cavani_tm_section hidden animated flipOutX"} id="news_">
+            {/* <!-- CAPABILITIES --> */}
+            <div className={ActiveIndex === 5 ? "cavani_tm_section active animated flipInX" : "cavani_tm_section hidden animated flipOutX"} id="news_">
             <div className="section_inner">
                     <div className="cavani_tm_service">
                         <div className="cavani_tm_title">
-                            <span>Services</span>
+                            <span>Capabilities</span>
                         </div>
                         <div className="service_list">
                             <ul>
@@ -107,9 +83,8 @@ export default function Service({ ActiveIndex }) {
                         </div>
                     </div>
                 </div>
-
             </div>
-            {/* <!-- NEWS --> */}
+            {/* <!-- /CAPABILITIES --> */}
 
             {modalContent && (
                 <Modal
@@ -130,7 +105,7 @@ export default function Service({ ActiveIndex }) {
                                 <div className="service_popup_informations">
                                     <div className="image">
                                         <img src="img/thumbs/4-2.jpg" alt="" />
-                                        <div className="main" data-img-url="img/news/1.jpg" style={{ backgroundImage: `url(${modalContent.img})` }} />
+                                        <div className="main" style={{ backgroundImage: `url(${modalContent.img})` }} />
                                     </div>
                                     <div className="details">
                                         <span>{modalContent.tag}</span>

@@ -1,0 +1,386 @@
+/* Dark Theme for Hammerhead */
+/* Applied when body has class "dark" */
+
+body.dark {
+	background-color: #0d1117;
+	color: #b0b8c4;
+	scrollbar-color: #444 #0d1117;
+}
+
+body.dark::-webkit-scrollbar-track {
+	background: #0d1117;
+}
+
+body.dark::-webkit-scrollbar-thumb {
+	background-color: #444;
+	border: 3px solid #0d1117;
+}
+
+/* Headings */
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark h5,
+body.dark h6 {
+	color: #e6edf3;
+}
+
+/* Header */
+body.dark .cavani_tm_header {
+	background-color: #161b22;
+	border-bottom: 1px solid #21262d;
+}
+
+body.dark .cavani_tm_header .menu ul li a {
+	color: #b0b8c4;
+}
+
+body.dark .cavani_tm_header .menu ul li.mleave.active a {
+	color: #b0b8c4;
+}
+
+body.dark .cavani_tm_header .menu ul li.active a {
+	color: #fff;
+}
+
+body.dark .cavani_tm_header .menu ul li a:hover {
+	color: #fff;
+}
+
+body.dark .cavani_tm_header .menu .ccc {
+	background-color: #4a9eda;
+}
+
+body.dark .cavani_tm_header .logo .text {
+	color: #e6edf3;
+}
+
+/* Top Bar (mobile) */
+body.dark .cavani_tm_topbar {
+	background-color: #161b22;
+	border-bottom: 1px solid #21262d;
+}
+
+body.dark .cavani_tm_topbar .logo .text {
+	color: #e6edf3;
+}
+
+body.dark .hamburger-inner,
+body.dark .hamburger-inner:before,
+body.dark .hamburger-inner:after {
+	background-color: #e6edf3;
+}
+
+/* Mobile Menu */
+body.dark .cavani_tm_mobile_menu {
+	background-color: #161b22;
+	border-left: 1px solid #21262d;
+}
+
+body.dark .cavani_tm_mobile_menu .menu_list ul li a {
+	color: #b0b8c4;
+}
+
+body.dark .cavani_tm_mobile_menu .social ul li a {
+	color: #b0b8c4;
+}
+
+body.dark .cavani_tm_mobile_menu .copyright p {
+	color: #6e7681;
+}
+
+/* Section inner right edge */
+body.dark .cavani_tm_section .section_inner:before {
+	background-color: #0d1117;
+}
+
+/* Home */
+body.dark .cavani_tm_home .name {
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_home .line {
+	background-color: #4a9eda;
+}
+
+body.dark .cavani_tm_home .job span {
+	color: #b0b8c4;
+}
+
+body.dark .cavani_tm_home .job b {
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_home .job .styles_type__2Teeh {
+	color: #e6edf3;
+}
+
+/* Buttons */
+body.dark .cavani_tm_button .a,
+body.dark .cavani_tm_button a {
+	background-color: #4a9eda;
+	border-color: #4a9eda;
+	color: #fff;
+}
+
+body.dark .cavani_tm_button .a:hover,
+body.dark .cavani_tm_button a:hover {
+	background-color: transparent;
+	color: #4a9eda;
+}
+
+/* Title */
+body.dark .cavani_tm_title span {
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_title span:after {
+	background-color: #30363d;
+}
+
+/* About / Framework */
+body.dark .cavani_tm_about .biography .right ul li a {
+	color: #b0b8c4;
+}
+
+body.dark .cavani_tm_about .biography .right ul li a:hover {
+	color: #4a9eda;
+}
+
+body.dark .cavani_tm_about .services .service_list ul li:before {
+	border-color: transparent transparent transparent #4a9eda;
+}
+
+/* Progress bars */
+body.dark .progress_inner .background {
+	background: rgba(255, 255, 255, .1);
+}
+
+body.dark .progress_inner .background .bar_in {
+	background: #4a9eda;
+}
+
+/* Circle progress */
+body.dark .cavani_tm_about .skills .language .circular_progress_bar .myCircle {
+	color: #e6edf3 !important;
+}
+
+/* Timeline */
+body.dark .cavani_tm_about .resume_list .education ul li .list_inner h3,
+body.dark .cavani_tm_about .resume_list .experience ul li .list_inner h3 {
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_about .resume_list ul li .list_inner:before {
+	background-color: #4a9eda;
+}
+
+body.dark .cavani_tm_about .resume_list ul li .list_inner {
+	border-left-color: #30363d;
+}
+
+/* Portfolio / Papers */
+body.dark .cavani_tm_portfolio .portfolio_filter ul li a {
+	color: #b0b8c4;
+}
+
+body.dark .cavani_tm_portfolio .portfolio_filter ul li a.current {
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_portfolio .portfolio_list ul li .inner .entry .title h3 a {
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_portfolio .portfolio_list ul li .inner .entry .title h3 a:hover {
+	color: #4a9eda;
+}
+
+/* News / Results */
+body.dark .cavani_tm_news .news_list ul li .list_inner .details h3 a {
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_news .news_list ul li .list_inner .details h3 a:hover {
+	color: #4a9eda;
+}
+
+body.dark .cavani_tm_news .news_list ul li .list_inner .details span a {
+	color: #6e7681;
+}
+
+/* Service / Capabilities */
+body.dark .cavani_tm_service .service_list ul li .list_inner {
+	background-color: #161b22;
+	border: 1px solid #21262d;
+}
+
+body.dark .cavani_tm_service .service_list ul li .list_inner:hover {
+	border-color: #4a9eda;
+}
+
+body.dark .cavani_tm_service .service_list ul li .list_inner h3.title {
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_service .service_list ul li .list_inner svg {
+	color: #4a9eda;
+}
+
+/* Contact / Collaborate */
+body.dark .cavani_tm_contact .short_info ul li .list_inner span {
+	color: #b0b8c4;
+}
+
+body.dark .cavani_tm_contact .short_info ul li .list_inner i {
+	color: #4a9eda;
+}
+
+body.dark .cavani_tm_contact .short_info ul li .list_inner span a {
+	color: #4a9eda;
+}
+
+body.dark .cavani_tm_contact .fields input,
+body.dark .cavani_tm_contact .fields textarea {
+	background-color: #161b22;
+	border-color: #30363d;
+	color: #e6edf3;
+}
+
+body.dark .cavani_tm_contact .fields input:focus,
+body.dark .cavani_tm_contact .fields textarea:focus {
+	border-color: #4a9eda;
+}
+
+/* Modal */
+body.dark .cavani_tm_modalbox {
+	background-color: #161b22;
+}
+
+body.dark .cavani_tm_modalbox .box_inner {
+	background-color: #161b22;
+}
+
+body.dark .mymodal {
+	background-color: #161b22 !important;
+}
+
+body.dark .myoverlay {
+	background-color: rgba(0, 0, 0, 0.75) !important;
+}
+
+body.dark .cavani_tm_modalbox .close a {
+	color: #b0b8c4;
+}
+
+/* Footer */
+body.dark .cavani_tm_footer {
+	background-color: #0d1117;
+	border-top: 1px solid #21262d;
+}
+
+body.dark .cavani_tm_footer .copyright p {
+	color: #6e7681;
+}
+
+body.dark .cavani_tm_footer .social ul li a {
+	color: #b0b8c4;
+}
+
+/* Left/Right borders */
+body.dark .cavani_tm_left_border,
+body.dark .cavani_tm_right_border {
+	background-color: #161b22;
+	border-color: #21262d;
+}
+
+/* Loading bar */
+body.dark .cd-headline.loading-bar .cd-words-wrapper::after {
+	background: #4a9eda;
+}
+
+body.dark .cd-headline.clip .cd-words-wrapper::after {
+	background-color: #4a9eda;
+}
+
+/* Author image area */
+body.dark .cavani_tm_mainpart .author_image {
+	background-color: #0d1117;
+}
+
+/* Testimonials / Key Results */
+body.dark .cavani_tm_about .testimonials .list_inner {
+	background-color: #161b22;
+	border: 1px solid #21262d;
+}
+
+body.dark .cavani_tm_about .testimonials .list_inner .details h3 {
+	color: #e6edf3;
+}
+
+/* Inline styles override for dark theme */
+body.dark .cavani_tm_about .biography .right ul li .first {
+	color: #e6edf3;
+}
+
+/* Portfolio filter underline */
+body.dark .cavani_tm_portfolio .portfolio_filter ul li a:after {
+	background-color: #4a9eda;
+}
+
+/* Scrollbar inside sections */
+body.dark .cavani_tm_section::-webkit-scrollbar-thumb {
+	background-color: #30363d;
+}
+
+/* Partners, misc backgrounds */
+body.dark .cavani_tm_about .partners {
+	border-top: 1px solid #21262d;
+}
+
+/* Demo CTA box */
+.demo-cta-box {
+	background: #f0f7ff;
+}
+
+body.dark .demo-cta-box {
+	background: #161b22 !important;
+	border: 1px solid #21262d;
+}
+
+/* Text selection */
+body.dark ::selection {
+	background: #4a9eda;
+	color: #fff;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	z-index: 999;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	border: 2px solid #333;
+	background-color: #fff;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
+	transition: all 0.3s ease;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+body.dark .theme-toggle {
+	border-color: #30363d;
+	background-color: #161b22;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.theme-toggle:hover {
+	transform: scale(1.1);
+}

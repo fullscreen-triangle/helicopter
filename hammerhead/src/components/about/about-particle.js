@@ -1,5 +1,4 @@
 import React from 'react'
-import Image from 'next/image'
 import ProgressBar from '../progressBar';
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
@@ -7,66 +6,62 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 
 const circleProgressData = [
-    { language: 'English', progress: 95 },
-    { language: 'Russian', progress: 80 },
-    { language: 'Arabic', progress: 90 },
-
+    { language: 'Compilation', progress: 99 },
+    { language: 'Conservation', progress: 100 },
+    { language: 'Generalization', progress: 95 },
 ];
 
 const progressBarData = [
-    { bgcolor: "#7d7789", completed: 60, title: 'HTML & CSS' },
-    { bgcolor: "#7d7789", completed: 85, title: 'Javascript' },
-    { bgcolor: "#7d7789", completed: 90, title: 'WordPress' },
+    { bgcolor: "#4a9eda", completed: 95, title: 'Resolution Enhancement' },
+    { bgcolor: "#4a9eda", completed: 100, title: 'S-Entropy Conservation' },
+    { bgcolor: "#4a9eda", completed: 90, title: 'Segmentation Accuracy' },
 ];
 
-const services = [
+const keyResults = [
     {
-        desc: "Beautiful minimalist design and great, fast response with support. Highly recommend. Thanks Marketify!.",
-        img: "img/testimonials/1.jpg",
-        info1: "Alexander Walker",
-        info2: "Graphics Designer"
-
+        desc: "17.8x resolution enhancement achieved through categorical completion, where neural outputs match expert manual analysis exactly.",
+        img: "img/panels/panel_chart_1_segmentation_resolution.png",
+        info1: "Resolution Enhancement",
+        info2: "Fluorescence Microscopy"
     },
     {
-        desc: "I had a little problem and the support was just awesome to quickly solve the situation. And keep going on.",
-        img: "img/testimonials/2.jpg",
-        info1: "Baraka Clinton",
-        info2: "Construction Engineering"
-
+        desc: "Machine-precision S-entropy conservation with standard deviation 9.9e-17, proving information-theoretic correctness of the framework.",
+        img: "img/panels/panel_chart_2_entropy_conservation.png",
+        info1: "Conservation Proof",
+        info2: "S-Entropy Coordinates"
     },
     {
-        desc: "These people really know what they are doing! Great customer support availability and supperb kindness.",
-        img: "img/testimonials/3.jpg",
-        info1: "Armin Van Buuren",
-        info2: "Content Manager"
-
+        desc: "65ms average compilation time, representing a 27,496x speedup over expert manual pipeline construction.",
+        img: "img/panels/panel_chart_3_speed_csp.png",
+        info1: "Compilation Speed",
+        info2: "Natural Language Interface"
     },
-]
+];
 
 export default function AboutDefault({ ActiveIndex }) {
     return (
         <>
-            {/* <!-- ABOUT --> */}
+            {/* <!-- FRAMEWORK --> */}
             <div className={ActiveIndex === 1 ? "cavani_tm_section active animated flipInX" : "cavani_tm_section active hidden animated flipOutX"} id="about_">
             <div className="section_inner">
                     <div className="cavani_tm_about">
                         <div className="biography">
                             <div className="cavani_tm_title">
-                                <span>About Me</span>
+                                <span>The Framework</span>
                             </div>
                             <div className="wrapper">
                                 <div className="left">
-                                    <p>Hello there! My name is <strong>Alan Walker.</strong> I am a graphic designer, and I&#39;m very passionate and dedicated to my work.</p>
-                                    <p>With 20 years experience as a professional a graphic designer, I have acquired the skills and knowledge necessary to make your project a success.</p>
+                                    <p><strong>Hammerhead</strong> is a categorical imaging framework that compiles natural language descriptions into type-safe morphism chains. Built on Partition Calculus, it enables users to describe imaging tasks in plain English and receive mathematically verified processing pipelines.</p>
+                                    <p>The framework implements the <strong>observe &rarr; catalyze &rarr; fuse &rarr; access</strong> pipeline, where twelve independent measurement modalities reduce structural ambiguity from ~10<sup>60</sup> to unique determination through sequential exclusion.</p>
                                 </div>
                                 <div className="right">
                                     <ul>
-                                        <li><span className="first">Name:</span><span className="second">Alan Walker</span></li>
-                                        <li><span className="first">Address:</span><span className="second">Ave Street, New York, USA</span></li>
-                                        <li><span className="first">Study:</span><span className="second">Univercity of Oxford</span></li>
-                                        <li><span className="first">Degree:</span><span className="second">Master of Science</span></li>
-                                        <li><span className="first">Mail:</span><span className="second"><a href="#">hello@cavani.com</a></span></li>
-                                        <li><span className="first">Phone:</span><span className="second">+77 022 444 05 05</span></li>
+                                        <li><span className="first">Framework:</span><span className="second">Partition Calculus</span></li>
+                                        <li><span className="first">Language:</span><span className="second">Python 3.8+ / PyTorch</span></li>
+                                        <li><span className="first">License:</span><span className="second">MIT</span></li>
+                                        <li><span className="first">Compilation:</span><span className="second">65ms average</span></li>
+                                        <li><span className="first">Resolution:</span><span className="second">17.8x enhancement</span></li>
+                                        <li><span className="first">Repository:</span><span className="second"><a href="https://github.com/fullscreen-triangle/helicopter" target="_blank" rel="noopener noreferrer">GitHub</a></span></li>
                                     </ul>
                                 </div>
                             </div>
@@ -75,29 +70,28 @@ export default function AboutDefault({ ActiveIndex }) {
                             <div className="wrapper">
                                 <div className="service_list">
                                     <div className="cavani_tm_title">
-                                        <span>Services</span>
+                                        <span>Pipeline Stages</span>
                                     </div>
                                     <div className="list">
                                         <ul>
-                                            <li>Web Development</li>
-                                            <li>Graphic Design</li>
-                                            <li>Landing Page</li>
-                                            <li>On-Page SEO</li>
-                                            <li>Web Hosting</li>
+                                            <li>Observe (Image Acquisition)</li>
+                                            <li>Catalyze (Feature Extraction)</li>
+                                            <li>Fuse (Multi-modal Integration)</li>
+                                            <li>Access (Result Retrieval)</li>
                                         </ul>
                                     </div>
                                 </div>
                                 <div className="service_list">
                                     <div className="cavani_tm_title">
-                                        <span>Interests</span>
+                                        <span>Imaging Modalities</span>
                                     </div>
                                     <div className="list">
                                         <ul>
-                                            <li>Painting &amp; Drawing</li>
-                                            <li>Reading &amp; Writing</li>
-                                            <li>Music &amp; Cinema</li>
-                                            <li>Travel &amp; Picnik</li>
-                                            <li>Rain &amp; Snow</li>
+                                            <li>Fluorescence Microscopy</li>
+                                            <li>Electron Microscopy</li>
+                                            <li>Phase Contrast</li>
+                                            <li>Spectral Multiplexing</li>
+                                            <li>Virtual Imaging</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -107,7 +101,7 @@ export default function AboutDefault({ ActiveIndex }) {
                             <div className="wrapper">
                                 <div className="programming">
                                     <div className="cavani_tm_title">
-                                        <span>Programming</span>
+                                        <span>Performance Metrics</span>
                                     </div>
                                     <div className="cavani_progress">
                                         {progressBarData.map((item, idx) => (
@@ -117,18 +111,18 @@ export default function AboutDefault({ ActiveIndex }) {
                                 </div>
                                 <div className="language">
                                     <div className="cavani_tm_title">
-                                        <span>Language</span>
+                                        <span>Framework Reliability</span>
                                     </div>
                                     <div className="circular_progress_bar">
                                         <div className='circle_holder'>
                                             {circleProgressData.map((item, idx) => (
                                                 <div key={idx}>
                                                     <div className="list_inner">
-                                                        <CircularProgressbar                                                           
+                                                        <CircularProgressbar
                                                             value={item.progress}
                                                             text={`${item.progress}%`}
                                                             strokeWidth={3}
-                                                            stroke='#7d7789'
+                                                            stroke='#4a9eda'
                                                             Language={item.language}
                                                             className={"list_inner"}
                                                         />
@@ -136,7 +130,6 @@ export default function AboutDefault({ ActiveIndex }) {
                                                     </div>
                                                 </div>
                                             ))}
-
                                         </div>
                                     </div>
                                 </div>
@@ -146,7 +139,7 @@ export default function AboutDefault({ ActiveIndex }) {
                             <div className="wrapper">
                                 <div className="education">
                                     <div className="cavani_tm_title">
-                                        <span>Education</span>
+                                        <span>Theoretical Foundation</span>
                                     </div>
                                     <div className="list">
                                         <div className="univ">
@@ -154,33 +147,33 @@ export default function AboutDefault({ ActiveIndex }) {
                                                 <li>
                                                     <div className="list_inner">
                                                         <div className="time">
-                                                            <span>2014 - 2016</span>
+                                                            <span>2024 - Present</span>
                                                         </div>
                                                         <div className="place">
-                                                            <h3>Oxford Univercity</h3>
-                                                            <span>Master Degree</span>
+                                                            <h3>Partition Calculus</h3>
+                                                            <span>Categorical Imaging Framework</span>
                                                         </div>
                                                     </div>
                                                 </li>
                                                 <li>
                                                     <div className="list_inner">
                                                         <div className="time">
-                                                            <span>2010 - 2014</span>
+                                                            <span>2023 - 2024</span>
                                                         </div>
                                                         <div className="place">
-                                                            <h3>Texas Univercity</h3>
-                                                            <span>Bachelor Degree</span>
+                                                            <h3>Maxwell Demon Theory</h3>
+                                                            <span>Pixel-Level Observation</span>
                                                         </div>
                                                     </div>
                                                 </li>
                                                 <li>
                                                     <div className="list_inner">
                                                         <div className="time">
-                                                            <span>2008 - 2010</span>
+                                                            <span>2022 - 2023</span>
                                                         </div>
                                                         <div className="place">
-                                                            <h3>Simone College</h3>
-                                                            <span>Associate Degree</span>
+                                                            <h3>S-Entropy Coordinates</h3>
+                                                            <span>Bounded Phase Space</span>
                                                         </div>
                                                     </div>
                                                 </li>
@@ -190,7 +183,7 @@ export default function AboutDefault({ ActiveIndex }) {
                                 </div>
                                 <div className="experience">
                                     <div className="cavani_tm_title">
-                                        <span>Experience</span>
+                                        <span>Publications</span>
                                     </div>
                                     <div className="list">
                                         <div className="univ">
@@ -198,33 +191,33 @@ export default function AboutDefault({ ActiveIndex }) {
                                                 <li>
                                                     <div className="list_inner">
                                                         <div className="time">
-                                                            <span>2018 - running</span>
+                                                            <span>2025</span>
                                                         </div>
                                                         <div className="place">
-                                                            <h3>Envato Elements</h3>
-                                                            <span>Exclusive Author</span>
+                                                            <h3>Purpose-Driven Image Partition</h3>
+                                                            <span>Neural Compilation Pipeline</span>
                                                         </div>
                                                     </div>
                                                 </li>
                                                 <li>
                                                     <div className="list_inner">
                                                         <div className="time">
-                                                            <span>2015 - 2018</span>
+                                                            <span>2025</span>
                                                         </div>
                                                         <div className="place">
-                                                            <h3>Avo Corporation</h3>
-                                                            <span>Content Manager</span>
+                                                            <h3>Multi-Modal Image Analysis</h3>
+                                                            <span>Fluorescence &amp; Electron Microscopy</span>
                                                         </div>
                                                     </div>
                                                 </li>
                                                 <li>
                                                     <div className="list_inner">
                                                         <div className="time">
-                                                            <span>2012 - 2015</span>
+                                                            <span>2024</span>
                                                         </div>
                                                         <div className="place">
-                                                            <h3>FC Barcelona</h3>
-                                                            <span>Football Player</span>
+                                                            <h3>Scattering-Puzzle Imaging</h3>
+                                                            <span>Refraction Puzzle Reconstruction</span>
                                                         </div>
                                                     </div>
                                                 </li>
@@ -234,66 +227,9 @@ export default function AboutDefault({ ActiveIndex }) {
                                 </div>
                             </div>
                         </div>
-                        <div className="partners">
-                            <div className="cavani_tm_title">
-                                <span>Partners</span>
-                            </div>
-                            <div className="list">
-                                <ul>
-                                    <li>
-                                        <div className="list_inner">
-                                            <img src="img/partners/1.png" alt="" />
-                                            <a className="cavani_tm_full_link" href="#"></a>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list_inner">
-                                            <img src="img/partners/2.png" alt="" />
-                                            <a className="cavani_tm_full_link" href="#"></a>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list_inner">
-                                            <img src="img/partners/3.png" alt="" />
-                                            <a className="cavani_tm_full_link" href="#"></a>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list_inner">
-                                            <img src="img/partners/4.png" alt="" />
-                                            <a className="cavani_tm_full_link" href="#"></a>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list_inner">
-                                            <img src="img/partners/5.png" alt="" />
-                                            <a className="cavani_tm_full_link" href="#"></a>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list_inner">
-                                            <img src="img/partners/1.png" alt="" />
-                                            <a className="cavani_tm_full_link" href="#"></a>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list_inner">
-                                            <img src="img/partners/2.png" alt="" />
-                                            <a className="cavani_tm_full_link" href="#"></a>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div className="list_inner">
-                                            <img src="img/partners/3.png" alt="" />
-                                            <a className="cavani_tm_full_link" href="#"></a>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
                         <div className="testimonials">
                             <div className="cavani_tm_title">
-                                <span>Testimonials</span>
+                                <span>Key Results</span>
                             </div>
                             <div className="list">
                                 <ul className="">
@@ -302,10 +238,6 @@ export default function AboutDefault({ ActiveIndex }) {
                                             slidesPerView={1}
                                             spaceBetween={30}
                                             loop={true}
-                                            // navigation={{
-                                            //     prevEl: ".custom_prev",
-                                            //     nextEl: ".custom_next",
-                                            // }}
                                             className="custom-class"
                                             breakpoints={{
                                                 768: {
@@ -313,7 +245,7 @@ export default function AboutDefault({ ActiveIndex }) {
                                                 }
                                             }}
                                         >
-                                            {services.map((item, i) => (
+                                            {keyResults.map((item, i) => (
                                                 <SwiperSlide key={i}>
                                                     <div className="list_inner">
                                                         <div className="text">
@@ -330,7 +262,6 @@ export default function AboutDefault({ ActiveIndex }) {
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                 </SwiperSlide>
                                             ))}
                                         </Swiper>
@@ -341,7 +272,7 @@ export default function AboutDefault({ ActiveIndex }) {
                     </div>
                 </div>
             </div>
-            {/* <!-- ABOUT --> */}
+            {/* <!-- /FRAMEWORK --> */}
         </>
     )
 }

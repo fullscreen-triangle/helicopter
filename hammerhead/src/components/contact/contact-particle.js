@@ -5,7 +5,6 @@ import { customCursor } from '../../plugin/plugin';
 export default function ContactDefault({ ActiveIndex }) {
     const [trigger, setTrigger] = useState(false);
     useEffect(() => {
-        // dataImage();
         customCursor();
     });
 
@@ -34,31 +33,31 @@ export default function ContactDefault({ ActiveIndex }) {
     };
     return (
         <>
-            {/* <!-- CONTACT --> */}
+            {/* <!-- COLLABORATE --> */}
             <div className={ActiveIndex === 4 ? "cavani_tm_section active animated flipInX" : "cavani_tm_section hidden animated flipOutX"} id="contact_">
             <div className="section_inner">
                     <div className="cavani_tm_contact">
                         <div className="cavani_tm_title">
-                            <span>Get in Touch</span>
+                            <span>Collaborate</span>
                         </div>
                         <div className="short_info">
                             <ul>
                                 <li>
                                     <div className="list_inner">
                                         <i className="icon-location"></i>
-                                        <span>Ave Street, New York, USA</span>
+                                        <span>Open Source - MIT License</span>
                                     </div>
                                 </li>
                                 <li>
                                     <div className="list_inner">
                                         <i className="icon-mail-3"></i>
-                                        <span><a href="#">hello@cavani.com</a></span>
+                                        <span><a href="https://github.com/fullscreen-triangle/helicopter" target="_blank" rel="noopener noreferrer">GitHub Repository</a></span>
                                     </div>
                                 </li>
                                 <li>
                                     <div className="list_inner">
-                                        <i className="icon-mobile"></i>
-                                        <span>+77 022 444 05 05</span>
+                                        <i className="icon-doc-text-inv"></i>
+                                        <span>Funding &amp; Collaboration Welcome</span>
                                     </div>
                                 </li>
                             </ul>
@@ -70,11 +69,11 @@ export default function ContactDefault({ ActiveIndex }) {
                                     <form className="contact_form" onSubmit={(e) => onSubmit(e)}>
                                         <div
                                             className="returnmessage"
-                                            data-success="Your message has been received, we will contact you soon."
+                                            data-success="Thank you for your interest. We will respond soon."
                                             style={{ display: success ? "block" : "none" }}
                                         >
                                             <span className="contact_success">
-                                                Your message has been received, we will contact you soon.
+                                                Thank you for your interest. We will respond soon.
                                             </span>
                                         </div>
                                         <div
@@ -83,7 +82,6 @@ export default function ContactDefault({ ActiveIndex }) {
                                         >
                                             <span>Please Fill Required Fields!</span>
                                         </div>
-                                        {/* */}
 
                                         <div className="fields">
                                             <ul>
@@ -128,7 +126,7 @@ export default function ContactDefault({ ActiveIndex }) {
                                                         onChange={(e) => onChange(e)}
                                                         value={msg}
                                                         id="message"
-                                                        placeholder="Message"
+                                                        placeholder="Describe your interest or collaboration proposal"
                                                     />
                                                 </li>
                                             </ul>
@@ -137,7 +135,7 @@ export default function ContactDefault({ ActiveIndex }) {
                                                     className='a'
                                                     type="submit"
                                                     id="send_message"
-                                                    value="Send Message"
+                                                    value="Send Inquiry"
                                                 />
                                             </div>
                                         </div>
@@ -147,24 +145,21 @@ export default function ContactDefault({ ActiveIndex }) {
                             </div>
                             <div className="right">
                                 <div className="map_wrap">
-                                    <div className="map" id="ieatmaps">
-                                        <iframe
-                                            height={375}
-                                            style={{ width: "100%" }}
-                                            id="gmap_canvas"
-                                            src="https://maps.google.com/maps?q=2880%20Broadway,%20New%20York&t=&z=13&ie=UTF8&iwloc=&output=embed"
-                                        />
-                                        <a href="https://www.embedgooglemap.net/blog/divi-discount-code-elegant-themes-coupon" />
-                                        <br />
+                                    <div className="demo-cta-box" style={{ padding: '40px', textAlign: 'center', borderRadius: '8px', height: '375px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                                        <h3 style={{ marginBottom: '15px', fontSize: '20px' }}>Try Hammerhead</h3>
+                                        <p style={{ marginBottom: '10px', fontSize: '14px', lineHeight: '1.6' }}>Describe your imaging task in natural language and receive a type-safe morphism chain in 65ms.</p>
+                                        <p style={{ marginBottom: '25px', fontSize: '13px' }}>Interactive demo coming soon.</p>
+                                        <div className="cavani_tm_button">
+                                            <a href="https://github.com/fullscreen-triangle/helicopter" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+                                        </div>
                                     </div>
                                 </div>
-                                {/* Get your API here https://www.embedgooglemap.net */}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            {/* <!-- CONTACT --> */}
+            {/* <!-- /COLLABORATE --> */}
         </>
     )
 }

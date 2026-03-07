@@ -8,7 +8,7 @@ export default function TopBar({toggleTrueFalse, isToggled}) {
             <div className="cavani_tm_topbar">
                 <div className="topbar_inner">
                     <div className="logo">
-                        <a href="#"><img src="img/logo/dark.png" alt="" /></a>
+                        <a href="#"><img src="hammerhead-logo.png" alt="Hammerhead" style={{maxHeight: '40px'}} /></a>
                     </div>
                     <div className="trigger">
                         <div onClick={toggleTrueFalse} className={!isToggled ? "hamburger hamburger--slider" : "hamburger hamburger--slider is-active"}>

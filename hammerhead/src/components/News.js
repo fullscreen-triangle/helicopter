@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
 import Modal from "react-modal";
-import { CloseButton } from "../plugin/svg";
 const News = ({ ActiveIndex, animation }) => {
   const [isOpen4, setIsOpen4] = useState(false);
   const [modalContent, setModalContent] = useState({});
@@ -21,7 +20,6 @@ const News = ({ ActiveIndex, animation }) => {
         var imgURL = list.getAttribute("data-img");
         box.style.backgroundImage = `url(${imgURL})`;
         box.style.top = event.clientY - 50 + "px";
-        console.log(event.clientY);
         if (imgURL === "") {
           box.classList.remove("opened");
           return false;
@@ -39,82 +37,82 @@ const News = ({ ActiveIndex, animation }) => {
   }
   const newsData = [
     {
-      img: "img/news/1.jpg",
-      tag: "Branding",
-      date: "August 9, 2021",
-      comments: "3 comments",
-      title: "Reasons Why People Use Discord",
+      img: "img/panels/panel_chart_1_segmentation_resolution.png",
+      tag: "Fluorescence",
+      date: "2025",
+      comments: "17.8x Enhancement",
+      title: "Resolution Enhancement: Neural Matches Expert",
       text1:
-        "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
+        "Applied categorical completion to fluorescence microscopy images from the BBBC039 dataset. The neural compilation pipeline achieves 17.8x resolution enhancement, improving from a 200nm optical baseline to 11.2nm effective resolution.",
       text2:
-        "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
+        "Both neural and expert catalyst selection produce identical enhancement factors (ratio = 1.000), validating the knowledge distillation approach. The theoretical maximum of 266.7x represents perfect three-catalyst enhancement.",
       text3:
-        "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business.",
+        "The resolution cascade applies conservation(dna_mass), phase_lock(chromatin), and thermal(metabolic) catalysts sequentially, each reducing structural ambiguity through exclusion factors.",
     },
     {
-      img: "img/news/2.jpg",
-      tag: "Branding",
-      date: "August 9, 2021",
-      comments: "3 comments",
-      title: "Why We Should Read Fewer Books",
+      img: "img/panels/panel_chart_2_entropy_conservation.png",
+      tag: "Theory",
+      date: "2025",
+      comments: "std 9.9e-17",
+      title: "S-Entropy Conservation to Machine Precision",
       text1:
-        "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
+        "S-entropy conservation S_k + S_t + S_e = 1 holds to IEEE 754 double-precision floating-point limits across all neurally-compiled morphism chains. Standard deviation: 9.9 x 10^-17.",
       text2:
-        "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
+        "The entropy partitions as S_k : S_t : S_e = 0.919 : 0.081 : 10^-5, confirming that the overwhelming majority of information resides in the known component after catalyst application.",
       text3:
-        "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business.",
+        "Zero conservation violations across all test images. Maximum deviation from unity: 2.2 x 10^-16, at the level of machine epsilon.",
     },
     {
-      img: "img/news/3.jpg",
-      tag: "Branding",
-      date: "August 9, 2021",
-      comments: "3 comments",
-      title: "A Final Farewell to the iPod",
+      img: "img/panels/panel_chart_3_speed_csp.png",
+      tag: "Compilation",
+      date: "2025",
+      comments: "27,496x Speedup",
+      title: "65ms Compilation: Three Orders of Magnitude Faster",
       text1:
-        "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
+        "The neural compiler achieves 65ms average compilation time from natural language task description to type-safe morphism chain. This represents a 27,496x speedup over expert manual compilation (30+ minutes).",
       text2:
-        "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
+        "Template matching approaches require 1-5 minutes and intermediate expertise. The neural compiler eliminates both the time and expertise requirements entirely.",
       text3:
-        "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business.",
+        "Total pipeline time including execution is 854ms. The compilation phase (65ms) is dominated by the execution phase (789ms), suggesting that further speedups should target chain execution rather than compilation.",
     },
     {
-      img: "img/news/4.jpg",
-      tag: "Branding",
-      date: "August 9, 2021",
-      comments: "3 comments",
-      title: "Dealing with Spring Allergy Symptoms",
+      img: "img/panels/panel_1_segmentation.png",
+      tag: "Segmentation",
+      date: "2025",
+      comments: "0.900 Dice",
+      title: "Segmentation Across Methods and Targets",
       text1:
-        "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
+        "Nuclear segmentation on BBBC039 achieves 0.900 Dice score for both expert-crafted and neurally-compiled morphism chains. Classical methods (Otsu: 0.948, Watershed: 0.949) achieve higher Dice on well-separated nuclei.",
       text2:
-        "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
+        "The morphism chain approach trades raw segmentation accuracy for compositional guarantees: type safety, S-entropy conservation, and catalyst compatibility that classical thresholding cannot provide.",
       text3:
-        "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business.",
+        "The precision-recall tradeoff reveals that morphism chains favor recall (0.881) over precision (0.658), reflecting over-segmentation at sub-diffraction boundaries in dense nuclear regions.",
     },
     {
-      img: "img/news/5.jpg",
-      tag: "Branding",
-      date: "August 9, 2021",
-      comments: "3 comments",
-      title: "How to Take a Break from Yourself",
+      img: "img/panels/panel_5_generalization.png",
+      tag: "Generalization",
+      date: "2025",
+      comments: "Zero Gap",
+      title: "Zero Generalization Gap Across Biological Targets",
       text1:
-        "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
+        "Neural and expert performance are effectively identical across all four biological targets: nuclei (0.900), cell membrane (0.900), mitochondria (0.907), and endoplasmic reticulum (0.900).",
       text2:
-        "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
+        "Out-of-distribution targets (mitochondria, ER) perform comparably to in-distribution targets (nuclei, membrane), with mitochondria achieving slightly higher Dice due to distinct morphological signatures.",
       text3:
-        "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business.",
+        "The zero generalization gap validates that curriculum training successfully transfers compositional structure across biological targets, as predicted by the theoretical framework.",
     },
     {
-      img: "img/news/6.jpg",
-      tag: "Branding",
-      date: "August 9, 2021",
-      comments: "3 comments",
-      title: "The Age of Extinction Is Here",
+      img: "img/panels/panel_6_csp.png",
+      tag: "CSP Solver",
+      date: "2025",
+      comments: "11.1 dB PSNR",
+      title: "Amortized CSP Solver Outperforms Iterative Methods",
       text1:
-        "Cavani is a leading web design agency with an award-winning design team that creates innovative, effective websites that capture your brand, improve your conversion rates, and maximize your revenue to help grow your business and achieve your goals.",
+        "The neural constraint satisfaction solver achieves 11.1 dB PSNR compared to 7.0 dB for iterative least-squares reconstruction, a 4.1 dB improvement through single-pass inference.",
       text2:
-        "In today's digital world, your website is the first interaction consumers have with your business. That's why almost 95 percent of a user's first impression relates to web design. It's also why web design services can have an immense impact on your company's bottom line.",
+        "The scattering enhancement theorem is confirmed: higher scattering strength increases transfer matrix rank (correlation 0.738), improving reconstruction quality rather than degrading it.",
       text3:
-        "That's why more companies are not only reevaluating their website's design but also partnering with Kura, the web design agency that's driven more than $2.4 billion in revenue for its clients. With over 50 web design awards under our belt, we're confident we can design a custom website that drives sales for your unique business.",
+        "Variable ordering via the neural network correlates with the most-constrained-first heuristic, validating the learned constraint propagation strategy.",
     },
   ];
   return (
@@ -131,12 +129,12 @@ const News = ({ ActiveIndex, animation }) => {
         <div className="section_inner">
           <div className="cavani_tm_news">
             <div className="cavani_tm_title">
-              <span>Latest News</span>
+              <span>Validation Results</span>
             </div>
             <div className="news_list">
               <ul>
                 {newsData.map((news, i) => (
-                  <li data-img={`img/news/${i + 1}.jpg`} key={i}>
+                  <li data-img={news.img} key={i}>
                     <div className="list_inner">
                       <span className="number">{`${i <= 9 ? 0 : ""}${i + 1
                         }`}</span>
@@ -152,7 +150,7 @@ const News = ({ ActiveIndex, animation }) => {
                                   href="#"
                                   onClick={() => toggleModalFour(news)}
                                 >
-                                  Branding
+                                  {news.tag}
                                 </a>
                               </span>
                             </li>
@@ -162,7 +160,7 @@ const News = ({ ActiveIndex, animation }) => {
                                   href="#"
                                   onClick={() => toggleModalFour(news)}
                                 >
-                                  0 Comments
+                                  {news.comments}
                                 </a>
                               </span>
                             </li>
@@ -207,7 +205,6 @@ const News = ({ ActiveIndex, animation }) => {
                     <img src="img/thumbs/4-2.jpg" alt="" />
                     <div
                       className="main"
-                      data-img-url="img/news/1.jpg"
                       style={{ backgroundImage: `url(${modalContent.img})` }}
                     />
                   </div>

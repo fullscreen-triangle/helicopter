@@ -3,6 +3,7 @@ import "../public/css/glitch.css";
 import "../public/css/plugins.css";
 // import "../public/css/style-update.css";
 import "../public/css/style.css";
+import "../public/css/dark-theme.css";
 import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }) {

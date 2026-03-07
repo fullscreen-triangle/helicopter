@@ -491,3 +491,36 @@ pixel_maxwell_demon/docs/lunar-surface/lunar-surface-submission.zip
 !**/docs/**/*.png
 pixel_maxwell_demon/lunar_paper_validation/**/*.png
 pixel_maxwell_demon/docs/lunar-surface/figures/*.png
+
+# Hammerhead (Next.js website)
+# ============================
+node_modules/
+.next/
+hammerhead/node_modules/
+hammerhead/.next/
+
+# Allow hammerhead public assets (override global exclusions)
+!hammerhead/public/
+!hammerhead/public/**
+!hammerhead/public/**/*.png
+!hammerhead/public/**/*.svg
+!hammerhead/public/**/*.ico
+!hammerhead/public/**/*.glb
+!hammerhead/public/**/*.json
+!hammerhead/public/**/*.css
+!hammerhead/public/**/*.eot
+!hammerhead/public/**/*.ttf
+!hammerhead/public/**/*.woff
+!hammerhead/public/**/*.woff2
+
+# Allow hammerhead JSON config files
+!hammerhead/package.json
+!hammerhead/package-lock.json
+!hammerhead/vercel.json
+!hammerhead/.eslintrc.json
+
+# Allow hammerhead source SVGs
+!hammerhead/src/**/*.svg
+
+# Allow hammerhead styles
+!hammerhead/styles/**/*.css

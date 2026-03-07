@@ -16,14 +16,15 @@ export default function HomeDefault({ ActiveIndex, handleOnClick }) {
       >
         <div className="cavani_tm_home">
           <div className="content">
-            <h3 className="name">Rosa Vincent</h3>
+            <h3 className="name">Hammerhead</h3>
             <span className="line"></span>
+            <p className="tagline" style={{marginBottom: '15px', fontSize: '14px'}}>The algorithm IS the microscope</p>
             <h3 className="job">
               <LoadingTextAnimation />
             </h3>
             <div className="cavani_tm_button transition_link">
-              <Link href="#contact">
-                <a onClick={() => handleOnClick(4)}>Get in Touch</a>
+              <Link href="#framework">
+                <a onClick={() => handleOnClick(1)}>Explore Framework</a>
               </Link>
             </div>
           </div>
