@@ -1,0 +1,779 @@
+% references.bib
+% Universal Spectral Matching — Bibliography
+% ~55 references spanning information theory, physics, optics,
+% computer vision, machine learning, signal processing, GPU computing,
+% and mathematical foundations.
+
+% ═══════════════════════════════════════════════════════════════════
+%  INFORMATION THEORY & SIGNAL PROCESSING
+% ═══════════════════════════════════════════════════════════════════
+
+@article{shannon1948,
+  author  = {Shannon, Claude E.},
+  title   = {A Mathematical Theory of Communication},
+  journal = {The Bell System Technical Journal},
+  volume  = {27},
+  number  = {3},
+  pages   = {379--423},
+  year    = {1948},
+  doi     = {10.1002/j.1538-7305.1948.tb01338.x}
+}
+
+@article{nyquist1928,
+  author  = {Nyquist, Harry},
+  title   = {Certain Topics in Telegraph Transmission Theory},
+  journal = {Transactions of the American Institute of Electrical Engineers},
+  volume  = {47},
+  number  = {2},
+  pages   = {617--644},
+  year    = {1928},
+  doi     = {10.1109/T-AIEE.1928.5055024}
+}
+
+@article{gabor1946,
+  author  = {Gabor, Dennis},
+  title   = {Theory of Communication},
+  journal = {Journal of the Institution of Electrical Engineers --- Part III: Radio and Communication Engineering},
+  volume  = {93},
+  number  = {26},
+  pages   = {429--457},
+  year    = {1946},
+  doi     = {10.1049/ji-3-2.1946.0074}
+}
+
+@book{cover2006,
+  author    = {Cover, Thomas M. and Thomas, Joy A.},
+  title     = {Elements of Information Theory},
+  edition   = {2nd},
+  publisher = {Wiley-Interscience},
+  year      = {2006},
+  isbn      = {978-0-471-24195-9}
+}
+
+@article{cooley1965,
+  author  = {Cooley, James W. and Tukey, John W.},
+  title   = {An Algorithm for the Machine Calculation of Complex {F}ourier Series},
+  journal = {Mathematics of Computation},
+  volume  = {19},
+  number  = {90},
+  pages   = {297--301},
+  year    = {1965},
+  doi     = {10.1090/S0025-5718-1965-0178586-1}
+}
+
+@article{candes2006,
+  author  = {Cand\`{e}s, Emmanuel J. and Romberg, Justin and Tao, Terence},
+  title   = {Robust Uncertainty Principles: Exact Signal Reconstruction from Highly Incomplete Frequency Information},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {52},
+  number  = {2},
+  pages   = {489--509},
+  year    = {2006},
+  doi     = {10.1109/TIT.2005.862083}
+}
+
+@article{donoho2006,
+  author  = {Donoho, David L.},
+  title   = {Compressed Sensing},
+  journal = {IEEE Transactions on Information Theory},
+  volume  = {52},
+  number  = {4},
+  pages   = {1289--1306},
+  year    = {2006},
+  doi     = {10.1109/TIT.2006.871582}
+}
+
+@article{mallat1989,
+  author  = {Mallat, St\'{e}phane G.},
+  title   = {A Theory for Multiresolution Signal Decomposition: The Wavelet Representation},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {11},
+  number  = {7},
+  pages   = {674--693},
+  year    = {1989},
+  doi     = {10.1109/34.192463}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  PHYSICS FOUNDATIONS
+% ═══════════════════════════════════════════════════════════════════
+
+@article{heisenberg1927,
+  author  = {Heisenberg, Werner},
+  title   = {\"{U}ber den anschaulichen {I}nhalt der quantentheoretischen {K}inematik und {M}echanik},
+  journal = {Zeitschrift f\"{u}r Physik},
+  volume  = {43},
+  number  = {3--4},
+  pages   = {172--198},
+  year    = {1927},
+  doi     = {10.1007/BF01397280}
+}
+
+@article{einstein1905,
+  author  = {Einstein, Albert},
+  title   = {\"{U}ber einen die {E}rzeugung und {V}erwandlung des {L}ichtes betreffenden heuristischen {G}esichtspunkt},
+  journal = {Annalen der Physik},
+  volume  = {322},
+  number  = {6},
+  pages   = {132--148},
+  year    = {1905},
+  doi     = {10.1002/andp.19053220607}
+}
+
+@article{boltzmann1877,
+  author  = {Boltzmann, Ludwig},
+  title   = {\"{U}ber die {B}eziehung zwischen dem zweiten {H}auptsatze der mechanischen {W}\"{a}rmetheorie und der {W}ahrscheinlichkeitsrechnung respektive den {S}\"{a}tzen \"{u}ber das {W}\"{a}rmegleichgewicht},
+  journal = {Wiener Berichte},
+  volume  = {76},
+  pages   = {373--435},
+  year    = {1877}
+}
+
+@article{poincare1890,
+  author  = {Poincar\'{e}, Henri},
+  title   = {Sur le probl\`{e}me des trois corps et les \'{e}quations de la dynamique},
+  journal = {Acta Mathematica},
+  volume  = {13},
+  pages   = {1--270},
+  year    = {1890},
+  doi     = {10.1007/BF02392506}
+}
+
+@book{vonneumann1932,
+  author    = {von Neumann, John},
+  title     = {Mathematische {G}rundlagen der {Q}uantenmechanik},
+  publisher = {Springer},
+  address   = {Berlin},
+  year      = {1932},
+  note      = {English translation: \emph{Mathematical Foundations of Quantum Mechanics}, Princeton University Press, 1955}
+}
+
+@article{bohr1913,
+  author  = {Bohr, Niels},
+  title   = {On the Constitution of Atoms and Molecules},
+  journal = {Philosophical Magazine},
+  volume  = {26},
+  number  = {151},
+  pages   = {1--25},
+  year    = {1913},
+  doi     = {10.1080/14786441308634955}
+}
+
+@article{kac1947,
+  author  = {Kac, Mark},
+  title   = {On the Notion of Recurrence in Discrete Stochastic Processes},
+  journal = {Bulletin of the American Mathematical Society},
+  volume  = {53},
+  number  = {10},
+  pages   = {1002--1010},
+  year    = {1947},
+  doi     = {10.1090/S0002-9904-1947-08927-8}
+}
+
+@book{peskin1995,
+  author    = {Peskin, Michael E. and Schroeder, Daniel V.},
+  title     = {An Introduction to Quantum Field Theory},
+  publisher = {Addison-Wesley},
+  year      = {1995},
+  isbn      = {978-0-201-50397-5}
+}
+
+@article{braginsky1980,
+  author  = {Braginsky, Vladimir B. and Vorontsov, Yuri I. and Thorne, Kip S.},
+  title   = {Quantum Nondemolition Measurements},
+  journal = {Science},
+  volume  = {209},
+  number  = {4456},
+  pages   = {547--557},
+  year    = {1980},
+  doi     = {10.1126/science.209.4456.547}
+}
+
+@article{koopman1931,
+  author  = {Koopman, Bernard O.},
+  title   = {Hamiltonian Systems and Transformation in {H}ilbert Space},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {17},
+  number  = {5},
+  pages   = {315--318},
+  year    = {1931},
+  doi     = {10.1073/pnas.17.5.315}
+}
+
+@book{sakurai2017,
+  author    = {Sakurai, Jun John and Napolitano, Jim},
+  title     = {Modern Quantum Mechanics},
+  edition   = {2nd},
+  publisher = {Cambridge University Press},
+  year      = {2017},
+  isbn      = {978-1-108-42241-3},
+  doi       = {10.1017/9781108499996}
+}
+
+@article{lennardjones1924,
+  author  = {Lennard-Jones, John E.},
+  title   = {On the Determination of Molecular Fields. --- {II}. {F}rom the Equation of State of a Gas},
+  journal = {Proceedings of the Royal Society of London. Series A},
+  volume  = {106},
+  number  = {738},
+  pages   = {463--477},
+  year    = {1924},
+  doi     = {10.1098/rspa.1924.0082}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  OPTICS & COHERENCE THEORY
+% ═══════════════════════════════════════════════════════════════════
+
+@book{born1999,
+  author    = {Born, Max and Wolf, Emil},
+  title     = {Principles of Optics: Electromagnetic Theory of Propagation, Interference and Diffraction of Light},
+  edition   = {7th (expanded)},
+  publisher = {Cambridge University Press},
+  year      = {1999},
+  isbn      = {978-0-521-64222-4},
+  doi       = {10.1017/CBO9781139644181}
+}
+
+@article{michelson1890,
+  author  = {Michelson, Albert A.},
+  title   = {On the Application of Interference Methods to Astronomical Measurements},
+  journal = {The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science},
+  volume  = {30},
+  number  = {182},
+  pages   = {1--21},
+  year    = {1890},
+  doi     = {10.1080/14786449008619876}
+}
+
+@article{young1804,
+  author  = {Young, Thomas},
+  title   = {The {B}akerian {L}ecture: Experiments and Calculations Relative to Physical Optics},
+  journal = {Philosophical Transactions of the Royal Society of London},
+  volume  = {94},
+  pages   = {1--16},
+  year    = {1804},
+  doi     = {10.1098/rstl.1804.0001}
+}
+
+@article{glauber1963,
+  author  = {Glauber, Roy J.},
+  title   = {The Quantum Theory of Optical Coherence},
+  journal = {Physical Review},
+  volume  = {130},
+  number  = {6},
+  pages   = {2529--2539},
+  year    = {1963},
+  doi     = {10.1103/PhysRev.130.2529}
+}
+
+@article{vanzernike1938,
+  author  = {van Cittert, P. H. and Zernike, Frits},
+  title   = {The Concept of Degree of Coherence and Its Application to Optical Problems},
+  journal = {Physica},
+  volume  = {5},
+  number  = {8},
+  pages   = {785--795},
+  year    = {1938},
+  doi     = {10.1016/S0031-8914(38)80203-2}
+}
+
+@article{wolf1954,
+  author  = {Wolf, Emil},
+  title   = {Optics in Terms of Observable Quantities},
+  journal = {Il Nuovo Cimento},
+  volume  = {12},
+  number  = {6},
+  pages   = {884--888},
+  year    = {1954},
+  doi     = {10.1007/BF02781855}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  FOURIER ANALYSIS & MATHEMATICAL FOUNDATIONS
+% ═══════════════════════════════════════════════════════════════════
+
+@book{fourier1822,
+  author    = {Fourier, Joseph},
+  title     = {Th\'{e}orie analytique de la chaleur},
+  publisher = {Firmin Didot P\`{e}re et Fils},
+  address   = {Paris},
+  year      = {1822}
+}
+
+@article{bohr1925,
+  author  = {Bohr, Harald},
+  title   = {Zur {T}heorie der fastperiodischen {F}unktionen ({E}rste {M}itteilung)},
+  journal = {Acta Mathematica},
+  volume  = {45},
+  pages   = {29--127},
+  year    = {1925},
+  doi     = {10.1007/BF02395468}
+}
+
+@book{courant1953,
+  author    = {Courant, Richard and Hilbert, David},
+  title     = {Methods of Mathematical Physics},
+  volume    = {1},
+  publisher = {Interscience Publishers},
+  year      = {1953}
+}
+
+@book{weyl1946,
+  author    = {Weyl, Hermann},
+  title     = {The Classical Groups: Their Invariants and Representations},
+  publisher = {Princeton University Press},
+  year      = {1946},
+  isbn      = {978-0-691-05756-9}
+}
+
+@book{chung1997,
+  author    = {Chung, Fan R. K.},
+  title     = {Spectral Graph Theory},
+  publisher = {American Mathematical Society},
+  year      = {1997},
+  series    = {CBMS Regional Conference Series in Mathematics},
+  number    = {92},
+  isbn      = {978-0-8218-0315-8}
+}
+
+@article{golub1965,
+  author  = {Golub, Gene H. and Kahan, William},
+  title   = {Calculating the Singular Values and Pseudo-Inverse of a Matrix},
+  journal = {Journal of the Society for Industrial and Applied Mathematics, Series B: Numerical Analysis},
+  volume  = {2},
+  number  = {2},
+  pages   = {205--224},
+  year    = {1965},
+  doi     = {10.1137/0702016}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  COMPUTER VISION & FEATURE MATCHING
+% ═══════════════════════════════════════════════════════════════════
+
+@article{lowe2004,
+  author  = {Lowe, David G.},
+  title   = {Distinctive Image Features from Scale-Invariant Keypoints},
+  journal = {International Journal of Computer Vision},
+  volume  = {60},
+  number  = {2},
+  pages   = {91--110},
+  year    = {2004},
+  doi     = {10.1023/B:VISI.0000029664.99615.94}
+}
+
+@inproceedings{rublee2011,
+  author    = {Rublee, Ethan and Rabaud, Vincent and Konolige, Kurt and Bradski, Gary},
+  title     = {{ORB}: An Efficient Alternative to {SIFT} or {SURF}},
+  booktitle = {Proceedings of the IEEE International Conference on Computer Vision (ICCV)},
+  pages     = {2564--2571},
+  year      = {2011},
+  doi       = {10.1109/ICCV.2011.6126544}
+}
+
+@article{oquab2023,
+  author  = {Oquab, Maxime and Darcet, Timoth\'{e}e and Moutakanni, Th\'{e}o and Vo, Huy and Szafraniec, Marc and Khalidov, Vasil and Fernandez, Pierre and Haziza, Daniel and Massa, Francisco and El-Nouby, Alaaeldin and Assran, Mahmoud and Ballas, Nicolas and Galuba, Wojciech and Howes, Russell and Huang, Po-Yao and Li, Shang-Wen and Misra, Ishan and Rabbat, Michael and Sharma, Vasu and Synnaeve, Gabriel and Xu, Hu and Jegou, Herv\'{e} and Mairal, Julien and Labatut, Patrick and Joulin, Armand and Bojanowski, Piotr},
+  title   = {{DINOv2}: Learning Robust Visual Features without Supervision},
+  journal = {Transactions on Machine Learning Research},
+  year    = {2023},
+  note    = {arXiv:2304.07193}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  MACHINE LEARNING & NEURAL NETWORKS
+% ═══════════════════════════════════════════════════════════════════
+
+@inproceedings{vaswani2017,
+  author    = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, {\L}ukasz and Polosukhin, Illia},
+  title     = {Attention Is All You Need},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {30},
+  pages     = {5998--6008},
+  year      = {2017}
+}
+
+@inproceedings{kipf2017,
+  author    = {Kipf, Thomas N. and Welling, Max},
+  title     = {Semi-Supervised Classification with Graph Convolutional Networks},
+  booktitle = {Proceedings of the International Conference on Learning Representations (ICLR)},
+  year      = {2017}
+}
+
+@article{hopfield1982,
+  author  = {Hopfield, John J.},
+  title   = {Neural Networks and Physical Systems with Emergent Collective Computational Abilities},
+  journal = {Proceedings of the National Academy of Sciences},
+  volume  = {79},
+  number  = {8},
+  pages   = {2554--2558},
+  year    = {1982},
+  doi     = {10.1073/pnas.79.8.2554}
+}
+
+@inproceedings{trabelsi2018,
+  author    = {Trabelsi, Chiheb and Bilaniuk, Olexa and Zhang, Ying and Serdyuk, Dmitriy and Subramanian, Sandeep and Santos, Jo\~{a}o Felipe and Mehri, Soroush and Rostamzadeh, Negar and Bengio, Yoshua and Pal, Christopher J.},
+  title     = {Deep Complex Networks},
+  booktitle = {Proceedings of the International Conference on Learning Representations (ICLR)},
+  year      = {2018}
+}
+
+@inproceedings{reimers2019,
+  author    = {Reimers, Nils and Gurevych, Iryna},
+  title     = {Sentence-{BERT}: Sentence Embeddings using {S}iamese {BERT}-Networks},
+  booktitle = {Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+  pages     = {3982--3992},
+  year      = {2019},
+  doi       = {10.18653/v1/D19-1410}
+}
+
+@article{kuramoto1975,
+  author  = {Kuramoto, Yoshiki},
+  title   = {Self-Entrainment of a Population of Coupled Non-Linear Oscillators},
+  journal = {Lecture Notes in Physics},
+  volume  = {39},
+  pages   = {420--422},
+  year    = {1975},
+  doi     = {10.1007/BFb0013365},
+  note    = {In: Araki, H. (ed.) International Symposium on Mathematical Problems in Theoretical Physics, Springer}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  BIOIMAGING & DATASETS
+% ═══════════════════════════════════════════════════════════════════
+
+@article{ljosa2012,
+  author  = {Ljosa, Vebjorn and Sokolnicki, Katherine L. and Carpenter, Anne E.},
+  title   = {Annotated High-Throughput Microscopy Image Sets for Validation},
+  journal = {Nature Methods},
+  volume  = {9},
+  number  = {7},
+  pages   = {637},
+  year    = {2012},
+  doi     = {10.1038/nmeth.2083}
+}
+
+@article{caicedo2019,
+  author  = {Caicedo, Juan C. and Goodman, Allen and Karber, Kyle W. and Clough, Beth A. and Bber, Tam\'{a}s and Way, Gregory P. and Boyden, Edward S. and Carpenter, Anne E.},
+  title   = {Nucleus Segmentation Across Imaging Experiments: the 2018 {D}ata {S}cience {B}owl},
+  journal = {Nature Methods},
+  volume  = {16},
+  number  = {12},
+  pages   = {1247--1253},
+  year    = {2019},
+  doi     = {10.1038/s41592-019-0612-7}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  CHEMINFORMATICS & MOLECULAR SCIENCE
+% ═══════════════════════════════════════════════════════════════════
+
+@article{willett1998,
+  author  = {Willett, Peter and Barnard, John M. and Downs, Geoffrey M.},
+  title   = {Chemical Similarity Searching},
+  journal = {Journal of Chemical Information and Computer Sciences},
+  volume  = {38},
+  number  = {6},
+  pages   = {983--996},
+  year    = {1998},
+  doi     = {10.1021/ci9800211}
+}
+
+@misc{nist2023,
+  author       = {{National Institute of Standards and Technology}},
+  title        = {{NIST} Chemistry {WebBook}, {SRD} 69},
+  year         = {2023},
+  howpublished = {\url{https://webbook.nist.gov/chemistry/}},
+  note         = {Accessed: 2026-03-01}
+}
+
+@article{tanimoto1958,
+  author  = {Tanimoto, Taffee T.},
+  title   = {An Elementary Mathematical Theory of Classification and Prediction},
+  journal = {Internal {IBM} Technical Report},
+  year    = {1958},
+  note    = {IBM Internal Report, November 17, 1958}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  SEQUENCE COMPARISON & BIOINFORMATICS
+% ═══════════════════════════════════════════════════════════════════
+
+@article{altschul1990,
+  author  = {Altschul, Stephen F. and Gish, Warren and Miller, Webb and Myers, Eugene W. and Lipman, David J.},
+  title   = {Basic Local Alignment Search Tool},
+  journal = {Journal of Molecular Biology},
+  volume  = {215},
+  number  = {3},
+  pages   = {403--410},
+  year    = {1990},
+  doi     = {10.1016/S0022-2836(05)80360-2}
+}
+
+@article{kent2002,
+  author  = {Kent, W. James},
+  title   = {{BLAT}---the {BLAST}-Like Alignment Tool},
+  journal = {Genome Research},
+  volume  = {12},
+  number  = {4},
+  pages   = {656--664},
+  year    = {2002},
+  doi     = {10.1101/gr.229202}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  DYNAMIC TIME WARPING & TIME SERIES
+% ═══════════════════════════════════════════════════════════════════
+
+@article{sakoe1978,
+  author  = {Sakoe, Hiroaki and Chiba, Seibi},
+  title   = {Dynamic Programming Algorithm Optimization for Spoken Word Recognition},
+  journal = {IEEE Transactions on Acoustics, Speech, and Signal Processing},
+  volume  = {26},
+  number  = {1},
+  pages   = {43--49},
+  year    = {1978},
+  doi     = {10.1109/TASSP.1978.1163055}
+}
+
+@article{berndt1994,
+  author  = {Berndt, Donald J. and Clifford, James},
+  title   = {Using Dynamic Time Warping to Find Patterns in Time Series},
+  journal = {KDD Workshop},
+  pages   = {359--370},
+  year    = {1994}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  TEXT SIMILARITY
+% ═══════════════════════════════════════════════════════════════════
+
+@inproceedings{cer2017,
+  author    = {Cer, Daniel and Diab, Mona and Agirre, Eneko and Lopez-Gazpio, I\~{n}igo and Specia, Lucia},
+  title     = {{SemEval}-2017 Task 1: Semantic Textual Similarity Multilingual and Crosslingual Focused Evaluation},
+  booktitle = {Proceedings of the 11th International Workshop on Semantic Evaluation (SemEval-2017)},
+  pages     = {1--14},
+  year      = {2017},
+  doi       = {10.18653/v1/S17-2001}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  GPU COMPUTING & GRAPHICS SPECIFICATIONS
+% ═══════════════════════════════════════════════════════════════════
+
+@misc{webgl2spec,
+  author       = {{Khronos Group}},
+  title        = {{WebGL} 2.0 Specification},
+  year         = {2017},
+  howpublished = {\url{https://www.khronos.org/registry/webgl/specs/latest/2.0/}},
+  note         = {Version 2.0, accessed 2026-03-01}
+}
+
+@misc{vulkanspec,
+  author       = {{Khronos Group}},
+  title        = {Vulkan 1.3 Specification},
+  year         = {2022},
+  howpublished = {\url{https://www.khronos.org/registry/vulkan/specs/1.3/html/vkspec.html}},
+  note         = {Accessed: 2026-03-01}
+}
+
+@manual{cudaguide,
+  author       = {{NVIDIA Corporation}},
+  title        = {{CUDA C++ Programming Guide}},
+  year         = {2024},
+  note         = {Version 12.4. Available at \url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/}}
+}
+
+@misc{glslspec,
+  author       = {{Khronos Group}},
+  title        = {The {OpenGL} Shading Language, Version 4.60},
+  year         = {2017},
+  howpublished = {\url{https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf}},
+  note         = {Accessed: 2026-03-01}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  NEUROSCIENCE & OSCILLATIONS
+% ═══════════════════════════════════════════════════════════════════
+
+@book{buzsaki2006,
+  author    = {Buzs\'{a}ki, Gy\"{o}rgy},
+  title     = {Rhythms of the Brain},
+  publisher = {Oxford University Press},
+  year      = {2006},
+  isbn      = {978-0-19-530106-9},
+  doi       = {10.1093/acprof:oso/9780195301069.001.0001}
+}
+
+% ═══════════════════════════════════════════════════════════════════
+%  ADDITIONAL REFERENCES
+% ═══════════════════════════════════════════════════════════════════
+
+@article{wiener1930,
+  author  = {Wiener, Norbert},
+  title   = {Generalized Harmonic Analysis},
+  journal = {Acta Mathematica},
+  volume  = {55},
+  pages   = {117--258},
+  year    = {1930},
+  doi     = {10.1007/BF02546511}
+}
+
+@book{oppenheim1999,
+  author    = {Oppenheim, Alan V. and Schafer, Ronald W. and Buck, John R.},
+  title     = {Discrete-Time Signal Processing},
+  edition   = {2nd},
+  publisher = {Prentice Hall},
+  year      = {1999},
+  isbn      = {978-0-13-754920-7}
+}
+
+@article{wigner1932,
+  author  = {Wigner, Eugene P.},
+  title   = {On the Quantum Correction For Thermodynamic Equilibrium},
+  journal = {Physical Review},
+  volume  = {40},
+  number  = {5},
+  pages   = {749--759},
+  year    = {1932},
+  doi     = {10.1103/PhysRev.40.749}
+}
+
+@article{ramachandran1963,
+  author  = {Ramachandran, G. N. and Ramakrishnan, C. and Sasisekharan, V.},
+  title   = {Stereochemistry of Polypeptide Chain Configurations},
+  journal = {Journal of Molecular Biology},
+  volume  = {7},
+  number  = {1},
+  pages   = {95--99},
+  year    = {1963},
+  doi     = {10.1016/S0022-2836(63)80023-6}
+}
+
+@book{goodman2005,
+  author    = {Goodman, Joseph W.},
+  title     = {Introduction to {F}ourier Optics},
+  edition   = {3rd},
+  publisher = {Roberts and Company},
+  year      = {2005},
+  isbn      = {978-0-9747077-2-3}
+}
+
+@article{harris1978,
+  author  = {Harris, Fredric J.},
+  title   = {On the Use of Windows for Harmonic Analysis with the Discrete {F}ourier Transform},
+  journal = {Proceedings of the IEEE},
+  volume  = {66},
+  number  = {1},
+  pages   = {51--83},
+  year    = {1978},
+  doi     = {10.1109/PROC.1978.10837}
+}
+
+@inproceedings{xu2019,
+  author    = {Xu, Keyulu and Hu, Weihua and Leskovec, Jure and Jegelka, Stefanie},
+  title     = {How Powerful are Graph Neural Networks?},
+  booktitle = {Proceedings of the International Conference on Learning Representations (ICLR)},
+  year      = {2019}
+}
+
+@article{strogatz2000,
+  author  = {Strogatz, Steven H.},
+  title   = {From {K}uramoto to {C}rawford: Exploring the Onset of Synchronization in Populations of Coupled Oscillators},
+  journal = {Physica D: Nonlinear Phenomena},
+  volume  = {143},
+  number  = {1--4},
+  pages   = {1--20},
+  year    = {2000},
+  doi     = {10.1016/S0167-2789(00)00094-4}
+}
+
+@inproceedings{johnson2019,
+  author    = {Johnson, Jeff and Douze, Matthijs and J\'{e}gou, Herv\'{e}},
+  title     = {Billion-Scale Similarity Search with {GPUs}},
+  booktitle = {IEEE Transactions on Big Data},
+  volume    = {7},
+  number    = {3},
+  pages     = {535--547},
+  year      = {2021},
+  doi       = {10.1109/TBDATA.2019.2921572},
+  note      = {Originally presented at arXiv:1702.08734, 2017}
+}
+
+@article{pearson1895,
+  author  = {Pearson, Karl},
+  title   = {Note on Regression and Inheritance in the Case of Two Parents},
+  journal = {Proceedings of the Royal Society of London},
+  volume  = {58},
+  pages   = {240--242},
+  year    = {1895},
+  doi     = {10.1098/rspl.1895.0041}
+}
+
+@inproceedings{indyk1998,
+  author    = {Indyk, Piotr and Motwani, Rajeev},
+  title     = {Approximate Nearest Neighbors: Towards Removing the Curse of Dimensionality},
+  booktitle = {Proceedings of the 30th Annual ACM Symposium on Theory of Computing (STOC)},
+  pages     = {604--613},
+  year      = {1998},
+  doi       = {10.1145/276698.276876}
+}
+
+@book{meyer2000,
+  author    = {Meyer, Carl D.},
+  title     = {Matrix Analysis and Applied Linear Algebra},
+  publisher = {SIAM},
+  year      = {2000},
+  isbn      = {978-0-89871-454-8}
+}
+
+@article{mezic2005,
+  author  = {Mezi\'{c}, Igor},
+  title   = {Spectral Properties of Dynamical Systems, Model Reduction and Decompositions},
+  journal = {Nonlinear Dynamics},
+  volume  = {41},
+  number  = {1--3},
+  pages   = {309--325},
+  year    = {2005},
+  doi     = {10.1007/s11071-005-2824-x}
+}
+
+@article{budisic2012,
+  author  = {Budi\v{s}i\'{c}, Marko and Mohr, Ryan and Mezi\'{c}, Igor},
+  title   = {Applied {K}oopmanism},
+  journal = {Chaos: An Interdisciplinary Journal of Nonlinear Science},
+  volume  = {22},
+  number  = {4},
+  pages   = {047510},
+  year    = {2012},
+  doi     = {10.1063/1.4772195}
+}
+
+@article{schmid2010,
+  author  = {Schmid, Peter J.},
+  title   = {Dynamic Mode Decomposition of Numerical and Experimental Data},
+  journal = {Journal of Fluid Mechanics},
+  volume  = {656},
+  pages   = {5--28},
+  year    = {2010},
+  doi     = {10.1017/S0022112010001217}
+}
+
+@article{liouville1838,
+  author  = {Liouville, Joseph},
+  title   = {Note sur la th\'{e}orie de la variation des constantes arbitraires},
+  journal = {Journal de Math\'{e}matiques Pures et Appliqu\'{e}es},
+  volume  = {3},
+  pages   = {342--349},
+  year    = {1838}
+}
+
+@book{arnol1989,
+  author    = {Arnol'd, Vladimir I.},
+  title     = {Mathematical Methods of Classical Mechanics},
+  edition   = {2nd},
+  publisher = {Springer},
+  year      = {1989},
+  isbn      = {978-0-387-96890-2},
+  doi       = {10.1007/978-1-4757-2063-1}
+}

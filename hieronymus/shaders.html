@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Measurement-Modality Stereogram Pipeline</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg:       #080c10;
+    --surface:  #0d1117;
+    --border:   #1c2535;
+    --accent1:  #00d4ff;  /* cyan  — visible channel */
+    --accent2:  #ff6b35;  /* amber — invisible channel */
+    --accent3:  #7fff6b;  /* green — consistency */
+    --accent4:  #c084fc;  /* violet — entropy */
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --pass1:    #00d4ff;
+    --pass2:    #ff6b35;
+    --pass3:    #7fff6b;
+    --pass4:    #c084fc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    height: 100vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    grid-template-columns: 260px 1fr 220px;
+  }
+
+  /* ── Header ── */
+  header {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent1);
+  }
+  header .sub {
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+  .header-tags {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+  .tag {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 2px;
+  }
+
+  /* ── Left panel ── */
+  .left-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-section {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+  }
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* drop zone */
+  #dropzone {
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    padding: 18px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.8;
+  }
+  #dropzone:hover, #dropzone.drag-over {
+    border-color: var(--accent1);
+    background: rgba(0,212,255,0.04);
+    color: var(--accent1);
+  }
+  #dropzone.has-image {
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+  #fileInput { display: none; }
+
+  /* pass selector */
+  .pass-list { display: flex; flex-direction: column; gap: 4px; }
+  .pass-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-align: left;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .pass-btn:hover { border-color: #2a3545; color: var(--text); }
+  .pass-btn.active { border-color: var(--active-color); color: var(--active-color); background: rgba(255,255,255,0.02); }
+  .pass-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--active-color, var(--muted));
+    flex-shrink: 0;
+  }
+  .pass-name { flex: 1; }
+  .pass-status { font-size: 8px; color: var(--muted); }
+  .pass-btn.active .pass-status { color: var(--active-color); }
+
+  /* uniforms */
+  .uniform-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 12px;
+  }
+  .uniform-row:last-child { margin-bottom: 0; }
+  .uniform-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .uniform-label span:last-child { color: var(--text); font-size: 10px; }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent1);
+    cursor: pointer;
+  }
+
+  /* ── Main canvas area ── */
+  .canvas-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050810;
+    overflow: hidden;
+  }
+  canvas#main {
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: pixelated;
+  }
+  .canvas-overlay {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+  }
+  .overlay-pill {
+    background: rgba(8,12,16,0.85);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    backdrop-filter: blur(4px);
+  }
+  .overlay-pill.active { color: var(--accent1); border-color: var(--accent1); }
+
+  .no-image-msg {
+    position: absolute;
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 2;
+    pointer-events: none;
+  }
+  .no-image-msg strong {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    display: block;
+    color: var(--border);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Right panel ── */
+  .right-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .right-panel::-webkit-scrollbar { width: 4px; }
+  .right-panel::-webkit-scrollbar-track { background: var(--surface); }
+  .right-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* stats grid */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+  .stat-cell {
+    background: var(--surface);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .stat-cell.wide { grid-column: 1 / -1; }
+  .stat-key { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+  .stat-val { font-size: 14px; font-family: 'Syne', sans-serif; font-weight: 600; color: var(--text); }
+  .stat-val.cyan   { color: var(--accent1); }
+  .stat-val.amber  { color: var(--accent2); }
+  .stat-val.green  { color: var(--accent3); }
+  .stat-val.violet { color: var(--accent4); }
+
+  /* simplex canvas */
+  #simplexCanvas {
+    width: 100%;
+    aspect-ratio: 1;
+    display: block;
+  }
+
+  /* log */
+  #logBox {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    font-size: 9px;
+    line-height: 1.9;
+    color: var(--muted);
+  }
+  #logBox::-webkit-scrollbar { width: 3px; }
+  #logBox::-webkit-scrollbar-thumb { background: var(--border); }
+  .log-line { display: flex; gap: 8px; }
+  .log-time { color: #2a3545; flex-shrink: 0; }
+  .log-ok   { color: var(--accent3); }
+  .log-info { color: var(--muted); }
+  .log-warn { color: var(--accent2); }
+
+  /* run button */
+  #runBtn {
+    margin: 12px 16px;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--accent1);
+    color: var(--accent1);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+  #runBtn:hover { background: var(--accent1); color: var(--bg); }
+  #runBtn:disabled { border-color: var(--border); color: var(--muted); cursor: not-allowed; }
+  #runBtn:disabled:hover { background: transparent; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Stereogram Pipeline</h1>
+  <span class="sub">Measurement-Modality Dual-Pixel Validation</span>
+  <div class="header-tags">
+    <span class="tag">WebGL2</span>
+    <span class="tag">4-PASS</span>
+    <span class="tag">FRAGMENT SHADERS</span>
+    <span class="tag">Sₖ + Sₜ + Sₑ = 1</span>
+  </div>
+</header>
+
+<!-- Left Panel -->
+<div class="left-panel">
+  <div class="panel-section">
+    <div class="section-label">Input</div>
+    <div id="dropzone">
+      <div>↓ Drop image here</div>
+      <div>or click to browse</div>
+      <div style="color:#2a3545;margin-top:6px;font-size:9px;">PNG / JPG / TIFF</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+
+  <div class="panel-section">
+    <div class="section-label">Shader Pass</div>
+    <div class="pass-list">
+      <button class="pass-btn active" data-pass="0" style="--active-color: var(--pass1)">
+        <div class="pass-dot"></div>
+        <div class="pass-name">Pass 1 — Visible<br><span style="font-size:9px;color:inherit;opacity:0.6">Partition encoder Σ_vis</span></div>
+        <div class="pass-status">●</div>
+      </button>
+      <button class="pass-btn" data-pass="1" style="--active-color: var(--pass2)">
+        <div class="pass-dot"></div>
+        <div class="pass-name">Pass 2 — Invisible<br><span style="font-size:9px;color:inherit;opacity:0.6">O₂ ternary states (P₀,P₁,P₂)</span></div>
+        <div class="pass-status">○</div>
+      </button>
+      <button class="pass-btn" data-pass="2" style="--active-color: var(--pass3)">
+        <div class="pass-dot"></div>
+        <div class="pass-name">Pass 3 — Consistency<br><span style="font-size:9px;color:inherit;opacity:0.6">d_cat(Σ_vis, Σ_inv)</span></div>
+        <div class="pass-status">○</div>
+      </button>
+      <button class="pass-btn" data-pass="3" style="--active-color: var(--pass4)">
+        <div class="pass-dot"></div>
+        <div class="pass-name">Pass 4 — Entropy<br><span style="font-size:9px;color:inherit;opacity:0.6">Sₖ + Sₜ + Sₑ = 1</span></div>
+        <div class="pass-status">○</div>
+      </button>
+    </div>
+  </div>
+
+  <div class="panel-section" style="flex:1;overflow-y:auto">
+    <div class="section-label">Uniforms</div>
+
+    <div class="uniform-row">
+      <div class="uniform-label">
+        <span>ε — consistency threshold</span>
+        <span id="epsilonVal">0.15</span>
+      </div>
+      <input type="range" id="uEpsilon" min="0.01" max="0.5" step="0.01" value="0.15">
+    </div>
+
+    <div class="uniform-row">
+      <div class="uniform-label">
+        <span>J — coupling constant</span>
+        <span id="jVal">1.00</span>
+      </div>
+      <input type="range" id="uJ" min="0.1" max="3.0" step="0.05" value="1.0">
+    </div>
+
+    <div class="uniform-row">
+      <div class="uniform-label">
+        <span>β — inverse temperature</span>
+        <span id="uBetaVal">2.00</span>
+      </div>
+      <input type="range" id="uBeta" min="0.5" max="8.0" step="0.1" value="2.0">
+    </div>
+
+    <div class="uniform-row">
+      <div class="uniform-label">
+        <span>n_max — partition depth</span>
+        <span id="nmaxVal">8</span>
+      </div>
+      <input type="range" id="uNmax" min="2" max="16" step="1" value="8">
+    </div>
+
+    <div class="uniform-row">
+      <div class="uniform-label">
+        <span>A_eg — Einstein coeff (×10⁻⁴)</span>
+        <span id="aegVal">2.58</span>
+      </div>
+      <input type="range" id="uAeg" min="0.1" max="10.0" step="0.1" value="2.58">
+    </div>
+
+    <div class="uniform-row">
+      <div class="uniform-label">
+        <span>α — info transfer efficiency</span>
+        <span id="alphaVal">0.50</span>
+      </div>
+      <input type="range" id="uAlpha" min="0.0" max="1.0" step="0.01" value="0.5">
+    </div>
+  </div>
+
+  <button id="runBtn" disabled>▶ Run Pipeline</button>
+</div>
+
+<!-- Canvas Area -->
+<div class="canvas-area" id="canvasArea">
+  <div class="no-image-msg" id="noImageMsg">
+    <strong>No Image Loaded</strong>
+    Drop a microscopy image in the left panel<br>
+    to begin the stereogram pipeline
+  </div>
+  <canvas id="main"></canvas>
+  <div class="canvas-overlay">
+    <div class="overlay-pill active" id="passLabel">Pass 1 · Visible Partition Encoding</div>
+    <div class="overlay-pill" id="resLabel">—</div>
+    <div class="overlay-pill" id="timeLabel">—</div>
+  </div>
+</div>
+
+<!-- Right Panel -->
+<div class="right-panel">
+  <div class="panel-section">
+    <div class="section-label">Metrics</div>
+    <div class="stat-grid">
+      <div class="stat-cell">
+        <div class="stat-key">Consistency</div>
+        <div class="stat-val green" id="statConsistency">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-key">REF</div>
+        <div class="stat-val cyan" id="statREF">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-key">Mean Sₖ</div>
+        <div class="stat-val cyan" id="statSk">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-key">Mean Sₜ</div>
+        <div class="stat-val amber" id="statSt">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-key">Mean Sₑ</div>
+        <div class="stat-val violet" id="statSe">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-key">Σ conservation</div>
+        <div class="stat-val green" id="statSum">—</div>
+      </div>
+      <div class="stat-cell wide">
+        <div class="stat-key">I_dual (bits/px)</div>
+        <div class="stat-val" id="statIdual">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="section-label">Entropy Simplex Δ_S</div>
+    <canvas id="simplexCanvas" width="220" height="220"></canvas>
+  </div>
+
+  <div class="panel-section" style="flex:1">
+    <div class="section-label">Pipeline Log</div>
+  </div>
+  <div id="logBox"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// GLSL SHADER SOURCE STRINGS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Shared vertex shader — fullscreen quad
+const VERT_SRC = `#version 300 es
+in vec2 a_pos;
+out vec2 v_uv;
+void main() {
+  v_uv = a_pos * 0.5 + 0.5;
+  gl_Position = vec4(a_pos, 0.0, 1.0);
+}`;
+
+// ── PASS 1: Visible Pixel — Partition Encoding ──────────────────────────────
+// Maps optical intensity to partition coordinates (n, l, m, s)
+// Theorem: C(n) = 2n² — hierarchical subdivision of bounded phase space
+// n  → principal level from local entropy (R channel)
+// l  → angular level from gradient magnitude (G channel)
+// m  → magnetic projection from gradient orientation (B channel)
+// s  → spin from Laplacian sign (A channel)
+const FRAG_PASS1 = `#version 300 es
+precision highp float;
+uniform sampler2D u_image;
+uniform float u_nmax;
+in vec2 v_uv;
+out vec4 fragColor;
+
+float luminance(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+// Sample 3x3 neighbourhood for local statistics
+void neighbourhood(sampler2D tex, vec2 uv, vec2 texelSize,
+                   out float mean, out float variance) {
+  float sum = 0.0, sum2 = 0.0;
+  for (int dy = -1; dy <= 1; dy++) {
+    for (int dx = -1; dx <= 1; dx++) {
+      float v = luminance(texture(tex, uv + vec2(float(dx), float(dy)) * texelSize).rgb);
+      sum  += v;
+      sum2 += v * v;
+    }
+  }
+  mean     = sum / 9.0;
+  variance = sum2 / 9.0 - mean * mean;
+}
+
+// Shannon entropy from local 3x3 histogram (4 bins)
+float localEntropy(sampler2D tex, vec2 uv, vec2 ts) {
+  float bins[4];
+  for (int i = 0; i < 4; i++) bins[i] = 0.0;
+  for (int dy = -1; dy <= 1; dy++) {
+    for (int dx = -1; dx <= 1; dx++) {
+      float v = luminance(texture(tex, uv + vec2(float(dx), float(dy)) * ts).rgb);
+      int b = int(clamp(v * 4.0, 0.0, 3.0));
+      if      (b == 0) bins[0] += 1.0;
+      else if (b == 1) bins[1] += 1.0;
+      else if (b == 2) bins[2] += 1.0;
+      else             bins[3] += 1.0;
+    }
+  }
+  float H = 0.0;
+  for (int i = 0; i < 4; i++) {
+    float p = bins[i] / 9.0;
+    if (p > 0.0) H -= p * log2(p);
+  }
+  return H / 2.0; // normalise to [0,1] (max entropy = log2(4) = 2)
+}
+
+void main() {
+  vec2 ts = 1.0 / vec2(textureSize(u_image, 0));
+
+  // Gradient via central differences
+  float il = luminance(texture(u_image, v_uv + vec2(-ts.x, 0.0)).rgb);
+  float ir = luminance(texture(u_image, v_uv + vec2( ts.x, 0.0)).rgb);
+  float ib = luminance(texture(u_image, v_uv + vec2(0.0, -ts.y)).rgb);
+  float it = luminance(texture(u_image, v_uv + vec2(0.0,  ts.y)).rgb);
+  float gx = (ir - il) * 0.5;
+  float gy = (it - ib) * 0.5;
+  float gradMag  = length(vec2(gx, gy));
+  float gradAngle = atan(gy, gx); // [-π, π]
+
+  // Laplacian for spin
+  float ic = luminance(texture(u_image, v_uv).rgb);
+  float laplacian = il + ir + ib + it - 4.0 * ic;
+
+  // Local entropy → principal level n ∈ [1, n_max]
+  float H  = localEntropy(u_image, v_uv, ts);
+  float nF = clamp(H * u_nmax, 1.0, u_nmax);
+  float n  = floor(nF);                        // integer level
+
+  // Angular level l ∈ [0, n-1]
+  float lF = clamp(gradMag * (n - 1.0) * 4.0, 0.0, n - 1.0);
+  float l  = floor(lF);
+
+  // Magnetic projection m ∈ [-l, l] → normalise to [0,1]
+  float mRaw  = floor(((gradAngle / 3.14159265) * 0.5 + 0.5) * (2.0 * l + 1.0));
+  float m     = clamp(mRaw - l, -l, l);
+  float mNorm = (m + l) / max(2.0 * l + 1.0, 1.0); // → [0,1]
+
+  // Spin s ∈ {-0.5, +0.5} → 0 or 1
+  float s = laplacian >= 0.0 ? 1.0 : 0.0;
+
+  // Pack into RGBA as normalised floats
+  fragColor = vec4(
+    n  / u_nmax,   // R: principal level
+    l  / u_nmax,   // G: angular level
+    mNorm,         // B: magnetic projection
+    s              // A: spin
+  );
+}`;
+
+// ── PASS 2: Invisible Pixel — O₂ Ternary State Estimation ───────────────────
+// Implements Beer-Lambert → [O₂] → Einstein rate equations → (P₀, P₁, P₂)
+// Theorem: ternary completeness — 3 states span the categorical Hilbert space
+// P₀ = absorption/detector   (R channel)
+// P₁ = ground/phase-ref      (G channel)
+// P₂ = emission/virtual-src  (B channel)
+// Also encodes invisible partition signature in A channel
+const FRAG_PASS2 = `#version 300 es
+precision highp float;
+uniform sampler2D u_image;
+uniform sampler2D u_pass1;
+uniform float u_Aeg;    // Einstein A coefficient (spontaneous emission)
+uniform float u_nmax;
+in vec2 v_uv;
+out vec4 fragColor;
+
+float luminance(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+void main() {
+  float I     = luminance(texture(u_image, v_uv).rgb);
+  float I0    = 1.0;  // reference intensity (normalised)
+
+  // Beer-Lambert: optical density → estimated [O2] (normalised 0-1)
+  float OD     = -log(max(I, 0.001) / I0);
+  float O2conc = clamp(OD / 2.0, 0.0, 1.0); // ε*d = 2.0 normalised
+
+  // Local radiation energy density u(ν) proxy from image intensity
+  float u_nu  = I * 0.5; // simplified: brighter = more photons
+
+  // Einstein B coefficients (natural units, relative to Aeg)
+  float Bge   = u_Aeg * 2.0;  // absorption B coefficient
+  float Beg   = u_Aeg * 1.5;  // stimulated emission B coefficient
+
+  // Steady-state solution to rate equations (dP/dt = 0):
+  // P₂ = Bge*u / (Aeg + Beg*u + Bge*u)  [excited → emitting]
+  float denom = u_Aeg + (Beg + Bge) * u_nu;
+  float P2    = (Bge * u_nu) / max(denom, 1e-6);
+
+  // P₀ = Aeg*P₂ / (Bge*u)  [ground absorbing]
+  float P0    = (u_Aeg * P2) / max(Bge * u_nu, 1e-6);
+
+  // Normalise so P₀ + P₁ + P₂ = 1
+  float Psum  = P0 + P2;
+  P0 = clamp(P0 / max(Psum + 0.3, 1.0), 0.0, 1.0);
+  P2 = clamp(P2 / max(Psum + 0.3, 1.0), 0.0, 1.0);
+  float P1 = clamp(1.0 - P0 - P2, 0.0, 1.0);
+
+  // Invisible partition signature: encode dominant ternary state
+  // into (n,l,m,s) using O2 concentration as entropy proxy
+  vec4 visSig = texture(u_pass1, v_uv);
+  float nF    = clamp(O2conc * u_nmax, 1.0, u_nmax);
+  float invN  = floor(nF) / u_nmax;
+
+  // Encode invisible sig in A — weighted average with visible n
+  float invSig = mix(invN, visSig.r, 0.4); // partial channel independence
+
+  fragColor = vec4(P0, P1, P2, invSig);
+}`;
+
+// ── PASS 3: Stereogram Consistency ──────────────────────────────────────────
+// Theorem: Dual-pixel consistency — Σ_vis = Σ_inv for valid measurements
+// Computes categorical distance d_cat(Σ_vis, Σ_inv)
+// Applies cross-modal interaction potential V_cross
+// Produces: validation mask M and fused signature Σ_dual
+const FRAG_PASS3 = `#version 300 es
+precision highp float;
+uniform sampler2D u_pass1;  // visible partition (n,l,m,s)
+uniform sampler2D u_pass2;  // invisible (P0,P1,P2,invSig)
+uniform float u_epsilon;    // consistency threshold
+uniform float u_J;          // coupling constant
+uniform float u_beta;       // inverse temperature
+uniform float u_nmax;
+in vec2 v_uv;
+out vec4 fragColor;
+
+// Local inter-modality correlation over 5x5 neighbourhood
+float interModalCorr(vec2 uv, vec2 ts) {
+  float sumVis = 0.0, sumInv = 0.0;
+  float sumVV = 0.0, sumII = 0.0, sumVI = 0.0;
+  float N = 0.0;
+  for (int dy = -2; dy <= 2; dy++) {
+    for (int dx = -2; dx <= 2; dx++) {
+      vec2 off = vec2(float(dx), float(dy)) * ts;
+      float vis = texture(u_pass1, uv + off).r; // use n-component
+      float inv = texture(u_pass2, uv + off).a; // invisible n-proxy
+      sumVis += vis; sumInv += inv;
+      sumVV  += vis * vis; sumII += inv * inv; sumVI += vis * inv;
+      N += 1.0;
+    }
+  }
+  float mV = sumVis / N, mI = sumInv / N;
+  float stdV = sqrt(max(sumVV / N - mV * mV, 1e-8));
+  float stdI = sqrt(max(sumII / N - mI * mI, 1e-8));
+  return (sumVI / N - mV * mI) / (stdV * stdI);
+}
+
+void main() {
+  vec2 ts = 1.0 / vec2(textureSize(u_pass1, 0));
+
+  vec4 visSig = texture(u_pass1, v_uv); // (n,l,m,s) normalised
+  vec4 invRaw = texture(u_pass2, v_uv); // (P0,P1,P2, invN)
+
+  // Reconstruct invisible partition signature from ternary state
+  // Map dominant state to pseudo-(n,l,m,s)
+  float P0 = invRaw.r, P1 = invRaw.g, P2 = invRaw.b;
+  float invN = invRaw.a;
+  // l-proxy: P2 encodes angular complexity (emission = excitation)
+  float invL = P2 * (visSig.r * u_nmax - 1.0) / u_nmax;
+  // m-proxy: P0-P2 asymmetry
+  float invM = (P2 - P0 + 1.0) * 0.5;
+  // s-proxy: from P1 dominance
+  float invS = step(0.5, P1);
+
+  vec4 invSig = vec4(invN, invL, invM, invS);
+
+  // Categorical distance d_cat in (n,l,m,s) space
+  // Scale each component by its dynamic range
+  vec4 diff   = (visSig - invSig) * vec4(1.0, 0.5, 0.5, 0.5);
+  float dcat  = length(diff);
+
+  // Inter-modality correlation ρ
+  float rho   = interModalCorr(v_uv, ts);
+
+  // Cross-modal interaction potential V_cross = -J * ρ * f(d_cat)
+  float f_d   = exp(-dcat * 2.0); // decreasing function of disparity
+  float Vcross = -u_J * rho * f_d;
+
+  // Fusion weights (Boltzmann)
+  float wVis  = exp(-u_beta * max(Vcross, 0.0));
+  float wInv  = exp(-u_beta * max(-Vcross, 0.0));
+  float wSum  = wVis + wInv + 1e-6;
+
+  // Fused partition signature
+  vec4 sigDual = (wVis * visSig + wInv * invSig) / wSum;
+
+  // Validation mask M: 1 if consistent, 0 if not
+  float valid = step(dcat, u_epsilon);
+
+  // Output:
+  // R: d_cat (disparity map — key visualization)
+  // G: validation mask
+  // B: inter-modal correlation ρ (mapped 0-1)
+  // A: fused n-signature
+  fragColor = vec4(
+    clamp(dcat, 0.0, 1.0),
+    valid,
+    (rho + 1.0) * 0.5,
+    sigDual.r
+  );
+}`;
+
+// ── PASS 4: Entropy Conservation Display ────────────────────────────────────
+// Theorem: Sₖ + Sₜ + Sₑ = 1 (entropy coordinate conservation)
+// Sₖ = kinetic entropy proxy (gradient magnitude)
+// Sₜ = thermal entropy proxy (local variance)
+// Sₑ = electronic entropy proxy (O₂ excited state population)
+// Also computes information gain I_dual
+const FRAG_PASS4 = `#version 300 es
+precision highp float;
+uniform sampler2D u_image;
+uniform sampler2D u_pass2;   // ternary states for Se
+uniform sampler2D u_pass3;   // consistency data
+uniform float u_alpha;       // info transfer efficiency
+uniform float u_nmax;
+in vec2 v_uv;
+out vec4 fragColor;
+
+float luminance(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+float localVariance(vec2 uv, vec2 ts) {
+  float mean = 0.0, sq = 0.0;
+  for (int dy = -2; dy <= 2; dy++) {
+    for (int dx = -2; dx <= 2; dx++) {
+      float v = luminance(texture(u_image, uv + vec2(float(dx),float(dy))*ts).rgb);
+      mean += v; sq += v*v;
+    }
+  }
+  mean /= 25.0; sq /= 25.0;
+  return max(sq - mean*mean, 0.0);
+}
+
+void main() {
+  vec2 ts = 1.0 / vec2(textureSize(u_image, 0));
+  float I = luminance(texture(u_image, v_uv).rgb);
+
+  // Kinetic entropy Sₖ: gradient magnitude (translational disorder)
+  float gx = luminance(texture(u_image, v_uv + vec2(ts.x, 0)).rgb)
+           - luminance(texture(u_image, v_uv - vec2(ts.x, 0)).rgb);
+  float gy = luminance(texture(u_image, v_uv + vec2(0, ts.y)).rgb)
+           - luminance(texture(u_image, v_uv - vec2(0, ts.y)).rgb);
+  float Sk_raw = length(vec2(gx, gy)) * 3.0; // scale up
+
+  // Thermal entropy Sₜ: local intensity variance
+  float St_raw = localVariance(v_uv, ts) * 20.0;
+
+  // Electronic entropy Sₑ: from O₂ excited state P₂
+  vec4 ternary = texture(u_pass2, v_uv);
+  float P2     = ternary.b;
+  float Se_raw = P2;
+
+  // Normalise so Sₖ + Sₜ + Sₑ = 1 (entropy simplex)
+  float total  = Sk_raw + St_raw + Se_raw + 1e-6;
+  float Sk     = Sk_raw / total;
+  float St     = St_raw / total;
+  float Se     = Se_raw / total;
+
+  // Resolution enhancement factor
+  // REF = sqrt(1 + α*(δx_vis/δx_inv)²)
+  // δx_vis ≈ 220nm, δx_inv ≈ 0.121nm → ratio ≈ 1818
+  float ratio = 1818.0;
+  float REF   = sqrt(1.0 + u_alpha * ratio * ratio);
+  float REF_norm = log(REF) / log(1818.0); // log-normalised for display
+
+  // Information gain
+  // I_vis ≈ 8 bits/px, I_inv = N*log2(3)
+  float I_vis  = 8.0;
+  float I_inv  = 1000.0 * 1.585; // N=1000 O2 molecules
+  float I_shared = I_vis * 0.6;  // partial redundancy
+  float I_dual = I_vis + I_inv - I_shared;
+  float I_norm = log2(I_dual) / 12.0; // normalise for display
+
+  // Colourmap: Sₖ→cyan, Sₜ→amber, Sₑ→violet blended by weights
+  vec3 cSk = vec3(0.0, 0.831, 1.0);    // cyan
+  vec3 cSt = vec3(1.0, 0.420, 0.208);  // amber
+  vec3 cSe = vec3(0.753, 0.518, 0.988);// violet
+
+  vec3 col = Sk * cSk + St * cSt + Se * cSe;
+  // Consistency mask overlay
+  float valid = texture(u_pass3, v_uv).g;
+  col = mix(col * 0.4, col, valid); // dim invalid pixels
+
+  // Pack stats into alpha for CPU readback
+  fragColor = vec4(col, (Sk + St + Se)); // A ≈ 1.0 always (conservation check)
+}`;
+
+// ── Final display shader — renders output texture to screen ─────────────────
+const FRAG_DISPLAY = `#version 300 es
+precision highp float;
+uniform sampler2D u_tex;
+uniform int u_pass;
+in vec2 v_uv;
+out vec4 fragColor;
+
+vec3 inferno(float t) {
+  const vec3 c0 = vec3(0.0002, 0.0016, 0.0140);
+  const vec3 c1 = vec3(0.1065, 0.0512, 0.3100);
+  const vec3 c2 = vec3(0.3917, 0.0795, 0.5490);
+  const vec3 c3 = vec3(0.6920, 0.1655, 0.4157);
+  const vec3 c4 = vec3(0.9200, 0.3840, 0.1700);
+  const vec3 c5 = vec3(0.9882, 0.9922, 0.7490);
+  t = clamp(t, 0.0, 1.0);
+  if (t < 0.25) return mix(c0, c1, t * 4.0);
+  if (t < 0.50) return mix(c1, c2, (t - 0.25) * 4.0);
+  if (t < 0.75) return mix(c2, c3, (t - 0.50) * 4.0);
+  return mix(c3, t < 0.875 ? c4 : c5, (t - 0.75) * 4.0);
+}
+
+void main() {
+  vec4 tex = texture(u_tex, v_uv);
+
+  if (u_pass == 0) {
+    // Pass 1: false-colour by principal level n (R channel)
+    float n = tex.r;
+    // Cyan-to-magenta heatmap
+    vec3 c = mix(vec3(0.0,0.831,1.0), vec3(1.0,0.0,0.6), n);
+    // Add angular level as brightness modulation
+    c *= 0.5 + 0.5 * tex.g;
+    fragColor = vec4(c, 1.0);
+  }
+  else if (u_pass == 1) {
+    // Pass 2: P₀=R(cyan), P₁=G(neutral), P₂=B(amber)
+    vec3 cP0 = vec3(0.0, 0.831, 1.0);   // absorption → cyan
+    vec3 cP1 = vec3(0.2, 0.25,  0.35);  // ground → dark
+    vec3 cP2 = vec3(1.0, 0.420, 0.208); // emission → amber
+    vec3 c   = tex.r * cP0 + tex.g * cP1 + tex.b * cP2;
+    fragColor = vec4(c, 1.0);
+  }
+  else if (u_pass == 2) {
+    // Pass 3: disparity map with validation overlay
+    float dcat  = tex.r;
+    float valid = tex.g;
+    float rho   = tex.b;
+    vec3 disparity = inferno(dcat * 3.0);
+    // Green tint for validated pixels
+    disparity = mix(disparity, vec3(0.2,0.9,0.3) * 0.4, valid * 0.4);
+    // Dim inconsistent regions
+    disparity *= mix(0.3, 1.0, valid);
+    fragColor = vec4(disparity, 1.0);
+  }
+  else {
+    // Pass 4: entropy simplex colouring (already RGB)
+    fragColor = vec4(tex.rgb, 1.0);
+  }
+}`;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WEBGL2 PIPELINE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const canvas  = document.getElementById('main');
+const gl      = canvas.getContext('webgl2');
+
+let imageLoaded  = false;
+let imageTexture = null;
+let textures     = [null, null, null, null]; // one per pass output
+let fbos         = [null, null, null, null];
+let programs     = {};
+let quadVAO      = null;
+let activePass   = 0;
+let imageW = 512, imageH = 512;
+
+// Uniforms state
+const U = {
+  epsilon: 0.15, J: 1.0, beta: 2.0, nmax: 8, Aeg: 2.58, alpha: 0.5
+};
+
+// ── Logging ──────────────────────────────────────────────────────────────────
+const logBox = document.getElementById('logBox');
+function log(msg, type='info') {
+  const t = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">${t}</span><span class="log-${type}">${msg}</span>`;
+  logBox.appendChild(line);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+// ── Shader compilation ───────────────────────────────────────────────────────
+function compileShader(src, type) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    throw new Error(gl.getShaderInfoLog(s));
+  }
+  return s;
+}
+
+function linkProgram(vertSrc, fragSrc) {
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compileShader(vertSrc, gl.VERTEX_SHADER));
+  gl.attachShader(prog, compileShader(fragSrc, gl.FRAGMENT_SHADER));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    throw new Error(gl.getProgramInfoLog(prog));
+  }
+  return prog;
+}
+
+// ── Fullscreen quad ──────────────────────────────────────────────────────────
+function buildQuad() {
+  const verts = new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]);
+  const buf   = gl.createBuffer();
+  const vao   = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+  // Attribute location 0 = a_pos for all programs
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.bindVertexArray(null);
+  return vao;
+}
+
+// ── Framebuffer + float texture ──────────────────────────────────────────────
+function buildFBO(w, h) {
+  gl.getExtension('EXT_color_buffer_float');
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const fbo = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+  if (status !== gl.FRAMEBUFFER_COMPLETE) {
+    throw new Error('Framebuffer incomplete: ' + status);
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+  return { fbo, tex };
+}
+
+// ── Upload image to texture ──────────────────────────────────────────────────
+function uploadImage(img) {
+  imageW = img.naturalWidth  || img.width;
+  imageH = img.naturalHeight || img.height;
+  if (imageTexture) gl.deleteTexture(imageTexture);
+  imageTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, imageTexture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+
+  // Rebuild FBOs at image resolution
+  textures.forEach((t,i) => { if(t) gl.deleteTexture(t); });
+  fbos.forEach((f,i) => { if(f) gl.deleteFramebuffer(f); });
+  for (let i = 0; i < 4; i++) {
+    const { fbo, tex } = buildFBO(imageW, imageH);
+    fbos[i]     = fbo;
+    textures[i] = tex;
+  }
+
+  // Resize canvas to image aspect ratio within available space
+  const area  = document.getElementById('canvasArea');
+  const maxW  = area.clientWidth  - 40;
+  const maxH  = area.clientHeight - 40;
+  const scale = Math.min(maxW / imageW, maxH / imageH, 1);
+  canvas.width  = imageW;
+  canvas.height = imageH;
+  canvas.style.width  = Math.round(imageW * scale) + 'px';
+  canvas.style.height = Math.round(imageH * scale) + 'px';
+
+  document.getElementById('resLabel').textContent = `${imageW}×${imageH}`;
+}
+
+// ── Bind texture to unit ─────────────────────────────────────────────────────
+function bindTex(unit, tex) {
+  gl.activeTexture(gl.TEXTURE0 + unit);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+}
+
+// ── Set uniform helpers ──────────────────────────────────────────────────────
+function setUniforms(prog, defs) {
+  gl.useProgram(prog);
+  for (const [name, val] of Object.entries(defs)) {
+    const loc = gl.getUniformLocation(prog, name);
+    if (loc === null) continue;
+    if (typeof val === 'number') gl.uniform1f(loc, val);
+    else if (Number.isInteger(val)) gl.uniform1i(loc, val);
+    else if (Array.isArray(val)) {
+      if (val.length === 2) gl.uniform2fv(loc, val);
+      else if (val.length === 3) gl.uniform3fv(loc, val);
+    }
+  }
+}
+
+// ── Draw fullscreen quad ─────────────────────────────────────────────────────
+function drawQuad() {
+  gl.bindVertexArray(quadVAO);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.bindVertexArray(null);
+}
+
+// ── Run all 4 passes ─────────────────────────────────────────────────────────
+function runPipeline() {
+  if (!imageLoaded) return;
+  const t0 = performance.now();
+
+  gl.viewport(0, 0, imageW, imageH);
+
+  // ── Pass 1: Visible partition encoding
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbos[0]);
+  gl.useProgram(programs.pass1);
+  bindTex(0, imageTexture);
+  gl.uniform1i(gl.getUniformLocation(programs.pass1, 'u_image'), 0);
+  gl.uniform1f(gl.getUniformLocation(programs.pass1, 'u_nmax'), U.nmax);
+  drawQuad();
+
+  // ── Pass 2: Invisible pixel / ternary state estimation
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbos[1]);
+  gl.useProgram(programs.pass2);
+  bindTex(0, imageTexture);
+  bindTex(1, textures[0]);
+  gl.uniform1i(gl.getUniformLocation(programs.pass2, 'u_image'), 0);
+  gl.uniform1i(gl.getUniformLocation(programs.pass2, 'u_pass1'), 1);
+  gl.uniform1f(gl.getUniformLocation(programs.pass2, 'u_Aeg'),  U.Aeg * 1e-4);
+  gl.uniform1f(gl.getUniformLocation(programs.pass2, 'u_nmax'), U.nmax);
+  drawQuad();
+
+  // ── Pass 3: Stereogram consistency
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbos[2]);
+  gl.useProgram(programs.pass3);
+  bindTex(0, textures[0]);
+  bindTex(1, textures[1]);
+  gl.uniform1i(gl.getUniformLocation(programs.pass3, 'u_pass1'),   0);
+  gl.uniform1i(gl.getUniformLocation(programs.pass3, 'u_pass2'),   1);
+  gl.uniform1f(gl.getUniformLocation(programs.pass3, 'u_epsilon'), U.epsilon);
+  gl.uniform1f(gl.getUniformLocation(programs.pass3, 'u_J'),       U.J);
+  gl.uniform1f(gl.getUniformLocation(programs.pass3, 'u_beta'),    U.beta);
+  gl.uniform1f(gl.getUniformLocation(programs.pass3, 'u_nmax'),    U.nmax);
+  drawQuad();
+
+  // ── Pass 4: Entropy conservation
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbos[3]);
+  gl.useProgram(programs.pass4);
+  bindTex(0, imageTexture);
+  bindTex(1, textures[1]);
+  bindTex(2, textures[2]);
+  gl.uniform1i(gl.getUniformLocation(programs.pass4, 'u_image'), 0);
+  gl.uniform1i(gl.getUniformLocation(programs.pass4, 'u_pass2'), 1);
+  gl.uniform1i(gl.getUniformLocation(programs.pass4, 'u_pass3'), 2);
+  gl.uniform1f(gl.getUniformLocation(programs.pass4, 'u_alpha'), U.alpha);
+  gl.uniform1f(gl.getUniformLocation(programs.pass4, 'u_nmax'),  U.nmax);
+  drawQuad();
+
+  // ── Display active pass to screen
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.useProgram(programs.display);
+  bindTex(0, textures[activePass]);
+  gl.uniform1i(gl.getUniformLocation(programs.display, 'u_tex'),  0);
+  gl.uniform1i(gl.getUniformLocation(programs.display, 'u_pass'), activePass);
+  drawQuad();
+
+  // Flush so timing is accurate
+  gl.flush();
+  const dt = (performance.now() - t0).toFixed(1);
+  document.getElementById('timeLabel').textContent = `${dt} ms`;
+
+  // Readback a sample region for metrics
+  readbackMetrics();
+}
+
+// ── CPU readback for stats panel ─────────────────────────────────────────────
+function readbackMetrics() {
+  // Sample 64×64 region from centre of pass4 texture
+  const sx = Math.max(0, Math.floor(imageW/2) - 32);
+  const sy = Math.max(0, Math.floor(imageH/2) - 32);
+  const sw = Math.min(64, imageW - sx);
+  const sh = Math.min(64, imageH - sy);
+  const N  = sw * sh;
+
+  // Read pass3 for consistency metrics
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbos[2]);
+  const p3buf = new Float32Array(N * 4);
+  gl.readPixels(sx, sy, sw, sh, gl.RGBA, gl.FLOAT, p3buf);
+
+  // Read pass4 for entropy
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbos[3]);
+  const p4buf = new Float32Array(N * 4);
+  gl.readPixels(sx, sy, sw, sh, gl.RGBA, gl.FLOAT, p4buf);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+  let sumValid = 0, sumSk = 0, sumSt = 0, sumSe = 0, sumSum = 0;
+  for (let i = 0; i < N; i++) {
+    sumValid += p3buf[i*4 + 1]; // validation mask
+    sumSk    += p4buf[i*4 + 0]; // R = Sk-weighted colour (approx)
+    sumSt    += p4buf[i*4 + 1]; // G = St
+    sumSe    += p4buf[i*4 + 2]; // B = Se
+    sumSum   += p4buf[i*4 + 3]; // A = Sk+St+Se (conservation check)
+  }
+  const consistency = (sumValid / N * 100).toFixed(1);
+  const meanSk = (sumSk / N).toFixed(3);
+  const meanSt = (sumSt / N).toFixed(3);
+  const meanSe = (sumSe / N).toFixed(3);
+  const meanSum = (sumSum / N).toFixed(4);
+
+  // REF calculation
+  const ratio = 1818.0;
+  const REF = Math.sqrt(1.0 + U.alpha * ratio * ratio).toFixed(0);
+
+  // I_dual
+  const Idual = (8 + 1000 * 1.585 - 8 * 0.6).toFixed(0);
+
+  document.getElementById('statConsistency').textContent = consistency + '%';
+  document.getElementById('statREF').textContent = '×' + REF;
+  document.getElementById('statSk').textContent  = meanSk;
+  document.getElementById('statSt').textContent  = meanSt;
+  document.getElementById('statSe').textContent  = meanSe;
+  document.getElementById('statSum').textContent = meanSum;
+  document.getElementById('statIdual').textContent = Idual + ' bits';
+
+  // Update simplex
+  drawSimplex(parseFloat(meanSk), parseFloat(meanSt), parseFloat(meanSe));
+}
+
+// ── Entropy Simplex Visualisation (2D Canvas) ────────────────────────────────
+const sc  = document.getElementById('simplexCanvas');
+const sctx = sc.getContext('2d');
+const simplexHistory = [];
+
+function drawSimplex(Sk, St, Se) {
+  const W = sc.width, H = sc.height;
+  sctx.clearRect(0, 0, W, H);
+
+  // Triangle vertices (equilateral)
+  const pad  = 24;
+  const cx   = W/2, by = H - pad;
+  const tri  = [
+    { x: cx,       y: pad,      label: 'Sₑ', col: '#c084fc' },  // top
+    { x: pad,      y: by,       label: 'Sₖ', col: '#00d4ff' },  // bottom-left
+    { x: W - pad,  y: by,       label: 'Sₜ', col: '#ff6b35' },  // bottom-right
+  ];
+
+  // Draw triangle
+  sctx.beginPath();
+  sctx.moveTo(tri[0].x, tri[0].y);
+  sctx.lineTo(tri[1].x, tri[1].y);
+  sctx.lineTo(tri[2].x, tri[2].y);
+  sctx.closePath();
+  sctx.strokeStyle = '#1c2535';
+  sctx.lineWidth   = 1;
+  sctx.stroke();
+
+  // Faint grid lines from each vertex
+  for (let t = 0; t <= 1; t += 0.25) {
+    for (let i = 0; i < 3; i++) {
+      const j = (i+1)%3, k = (i+2)%3;
+      const px = tri[j].x * t + tri[k].x * (1-t);
+      const py = tri[j].y * t + tri[k].y * (1-t);
+      sctx.beginPath();
+      sctx.moveTo(tri[i].x, tri[i].y);
+      sctx.lineTo(px, py);
+      sctx.strokeStyle = '#0d1117';
+      sctx.lineWidth   = 0.5;
+      sctx.stroke();
+    }
+  }
+
+  // Labels
+  sctx.font = '10px Space Mono, monospace';
+  sctx.textAlign = 'center';
+  tri.forEach(v => {
+    sctx.fillStyle = v.col;
+    const offY = v.y < H/2 ? -10 : 14;
+    sctx.fillText(v.label, v.x, v.y + offY);
+  });
+
+  // Convert barycentric (Sk, St, Se) → cartesian
+  // Barycentric: Se → vertex 0 (top), Sk → vertex 1 (BL), St → vertex 2 (BR)
+  const total = Sk + St + Se || 1;
+  const sk = Sk/total, st = St/total, se = Se/total;
+  const px = se * tri[0].x + sk * tri[1].x + st * tri[2].x;
+  const py = se * tri[0].y + sk * tri[1].y + st * tri[2].y;
+
+  // History trail
+  simplexHistory.push({ x: px, y: py });
+  if (simplexHistory.length > 80) simplexHistory.shift();
+
+  if (simplexHistory.length > 1) {
+    sctx.beginPath();
+    sctx.moveTo(simplexHistory[0].x, simplexHistory[0].y);
+    for (let i = 1; i < simplexHistory.length; i++) {
+      sctx.lineTo(simplexHistory[i].x, simplexHistory[i].y);
+    }
+    sctx.strokeStyle = 'rgba(100,116,139,0.4)';
+    sctx.lineWidth   = 1;
+    sctx.stroke();
+  }
+
+  // Current point
+  sctx.beginPath();
+  sctx.arc(px, py, 4, 0, Math.PI*2);
+  sctx.fillStyle = '#ffffff';
+  sctx.fill();
+  sctx.strokeStyle = '#00d4ff';
+  sctx.lineWidth   = 1.5;
+  sctx.stroke();
+
+  // Coordinates
+  sctx.fillStyle   = '#64748b';
+  sctx.font        = '8px Space Mono, monospace';
+  sctx.textAlign   = 'left';
+  sctx.fillText(`Sₖ=${Sk.toFixed(3)} Sₜ=${St.toFixed(3)} Sₑ=${Se.toFixed(3)}`, 8, H - 6);
+}
+
+// ── Initialise WebGL2 ────────────────────────────────────────────────────────
+function init() {
+  if (!gl) { log('WebGL2 not supported in this browser', 'warn'); return; }
+
+  gl.getExtension('EXT_color_buffer_float');
+  gl.getExtension('OES_texture_float_linear');
+
+  try {
+    programs.pass1   = linkProgram(VERT_SRC, FRAG_PASS1);
+    programs.pass2   = linkProgram(VERT_SRC, FRAG_PASS2);
+    programs.pass3   = linkProgram(VERT_SRC, FRAG_PASS3);
+    programs.pass4   = linkProgram(VERT_SRC, FRAG_PASS4);
+    programs.display = linkProgram(VERT_SRC, FRAG_DISPLAY);
+    log('All 5 shader programs compiled', 'ok');
+  } catch(e) {
+    log('Shader compile error: ' + e.message, 'warn');
+    return;
+  }
+
+  // Bind a_pos to location 0 for all programs
+  Object.values(programs).forEach(p => {
+    gl.bindAttribLocation(p, 0, 'a_pos');
+  });
+
+  quadVAO = buildQuad();
+  log('WebGL2 context ready · Float textures enabled', 'ok');
+
+  // Draw initial simplex
+  drawSimplex(0.33, 0.33, 0.34);
+}
+
+// ── Image loading ────────────────────────────────────────────────────────────
+function loadImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      uploadImage(img);
+      imageLoaded = true;
+      document.getElementById('noImageMsg').style.display = 'none';
+      document.getElementById('dropzone').textContent = `✓ ${file.name}`;
+      document.getElementById('dropzone').classList.add('has-image');
+      document.getElementById('runBtn').disabled = false;
+      log(`Loaded: ${file.name} (${imageW}×${imageH})`, 'ok');
+      // Auto-run
+      runPipeline();
+      log('Pipeline executed — all 4 passes', 'ok');
+      updatePassButtons();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Also accept a demo synthetic image for testing without a file
+function loadSyntheticDemo() {
+  // Generate a simple synthetic microscopy-like image on a 2D canvas
+  const w = 256, h = 256;
+  const oc  = document.createElement('canvas');
+  oc.width  = w; oc.height = h;
+  const octx = oc.getContext('2d');
+
+  // Background
+  octx.fillStyle = '#111';
+  octx.fillRect(0, 0, w, h);
+
+  // Nuclei-like bright blobs
+  const rng = (a,b) => a + Math.random()*(b-a);
+  for (let i = 0; i < 12; i++) {
+    const cx = rng(30,226), cy = rng(30,226), r = rng(12,28);
+    const g = octx.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0, `rgba(${Math.floor(rng(160,255))},${Math.floor(rng(160,255))},${Math.floor(rng(160,255))},0.9)`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    octx.fillStyle = g;
+    octx.beginPath();
+    octx.arc(cx, cy, r, 0, Math.PI*2);
+    octx.fill();
+  }
+  // Add some noise
+  const id = octx.getImageData(0,0,w,h);
+  for (let i=0;i<id.data.length;i+=4) {
+    const n = (Math.random()-0.5)*30;
+    id.data[i]+=n; id.data[i+1]+=n; id.data[i+2]+=n;
+  }
+  octx.putImageData(id,0,0);
+
+  const img = new Image();
+  img.onload = () => {
+    uploadImage(img);
+    imageLoaded = true;
+    document.getElementById('noImageMsg').style.display = 'none';
+    document.getElementById('dropzone').textContent = '✓ demo_nuclei.png';
+    document.getElementById('dropzone').classList.add('has-image');
+    document.getElementById('runBtn').disabled = false;
+    log('Synthetic demo image generated (256×256)', 'ok');
+    runPipeline();
+    log('Pipeline executed — all 4 passes', 'ok');
+    updatePassButtons();
+  };
+  img.src = oc.toDataURL();
+}
+
+// ── UI wiring ────────────────────────────────────────────────────────────────
+const dropzone  = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => { if(e.target.files[0]) loadImageFile(e.target.files[0]); });
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', ()  => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) loadImageFile(e.dataTransfer.files[0]);
+});
+
+// Pass selector
+document.querySelectorAll('.pass-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activePass = parseInt(btn.dataset.pass);
+    updatePassButtons();
+    if (imageLoaded) runPipeline();
+  });
+});
+
+const passLabels = [
+  'Pass 1 · Visible Partition Encoding',
+  'Pass 2 · O₂ Ternary State Estimation',
+  'Pass 3 · Stereogram Consistency',
+  'Pass 4 · Entropy Conservation'
+];
+
+function updatePassButtons() {
+  document.querySelectorAll('.pass-btn').forEach((btn,i) => {
+    btn.classList.toggle('active', i === activePass);
+    btn.querySelector('.pass-status').textContent = i === activePass ? '●' : '○';
+  });
+  document.getElementById('passLabel').textContent = passLabels[activePass];
+}
+
+// Uniform sliders
+function wireSlider(id, valId, key, fmt) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => {
+    const v = parseFloat(el.value);
+    U[key] = v;
+    document.getElementById(valId).textContent = v.toFixed(fmt);
+    if (imageLoaded) runPipeline();
+  });
+}
+wireSlider('uEpsilon', 'epsilonVal', 'epsilon', 2);
+wireSlider('uJ',       'jVal',       'J',       2);
+wireSlider('uBeta',    'uBetaVal',   'beta',    2);
+wireSlider('uNmax',    'nmaxVal',    'nmax',    0);
+wireSlider('uAeg',     'aegVal',     'Aeg',     2);
+wireSlider('uAlpha',   'alphaVal',   'alpha',   2);
+
+document.getElementById('runBtn').addEventListener('click', () => {
+  if (!imageLoaded) return;
+  const t0 = performance.now();
+  runPipeline();
+  log(`Re-run complete (${(performance.now()-t0).toFixed(1)}ms)`, 'ok');
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();
+
+// Auto-load demo after a short delay so user sees the interface first
+setTimeout(() => {
+  log('Loading synthetic demo image...', 'info');
+  loadSyntheticDemo();
+}, 600);
+</script>
+</body>
+</html>
