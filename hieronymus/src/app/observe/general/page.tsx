@@ -2,11 +2,12 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import DropZone from '@/components/DropZone';
+import TextDropZone from '@/components/TextDropZone';
 import DomainSelector from '@/components/DomainSelector';
 import ObservationPanel from '@/components/ObservationPanel';
 import SimplexTriangle from '@/components/SimplexTriangle';
 import { useObservation } from '@/engine/useObservation';
+import { encodeGeneral, GENERAL_EXAMPLE } from '@/encoders/general';
 
 function UniformSlider({
   label,
@@ -45,14 +46,14 @@ function UniformSlider({
                    [&::-webkit-slider-thumb]:w-2.5
                    [&::-webkit-slider-thumb]:h-2.5
                    [&::-webkit-slider-thumb]:rounded-full
-                   [&::-webkit-slider-thumb]:bg-cyan-400
+                   [&::-webkit-slider-thumb]:bg-rose-400
                    [&::-webkit-slider-thumb]:cursor-pointer"
       />
     </div>
   );
 }
 
-export default function MicroscopyPage() {
+export default function GeneralPage() {
   const { ready, loading, result, error, observe, setUniforms } = useObservation();
 
   const [uniforms, setUniformState] = useState({
@@ -64,6 +65,9 @@ export default function MicroscopyPage() {
     alpha: 0.5,
   });
 
+  const [textInput, setTextInput] = useState('');
+  const [encodingInfo, setEncodingInfo] = useState<string | null>(null);
+  const [encodeError, setEncodeError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const handleUniformChange = useCallback(
@@ -77,33 +81,47 @@ export default function MicroscopyPage() {
     [setUniforms]
   );
 
-  const handleDrop = useCallback(
-    (imageData: ImageData) => {
-      // Create preview
-      const canvas = document.createElement('canvas');
-      canvas.width = imageData.width;
-      canvas.height = imageData.height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.putImageData(imageData, 0, 0);
-        setImagePreview(canvas.toDataURL());
-      }
+  const processData = useCallback(
+    (text: string) => {
+      setTextInput(text);
+      setEncodeError(null);
+      try {
+        const encoded = encodeGeneral(text);
+        setEncodingInfo(
+          `${encoded.metadata.originalSize} values | CPU encode: ${encoded.metadata.encodingTime.toFixed(1)}ms`
+        );
 
-      observe(imageData, 'microscopy');
+        const canvas = document.createElement('canvas');
+        canvas.width = encoded.imageData.width;
+        canvas.height = encoded.imageData.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.putImageData(encoded.imageData, 0, 0);
+          setImagePreview(canvas.toDataURL());
+        }
+
+        observe(encoded.imageData, 'general');
+      } catch (err) {
+        setEncodeError((err as Error).message);
+      }
     },
     [observe]
   );
+
+  const handleLoadExample = useCallback(() => {
+    processData(GENERAL_EXAMPLE);
+  }, [processData]);
 
   return (
     <div className="min-h-[calc(100vh-140px)] flex flex-col">
       {/* Header */}
       <div className="px-6 py-3 border-b border-gray-800/50 flex flex-col gap-3">
         <div className="flex items-center gap-4">
-          <h1 className="text-sm font-semibold tracking-wider text-cyan-400">
-            MICROSCOPY ENCODER
+          <h1 className="text-sm font-semibold tracking-wider text-rose-400">
+            GENERAL ENCODER
           </h1>
           <span className="text-[10px] text-gray-600 tracking-widest">
-            PARTITION COORDINATES (n,l,m,s)
+            NUMERIC DATA OBSERVATION
           </span>
           <div className="ml-auto flex items-center gap-3">
             {!ready && !error && (
@@ -138,7 +156,33 @@ export default function MicroscopyPage() {
             <div className="text-[9px] text-gray-600 uppercase tracking-widest mb-3">
               Input
             </div>
-            <DropZone onDrop={handleDrop} />
+            <TextDropZone
+              onData={processData}
+              accept=".csv,.json,.txt,.tsv"
+              fileTypes="CSV / JSON / TXT"
+              placeholder="Drop numeric data"
+            />
+            <div className="mt-3">
+              <textarea
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                onBlur={() => { if (textInput.trim()) processData(textInput); }}
+                placeholder="Paste numeric data (CSV matrix or JSON array)..."
+                className="w-full h-24 bg-gray-900 border border-gray-800 rounded p-2 text-xs font-mono text-gray-400 resize-none focus:border-rose-400/50 focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={handleLoadExample}
+              className="mt-2 w-full text-xs text-rose-400 border border-rose-400/30 rounded px-3 py-1.5 hover:bg-rose-400/10 transition-colors"
+            >
+              Load Example (Gaussian Matrix)
+            </button>
+            {encodeError && (
+              <div className="mt-2 text-xs text-red-400">{encodeError}</div>
+            )}
+            {encodingInfo && (
+              <div className="mt-2 text-[10px] text-gray-600">{encodingInfo}</div>
+            )}
           </div>
 
           <div className="p-4">
@@ -146,71 +190,17 @@ export default function MicroscopyPage() {
               Uniforms
             </div>
             <div className="space-y-4">
-              <UniformSlider
-                label="epsilon -- consistency threshold"
-                id="epsilon"
-                value={uniforms.epsilon}
-                min={0.01}
-                max={0.5}
-                step={0.01}
-                decimals={2}
-                onChange={handleUniformChange}
-              />
-              <UniformSlider
-                label="n_max -- partition depth"
-                id="nmax"
-                value={uniforms.nmax}
-                min={2}
-                max={16}
-                step={1}
-                decimals={0}
-                onChange={handleUniformChange}
-              />
-              <UniformSlider
-                label="beta -- inverse temperature"
-                id="beta"
-                value={uniforms.beta}
-                min={0.5}
-                max={8.0}
-                step={0.1}
-                decimals={2}
-                onChange={handleUniformChange}
-              />
-              <UniformSlider
-                label="J -- coupling constant"
-                id="J"
-                value={uniforms.J}
-                min={0.1}
-                max={3.0}
-                step={0.05}
-                decimals={2}
-                onChange={handleUniformChange}
-              />
-              <UniformSlider
-                label="A_eg -- Einstein coeff (x10^-4)"
-                id="Aeg"
-                value={uniforms.Aeg}
-                min={0.1}
-                max={10.0}
-                step={0.1}
-                decimals={2}
-                onChange={handleUniformChange}
-              />
-              <UniformSlider
-                label="alpha -- info transfer efficiency"
-                id="alpha"
-                value={uniforms.alpha}
-                min={0.0}
-                max={1.0}
-                step={0.01}
-                decimals={2}
-                onChange={handleUniformChange}
-              />
+              <UniformSlider label="epsilon" id="epsilon" value={uniforms.epsilon} min={0.01} max={0.5} step={0.01} decimals={2} onChange={handleUniformChange} />
+              <UniformSlider label="n_max" id="nmax" value={uniforms.nmax} min={2} max={16} step={1} decimals={0} onChange={handleUniformChange} />
+              <UniformSlider label="beta" id="beta" value={uniforms.beta} min={0.5} max={8.0} step={0.1} decimals={2} onChange={handleUniformChange} />
+              <UniformSlider label="J" id="J" value={uniforms.J} min={0.1} max={3.0} step={0.05} decimals={2} onChange={handleUniformChange} />
+              <UniformSlider label="A_eg (x10^-4)" id="Aeg" value={uniforms.Aeg} min={0.1} max={10.0} step={0.1} decimals={2} onChange={handleUniformChange} />
+              <UniformSlider label="alpha" id="alpha" value={uniforms.alpha} min={0.0} max={1.0} step={0.01} decimals={2} onChange={handleUniformChange} />
             </div>
           </div>
         </div>
 
-        {/* Center panel: image preview */}
+        {/* Center panel */}
         <div className="flex items-center justify-center bg-[#050810] relative overflow-hidden">
           {loading && (
             <motion.div
@@ -218,7 +208,7 @@ export default function MicroscopyPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <div className="text-cyan-400 text-sm animate-pulse tracking-wider">
+              <div className="text-rose-400 text-sm animate-pulse tracking-wider">
                 Processing on GPU...
               </div>
             </motion.div>
@@ -227,27 +217,26 @@ export default function MicroscopyPage() {
           {imagePreview ? (
             <img
               src={imagePreview}
-              alt="Input image"
+              alt="Encoded numeric image"
               className="max-w-full max-h-full object-contain"
               style={{ imageRendering: 'pixelated' }}
             />
           ) : (
             <div className="text-center text-gray-700">
               <div className="text-lg font-semibold mb-2 text-gray-800">
-                No Image Loaded
+                No Data Loaded
               </div>
               <div className="text-sm">
-                Drop a microscopy image in the left panel
+                Drop a CSV/JSON file or paste numeric data
               </div>
               <div className="text-sm">to begin the observation pipeline</div>
             </div>
           )}
 
-          {/* Status pills */}
           {result && (
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-              <span className="text-[9px] text-cyan-400 bg-dark/85 border border-gray-800 px-3 py-1 rounded-full backdrop-blur">
-                Microscopy Encoder
+              <span className="text-[9px] text-rose-400 bg-dark/85 border border-gray-800 px-3 py-1 rounded-full backdrop-blur">
+                General Encoder
               </span>
               <span className="text-[9px] text-gray-500 bg-dark/85 border border-gray-800 px-3 py-1 rounded-full backdrop-blur">
                 {result.elapsed_ms.toFixed(1)} ms
@@ -260,13 +249,8 @@ export default function MicroscopyPage() {
         <div className="border-l border-gray-800/50 overflow-y-auto lg:border-l-0 lg:border-t">
           <div className="p-4 space-y-6">
             <ObservationPanel result={result} />
-
             {result ? (
-              <SimplexTriangle
-                S_k={result.S_k}
-                S_t={result.S_t}
-                S_e={result.S_e}
-              />
+              <SimplexTriangle S_k={result.S_k} S_t={result.S_t} S_e={result.S_e} />
             ) : (
               <SimplexTriangle S_k={0.33} S_t={0.33} S_e={0.34} />
             )}

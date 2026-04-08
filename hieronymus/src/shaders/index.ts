@@ -1,5 +1,9 @@
 export { default as vertexShader } from './vertex.glsl';
 export { default as encodeMicroscopyShader } from './encode_microscopy.glsl';
+export { default as encodeSpectralShader } from './encode_spectral.glsl';
+export { default as encodeGenomicShader } from './encode_genomic.glsl';
+export { default as encodeSignalShader } from './encode_signal.glsl';
+export { default as encodeGeneralShader } from './encode_general.glsl';
 export { default as partitionShader } from './partition.glsl';
 export { default as interferenceShader } from './interference.glsl';
 export { default as entropyShader } from './entropy.glsl';

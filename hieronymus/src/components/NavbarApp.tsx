@@ -11,6 +11,7 @@ const navLinks = [
   { href: '/observe/microscopy', title: 'Microscopy' },
   { href: '/match', title: 'Match' },
   { href: '/publications', title: 'Publications' },
+  { href: '/docs', title: 'Docs' },
   { href: '/about', title: 'About' },
 ];
 

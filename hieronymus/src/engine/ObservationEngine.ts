@@ -4,10 +4,24 @@ import type { ObservationResult, MatchResult } from './types';
 
 import vertexSrc from '@/shaders/vertex.glsl';
 import encodeMicroscopySrc from '@/shaders/encode_microscopy.glsl';
+import encodeSpectralSrc from '@/shaders/encode_spectral.glsl';
+import encodeGenomicSrc from '@/shaders/encode_genomic.glsl';
+import encodeSignalSrc from '@/shaders/encode_signal.glsl';
+import encodeGeneralSrc from '@/shaders/encode_general.glsl';
 import partitionSrc from '@/shaders/partition.glsl';
 import interferenceSrc from '@/shaders/interference.glsl';
 import entropySrc from '@/shaders/entropy.glsl';
 import displaySrc from '@/shaders/display.glsl';
+
+/** Map encoder names to their shader program keys */
+const ENCODER_SHADER_MAP: Record<string, string> = {
+  microscopy: 'encode_microscopy',
+  spectral: 'encode_spectral',
+  molecular: 'encode_spectral',   // molecular uses the spectral encoder shader
+  genomic: 'encode_genomic',
+  signal: 'encode_signal',
+  general: 'encode_general',
+};
 
 export class ObservationEngine {
   private gl: WebGL2RenderingContext;
@@ -77,6 +91,10 @@ export class ObservationEngine {
   private compileAllShaders(): void {
     const shaders: [string, string][] = [
       ['encode_microscopy', encodeMicroscopySrc],
+      ['encode_spectral', encodeSpectralSrc],
+      ['encode_genomic', encodeGenomicSrc],
+      ['encode_signal', encodeSignalSrc],
+      ['encode_general', encodeGeneralSrc],
       ['partition', partitionSrc],
       ['interference', interferenceSrc],
       ['entropy', entropySrc],
@@ -183,10 +201,9 @@ export class ObservationEngine {
 
     gl.viewport(0, 0, width, height);
 
-    // Pass 0: Encode (microscopy)
-    const encProg = this.programs.get(
-      encoder === 'microscopy' ? 'encode_microscopy' : 'encode_microscopy'
-    )!;
+    // Pass 0: Encode (select shader based on encoder domain)
+    const encoderShaderKey = ENCODER_SHADER_MAP[encoder] || 'encode_microscopy';
+    const encProg = this.programs.get(encoderShaderKey)!;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbos[0]);
     gl.useProgram(encProg);
     this.bindTex(0, this.imageTexture);

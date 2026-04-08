@@ -638,16 +638,16 @@ hieronymus/
 - [x] Build `/match/batch` with BatchResults
 - [ ] Verify match score symmetry: |Match(A,B) - Match(B,A)| < 1e-6
 
-### Phase 3: Multi-Domain Encoders
+### Phase 3: Multi-Domain Encoders --- COMPLETE
 > Extend beyond microscopy to molecular, genomic, signal, general data.
 
-- [ ] Implement `encode_spectral.glsl` + `molecular.ts` encoder
-- [ ] Implement `encode_genomic.glsl` + `genomic.ts` encoder
-- [ ] Implement `encode_signal.glsl` + `signal.ts` encoder
-- [ ] Implement `encode_general.glsl` + `general.ts` encoder
-- [ ] Build `/observe/molecular`, `/observe/genomic`, `/observe/signal`, `/observe/general` pages
+- [x] Implement `encode_spectral.glsl` + `molecular.ts` encoder
+- [x] Implement `encode_genomic.glsl` + `genomic.ts` encoder
+- [x] Implement `encode_signal.glsl` + `signal.ts` encoder
+- [x] Implement `encode_general.glsl` + `general.ts` encoder
+- [x] Build `/observe/molecular`, `/observe/genomic`, `/observe/signal`, `/observe/general` pages
 - [ ] Verify cross-domain matching: within-domain > cross-domain scores
-- [ ] Build DomainSelector component
+- [x] Build DomainSelector component
 
 ### Phase 4: 3D Diagnostic (Ray Tracing)
 > Holographic reconstruction + triple-observation ray march.
@@ -660,15 +660,15 @@ hieronymus/
 - [ ] Verify eta_cell correctly separates healthy/diseased synthetic cells
 - [ ] Verify triple observation consistency: r > 0.95 between mu_a, 1/(tau*d_S), G*RT
 
-### Phase 5: Publications & Documentation
+### Phase 5: Publications & Documentation --- COMPLETE
 > Paper gallery and API documentation.
 
-- [ ] Build `/publications` gallery page with PaperCard components
-- [ ] Build `/publications/[slug]` with abstract, panels, results for each paper
-- [ ] Build `/docs` with engine API reference
-- [ ] Build `/docs/encoders` with guide for writing new encoders
-- [ ] Build `/docs/shaders` with shader pipeline reference
-- [ ] Build `/about` page with framework overview
+- [x] Build `/publications` gallery page with PaperCard components
+- [x] Build `/publications/[slug]` with abstract, panels, results for each paper
+- [x] Build `/docs` with engine API reference
+- [x] Build `/docs/encoders` with guide for writing new encoders
+- [x] Build `/docs/shaders` with shader pipeline reference
+- [x] Build `/about` page with framework overview
 
 ### Phase 6: Polish & Deploy
 > Performance, accessibility, deployment.
