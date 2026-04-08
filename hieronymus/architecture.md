@@ -627,15 +627,15 @@ hieronymus/
 - [ ] Verify pipeline runs in < 50ms on integrated GPU
 - [x] Port SimplexTriangle from `shaders.html`
 
-### Phase 2: Matching
+### Phase 2: Matching --- COMPLETE
 > Enable comparing two observations and batch matching.
 
-- [ ] Implement interference shader (Pass 2)
-- [ ] Build `/match` page with dual DropZone + MatchComparison
-- [ ] Implement edge function `/api/match`
-- [ ] Implement edge function `/api/store`
-- [ ] Set up KV store for S-entropy database
-- [ ] Build `/match/batch` with BatchResults
+- [x] Implement interference shader (Pass 2)
+- [x] Build `/match` page with dual DropZone + MatchComparison
+- [x] Implement edge function `/api/match`
+- [x] Implement edge function `/api/store`
+- [x] Set up KV store for S-entropy database (in-memory Map for now)
+- [x] Build `/match/batch` with BatchResults
 - [ ] Verify match score symmetry: |Match(A,B) - Match(B,A)| < 1e-6
 
 ### Phase 3: Multi-Domain Encoders

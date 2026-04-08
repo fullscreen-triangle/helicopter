@@ -22,7 +22,7 @@ const features = [
   },
   {
     title: 'Match',
-    href: '/observe',
+    href: '/match',
     color: 'text-amber-400 border-amber-400/30',
     description:
       'Compare two images through their spectral signatures. Measure visibility, interference circuits, and S-distance on the entropy simplex.',

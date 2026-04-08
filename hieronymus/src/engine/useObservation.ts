@@ -71,6 +71,49 @@ export function useObservation() {
     [ready]
   );
 
+  const match = useCallback(
+    (imageDataA: ImageData, imageDataB: ImageData) => {
+      if (!workerRef.current || !ready) return;
+      setLoading(true);
+      setError(null);
+      setMatchResult(null);
+
+      // Resize both images to the same dimensions (use the smaller of each axis)
+      const w = Math.min(imageDataA.width, imageDataB.width);
+      const h = Math.min(imageDataA.height, imageDataB.height);
+
+      const resizeToBuffer = (img: ImageData, tw: number, th: number): ArrayBuffer => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.putImageData(img, 0, 0);
+
+        const outCanvas = document.createElement('canvas');
+        outCanvas.width = tw;
+        outCanvas.height = th;
+        const outCtx = outCanvas.getContext('2d')!;
+        outCtx.drawImage(canvas, 0, 0, tw, th);
+        return outCtx.getImageData(0, 0, tw, th).data.buffer.slice(0);
+      };
+
+      const bufA = resizeToBuffer(imageDataA, w, h);
+      const bufB = resizeToBuffer(imageDataB, w, h);
+
+      workerRef.current.postMessage(
+        {
+          type: 'match',
+          imageDataA: bufA,
+          imageDataB: bufB,
+          width: w,
+          height: h,
+        },
+        [bufA, bufB]
+      );
+    },
+    [ready]
+  );
+
   const setUniforms = useCallback(
     (uniforms: Record<string, number>) => {
       if (!workerRef.current) return;
@@ -79,5 +122,5 @@ export function useObservation() {
     []
   );
 
-  return { ready, loading, result, matchResult, error, observe, setUniforms };
+  return { ready, loading, result, matchResult, error, observe, match, setUniforms };
 }

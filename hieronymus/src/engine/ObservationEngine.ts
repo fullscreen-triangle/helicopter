@@ -328,6 +328,8 @@ export class ObservationEngine {
       circuits,
       S_distance,
       elapsed_ms: elapsed,
+      imageA: { S_k: resultA.S_k, S_t: resultA.S_t, S_e: resultA.S_e },
+      imageB: { S_k: resultB.S_k, S_t: resultB.S_t, S_e: resultB.S_e },
     };
   }
 

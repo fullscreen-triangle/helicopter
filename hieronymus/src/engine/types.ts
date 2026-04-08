@@ -24,6 +24,8 @@ export interface MatchResult {
   circuits: number;
   S_distance: number;
   elapsed_ms: number;
+  imageA: { S_k: number; S_t: number; S_e: number };
+  imageB: { S_k: number; S_t: number; S_e: number };
 }
 
 export type WorkerInput =
