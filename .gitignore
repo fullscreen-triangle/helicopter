@@ -524,3 +524,37 @@ hammerhead/.next/
 
 # Allow hammerhead styles
 !hammerhead/styles/**/*.css
+
+# Hieronymus (Next.js observation platform)
+# ==========================================
+hieronymus/node_modules/
+hieronymus/.next/
+
+# Allow hieronymus JSON config files
+!hieronymus/package.json
+!hieronymus/package-lock.json
+!hieronymus/tsconfig.json
+!hieronymus/vercel.json
+!hieronymus/.eslintrc.json
+!hieronymus/next.config.mjs
+
+# Allow hieronymus public assets
+!hieronymus/public/
+!hieronymus/public/**
+!hieronymus/public/**/*.png
+!hieronymus/public/**/*.svg
+!hieronymus/public/**/*.ico
+!hieronymus/public/**/*.glb
+!hieronymus/public/**/*.json
+!hieronymus/public/**/*.css
+!hieronymus/public/**/*.woff
+!hieronymus/public/**/*.woff2
+
+# Allow hieronymus source files
+!hieronymus/src/**/*.json
+!hieronymus/src/**/*.svg
+!hieronymus/src/**/*.css
+
+# Allow hieronymus validation results (JSON/CSV in publications)
+!hieronymus/publications/**/results/*.json
+!hieronymus/publications/**/results/*.csv
