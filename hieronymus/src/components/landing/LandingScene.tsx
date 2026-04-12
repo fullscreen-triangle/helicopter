@@ -40,7 +40,7 @@ function SceneContent() {
       />
 
       {/* Pi Camera - left side, slightly smaller */}
-      <PiCamera position={[-2.8, -0.3, 0]} scale={1.2} />
+      <PiCamera position={[-2.8, -0.3, 0]} scale={0.2} />
 
       {/* Holographic Cell - right/center, the hero element */}
       <HolographicCell position={[1.5, 0.5, 0]} scale={1.8} />
