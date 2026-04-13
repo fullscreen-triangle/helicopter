@@ -554,6 +554,13 @@ hieronymus/.next/
 !hieronymus/src/**/*.json
 !hieronymus/src/**/*.svg
 !hieronymus/src/**/*.css
+!hieronymus/src/**/*.ts
+!hieronymus/src/**/*.tsx
+!hieronymus/src/**/*.js
+!hieronymus/src/**/*.jsx
+!hieronymus/src/**/*.glsl
+!hieronymus/src/data/
+!hieronymus/src/data/**
 
 # Allow hieronymus validation results (JSON/CSV in publications)
 !hieronymus/publications/**/results/*.json
