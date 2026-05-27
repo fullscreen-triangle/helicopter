@@ -9,6 +9,7 @@ const navLinks = [
   { href: '/', title: 'Home' },
   { href: '/observe', title: 'Observe' },
   { href: '/observe/microscopy', title: 'Microscopy' },
+  { href: '/tools/analysis-studio', title: 'Analysis Studio' },
   { href: '/tools/mic-demo', title: 'MIC Demo' },
   { href: '/match', title: 'Match' },
   { href: '/publications', title: 'Publications' },
