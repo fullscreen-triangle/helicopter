@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChartManagerProvider, useChartManager, createChartBuilder } from '@/components/charts/ChartManager';
 import ChartGrid from '@/components/charts/ChartGrid';
 import AnalysisEditor from '@/components/analysis/AnalysisEditor';
+import { SCOPEClient, generateSyntheticFrame, generateTimingEvents, FrameData } from '@/lib/scope-client';
 
 const SAMPLE_SCRIPT = `// Microscopy Image Analysis Demo
 // Generate analysis visualizations
@@ -81,14 +82,127 @@ interface AnalysisResult {
   elapsedMs?: number;
 }
 
+interface SCOPEProgram {
+  id: string;
+  name: string;
+  depth: number;
+  field_size: { x: number; y: number };
+  resolution: number;
+  morphisms: string[];
+}
+
 function AnalysisStudioContent() {
   const [code, setCode] = useState(SAMPLE_SCRIPT);
   const [result, setResult] = useState<AnalysisResult>({
     status: 'idle',
     output: [],
   });
+  const [mode, setMode] = useState<'javascript' | 'scope'>('javascript');
+  const [scopePrograms, setScopePrograms] = useState<SCOPEProgram[]>([]);
+  const [selectedProgram, setSelectedProgram] = useState<string>('');
+  const [scopePhase, setScopePhase] = useState<'PROPHASE' | 'METAPHASE' | 'ANAPHASE'>('PROPHASE');
+  const [backendAvailable, setBackendAvailable] = useState(false);
   const chartManagerCtx = useChartManager();
   const consoleRef = useRef<HTMLDivElement>(null);
+  const scopeClientRef = useRef<SCOPEClient | null>(null);
+
+  // Initialize SCOPE client and check backend availability
+  useEffect(() => {
+    const client = new SCOPEClient();
+    scopeClientRef.current = client;
+
+    client.healthCheck().then(available => {
+      setBackendAvailable(available);
+      if (available) {
+        client.listPrograms().then(programs => {
+          setScopePrograms(programs);
+          if (programs.length > 0) {
+            setSelectedProgram(programs[0].id);
+          }
+        });
+      }
+    });
+  }, []);
+
+  const executeSCOPE = async () => {
+    if (!scopeClientRef.current || !selectedProgram) {
+      setResult({
+        status: 'error',
+        output: [],
+        error: 'No SCOPE program selected',
+      });
+      return;
+    }
+
+    setResult({ status: 'running', output: [] });
+    const startTime = performance.now();
+
+    try {
+      const output: string[] = [];
+      const log = (msg: any) => {
+        const str = typeof msg === 'string' ? msg : JSON.stringify(msg);
+        output.push(str);
+        setResult((prev) => ({
+          ...prev,
+          output: [...prev.output, str],
+        }));
+      };
+
+      log(`Executing SCOPE program: ${selectedProgram}`);
+      log(`Cell cycle phase: ${scopePhase}`);
+
+      // Generate synthetic timing events for the selected phase
+      const timingEvents = generateTimingEvents(scopePhase, 1000);
+      log(`Generated ${timingEvents.length} timing events`);
+
+      // Generate synthetic frame
+      const frameArray = generateSyntheticFrame(1024, 1024, 2);
+      const frameData = SCOPEClient.encodeFrame(frameArray, [1024, 1024]);
+      log(`Generated synthetic frame: 1024×1024`);
+
+      // Execute via SCOPE backend
+      const response = await scopeClientRef.current.execute(
+        selectedProgram,
+        timingEvents,
+        frameData
+      );
+
+      if (response.success && response.result) {
+        log(`✓ Execution complete in ${response.timing_ms?.toFixed(1)}ms`);
+        log(`Structure: ${response.result.structure}`);
+        if (response.result.distance !== null) {
+          log(`Distance: ${response.result.distance.toExponential(3)}m`);
+          log(`Uncertainty: ±${response.result.uncertainty.toExponential(3)}m`);
+        }
+        log(`Position: (${response.result.position.x.toFixed(3)}, ${response.result.position.y.toFixed(3)}, ${response.result.position.z.toFixed(3)})`);
+        log(`S-entropy: S_k=${response.result.s_entropy.S_k.toFixed(3)}, S_t=${response.result.s_entropy.S_t.toExponential(1)}, S_e=${response.result.s_entropy.S_e.toFixed(3)}`);
+
+        const elapsedMs = performance.now() - startTime;
+        setResult({
+          status: 'complete',
+          output,
+          elapsedMs,
+        });
+      } else {
+        throw new Error(response.error || 'Execution failed');
+      }
+    } catch (error) {
+      const elapsedMs = performance.now() - startTime;
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setResult({
+        status: 'error',
+        output,
+        error: errorMsg,
+        elapsedMs,
+      });
+    }
+
+    setTimeout(() => {
+      if (consoleRef.current) {
+        consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+      }
+    }, 0);
+  };
 
   const executeScript = async () => {
     setResult({ status: 'running', output: [] });
@@ -141,7 +255,11 @@ function AnalysisStudioContent() {
 
   const handleRun = async () => {
     chartManagerCtx.clearCharts();
-    await executeScript();
+    if (mode === 'scope') {
+      await executeSCOPE();
+    } else {
+      await executeScript();
+    }
   };
 
   return (
@@ -153,37 +271,145 @@ function AnalysisStudioContent() {
             ANALYSIS STUDIO
           </h1>
           <p className="text-[10px] text-gray-600 mt-1">
-            Scientific Computing IDE • Progressive Chart Generation
+            Scientific Computing IDE • JavaScript DSL + SCOPE Metalanguage
           </p>
         </div>
-        <motion.button
-          onClick={handleRun}
-          disabled={result.status === 'running'}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className={`px-4 py-2 rounded text-sm font-semibold tracking-wider transition-colors ${
-            result.status === 'running'
-              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              : 'bg-cyan-400 text-black hover:bg-cyan-300'
-          }`}
-        >
-          {result.status === 'running' ? 'Executing...' : 'Run Script'}
-        </motion.button>
+        <div className="flex items-center gap-3">
+          {/* Mode selector */}
+          <div className="flex gap-1 bg-gray-800/50 rounded p-1">
+            <button
+              onClick={() => setMode('javascript')}
+              className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
+                mode === 'javascript'
+                  ? 'bg-cyan-400 text-black'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              JavaScript
+            </button>
+            <button
+              onClick={() => setMode('scope')}
+              disabled={!backendAvailable}
+              className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
+                mode === 'scope'
+                  ? 'bg-cyan-400 text-black'
+                  : !backendAvailable
+                  ? 'text-gray-600 cursor-not-allowed'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              SCOPE {!backendAvailable && <span className="text-[9px]">(unavailable)</span>}
+            </button>
+          </div>
+
+          {/* Run button */}
+          <motion.button
+            onClick={handleRun}
+            disabled={result.status === 'running' || (mode === 'scope' && !selectedProgram)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`px-4 py-2 rounded text-sm font-semibold tracking-wider transition-colors ${
+              result.status === 'running' || (mode === 'scope' && !selectedProgram)
+                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                : 'bg-cyan-400 text-black hover:bg-cyan-300'
+            }`}
+          >
+            {result.status === 'running' ? 'Executing...' : 'Run'}
+          </motion.button>
+        </div>
       </div>
 
       {/* Main workspace */}
       <div className="flex-1 grid grid-cols-2 overflow-hidden gap-0">
-        {/* Left: Code Editor */}
+        {/* Left: Code Editor or SCOPE Controls */}
         <div className="border-r border-gray-800/50 flex flex-col overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-800/50">
-            <div className="text-[9px] text-gray-600 uppercase tracking-widest mb-2">
-              Analysis Script
-            </div>
-            <div className="text-[10px] text-gray-500">
-              JavaScript • Real-time execution
-            </div>
-          </div>
-          <AnalysisEditor value={code} onChange={setCode} />
+          {mode === 'javascript' ? (
+            <>
+              <div className="px-4 py-3 border-b border-gray-800/50">
+                <div className="text-[9px] text-gray-600 uppercase tracking-widest mb-2">
+                  Analysis Script
+                </div>
+                <div className="text-[10px] text-gray-500">
+                  JavaScript • Real-time execution
+                </div>
+              </div>
+              <AnalysisEditor value={code} onChange={setCode} />
+            </>
+          ) : (
+            <>
+              <div className="px-4 py-3 border-b border-gray-800/50">
+                <div className="text-[9px] text-gray-600 uppercase tracking-widest mb-2">
+                  SCOPE Program
+                </div>
+                <div className="text-[10px] text-gray-500">
+                  Microscopy analysis pipeline
+                </div>
+              </div>
+              <div className="flex-1 overflow-auto p-4 space-y-4">
+                {/* Program selector */}
+                <div>
+                  <label className="text-[9px] text-gray-600 uppercase tracking-widest block mb-2">
+                    Program
+                  </label>
+                  <select
+                    value={selectedProgram}
+                    onChange={(e) => setSelectedProgram(e.target.value)}
+                    className="w-full px-2 py-2 bg-[#0f1420] border border-gray-800 rounded text-sm text-gray-300 focus:border-cyan-400 outline-none"
+                  >
+                    {scopePrograms.map((prog) => (
+                      <option key={prog.id} value={prog.id}>
+                        {prog.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Phase selector (for nuclear_separation) */}
+                {selectedProgram === 'nuclear_separation_dynamics' && (
+                  <div>
+                    <label className="text-[9px] text-gray-600 uppercase tracking-widest block mb-2">
+                      Cell Cycle Phase
+                    </label>
+                    <div className="space-y-2">
+                      {(['PROPHASE', 'METAPHASE', 'ANAPHASE'] as const).map((phase) => (
+                        <button
+                          key={phase}
+                          onClick={() => setScopePhase(phase)}
+                          className={`w-full px-3 py-2 rounded text-sm transition-colors ${
+                            scopePhase === phase
+                              ? 'bg-cyan-400/20 text-cyan-400 border border-cyan-400'
+                              : 'bg-gray-800/30 text-gray-400 border border-gray-800 hover:border-gray-700'
+                          }`}
+                        >
+                          {phase}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Program info */}
+                {scopePrograms.find((p) => p.id === selectedProgram) && (
+                  <div className="pt-4 border-t border-gray-800">
+                    <div className="text-[9px] text-gray-600 uppercase tracking-widest mb-2">
+                      Program Details
+                    </div>
+                    {(() => {
+                      const prog = scopePrograms.find((p) => p.id === selectedProgram);
+                      return prog ? (
+                        <div className="text-[8px] text-gray-500 space-y-1">
+                          <p>Depth: <span className="text-cyan-400">{prog.depth}</span></p>
+                          <p>Field: <span className="text-cyan-400">{prog.field_size.x}×{prog.field_size.y} µm</span></p>
+                          <p>Resolution: <span className="text-cyan-400">{prog.resolution} µm/px</span></p>
+                          <p>Morphisms: <span className="text-cyan-400">{prog.morphisms.join(', ')}</span></p>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Console Output */}
           <div className="border-t border-gray-800/50 bg-[#0f1420] overflow-hidden flex flex-col">
