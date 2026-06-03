@@ -11,12 +11,16 @@ interface ChartManagerContextType {
   clearCharts: () => void;
   getChart: (id: string) => ChartConfig | undefined;
   getCharts: () => ChartConfig[];
+  highlightedIndices: number[];
+  setHighlightedIndices: (indices: number[]) => void;
+  onChartBrush: (selection: any[]) => void;
 }
 
 const ChartManagerContext = createContext<ChartManagerContextType | null>(null);
 
 export function ChartManagerProvider({ children }: { children: React.ReactNode }) {
   const [charts, setCharts] = useState<Map<string, ChartConfig>>(new Map());
+  const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
 
   const addChart = useCallback((config: ChartConfig) => {
     setCharts((prev) => {
@@ -63,6 +67,21 @@ export function ChartManagerProvider({ children }: { children: React.ReactNode }
 
   const getCharts = useCallback(() => Array.from(charts.values()), [charts]);
 
+  const onChartBrush = useCallback((selection: any[]) => {
+    // Extract indices from selected data
+    if (selection && selection.length > 0) {
+      const firstChart = Array.from(charts.values())[0];
+      if (firstChart) {
+        const indices = selection
+          .map((item) => firstChart.data.indexOf(item))
+          .filter((idx) => idx !== -1);
+        setHighlightedIndices(indices);
+      }
+    } else {
+      setHighlightedIndices([]);
+    }
+  }, [charts]);
+
   return (
     <ChartManagerContext.Provider
       value={{
@@ -73,6 +92,9 @@ export function ChartManagerProvider({ children }: { children: React.ReactNode }
         clearCharts,
         getChart,
         getCharts,
+        highlightedIndices,
+        setHighlightedIndices,
+        onChartBrush,
       }}
     >
       {children}

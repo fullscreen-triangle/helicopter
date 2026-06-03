@@ -12,10 +12,12 @@ import numpy as np
 from typing import Dict, Any, List
 import json
 import base64
+import asyncio
 
 from ..runtime.scope_runtime import SCOPERuntime
 from ..programs.nuclear_separation import create_nuclear_separation_program
 from ..types.timing_cell import TimingDeviation
+from .databases import DatabaseBrowser
 
 # Configure logging
 logging.basicConfig(
@@ -303,6 +305,136 @@ def encode_frame():
 
     except Exception as e:
         logger.exception(f"Frame encoding error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/databases', methods=['GET'])
+def list_databases():
+    """
+    List all available microscopy databases and their datasets.
+
+    Response: {
+        "BBBC": [
+            {"dataset_id": "BBBC039", "name": "HeLa Cells", ...},
+            ...
+        ]
+    }
+    """
+    try:
+        all_datasets = DatabaseBrowser.list_all_datasets()
+        return jsonify(all_datasets)
+    except Exception as e:
+        logger.exception(f"Database listing error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/databases/<db>/<dataset_id>/images', methods=['GET'])
+def list_dataset_images(db: str, dataset_id: str):
+    """
+    List images in a specific dataset.
+
+    Response: {
+        "images": ["image1.tif", "image2.tif", ...],
+        "count": 5
+    }
+    """
+    try:
+        images = DatabaseBrowser.list_images(db, dataset_id)
+        return jsonify({
+            'images': images,
+            'count': len(images),
+        })
+    except Exception as e:
+        logger.exception(f"Image listing error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/databases/<db>/<dataset_id>', methods=['GET'])
+def get_dataset_info(db: str, dataset_id: str):
+    """
+    Get metadata for a specific dataset.
+
+    Response: {
+        "db": "BBBC",
+        "dataset_id": "BBBC039",
+        "name": "HeLa Cells",
+        "resolution": 0.1,
+        ...
+    }
+    """
+    try:
+        info = DatabaseBrowser.get_dataset_info(db, dataset_id)
+        if not info:
+            return jsonify({'error': f'Dataset not found: {db}/{dataset_id}'}), 404
+        return jsonify(info)
+    except Exception as e:
+        logger.exception(f"Dataset info error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/databases/<db>/<dataset_id>/<image_id>', methods=['GET'])
+def fetch_dataset_image(db: str, dataset_id: str, image_id: str):
+    """
+    Fetch an image from a database and return as base64.
+
+    Query parameters:
+    - channel: Specific channel to extract (e.g., "DAPI")
+
+    Response: {
+        "success": true,
+        "data": "base64-encoded-array",
+        "shape": [height, width],
+        "dtype": "float32",
+        "source": "BBBC/BBBC039",
+        "filename": "image.tif"
+    }
+    """
+    try:
+        channel = request.args.get('channel', 'DAPI')
+
+        logger.info(
+            f"Fetching image: {db}/{dataset_id}/{image_id} "
+            f"(channel={channel})"
+        )
+
+        # Run async fetch in event loop
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            arr = loop.run_until_complete(
+                DatabaseBrowser.fetch_image(db, dataset_id, image_id, channel=channel)
+            )
+        finally:
+            loop.close()
+
+        if arr is None:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to fetch image: {image_id}'
+            }), 404
+
+        # Normalize to [0, 1] if needed
+        if arr.max() > 1.0:
+            arr = arr / arr.max()
+
+        # Convert to base64
+        arr_bytes = arr.astype(np.float32).tobytes()
+        arr_b64 = base64.b64encode(arr_bytes).decode('utf-8')
+
+        return jsonify({
+            'success': True,
+            'data': arr_b64,
+            'shape': list(arr.shape),
+            'dtype': 'float32',
+            'source': f'{db}/{dataset_id}',
+            'filename': image_id,
+        })
+
+    except Exception as e:
+        logger.exception(f"Image fetch error: {e}")
         return jsonify({
             'success': False,
             'error': str(e)

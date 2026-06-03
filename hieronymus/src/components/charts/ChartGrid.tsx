@@ -6,7 +6,7 @@ import { ChartComponent } from './ChartFactory';
 import { useChartManager } from './ChartManager';
 
 export default function ChartGrid() {
-  const { getCharts } = useChartManager();
+  const { getCharts, highlightedIndices, onChartBrush } = useChartManager();
   const charts = getCharts();
 
   if (charts.length === 0) {
@@ -50,7 +50,11 @@ export default function ChartGrid() {
 
               {/* Chart */}
               <div className="bg-[#050810] rounded p-2">
-                <ChartComponent config={chart} />
+                <ChartComponent
+                  config={chart}
+                  onBrush={onChartBrush}
+                  highlightedIndices={highlightedIndices}
+                />
               </div>
 
               {/* Chart info */}
