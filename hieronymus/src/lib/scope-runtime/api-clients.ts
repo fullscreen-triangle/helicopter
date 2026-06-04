@@ -77,53 +77,48 @@ export class MicroscopyDatabaseClient {
 
   static async fetchImage(datasetId: string, imageId: string): Promise<ImageData> {
     try {
-      // Try to fetch from cache first
-      const cached = await this.getFromCache(datasetId, imageId);
-      if (cached) {
+      // Try to fetch from local cache first (public/datasets folder)
+      const cachePath = `/datasets/${datasetId}/${imageId}`;
+      const response = await fetch(cachePath, { signal: AbortSignal.timeout(5000) });
+
+      if (response.ok) {
+        const data = await response.text();
         return {
-          url: `${this.BBBC_BASE}/image_sets/${datasetId}/${imageId}`,
-          data: cached,
+          url: cachePath,
+          data,
           shape: [1024, 1024],
           dtype: 'float32',
-          source: `BBBC/${datasetId} (cached)`,
+          source: `BBBC/${datasetId} (local)`,
         };
       }
 
-      // Fetch from BBBC mirror
+      // Try BBBC mirror if local fails
       const url = `${this.BBBC_BASE}/image_sets/${datasetId}/${imageId}`;
-      const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      const bbbc = await fetch(url, { signal: AbortSignal.timeout(5000) });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} from BBBC`);
+      if (bbbc.ok) {
+        const data = await bbbc.text();
+        return {
+          url,
+          data,
+          shape: [1024, 1024],
+          dtype: 'float32',
+          source: `BBBC/${datasetId}`,
+        };
       }
 
-      // For now, simulate receiving image data
-      // In production, would process the actual image response
-      const data = this.generateSyntheticImage(1024, 1024);
-
-      // Store in cache
-      await this.saveToCache(datasetId, imageId, data);
-
-      return {
-        url,
-        data,
-        shape: [1024, 1024],
-        dtype: 'float32',
-        source: `BBBC/${datasetId}`,
-      };
+      throw new Error(`HTTP ${bbbc.status} from BBBC`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-
-      // If BBBC fetch fails, still return synthetic but indicate it's a fallback
-      console.warn(`Failed to fetch from BBBC: ${message}, using synthetic data`);
+      console.warn(`Failed to fetch image: ${message}, using synthetic data`);
       const data = this.generateSyntheticImage(1024, 1024);
 
       return {
-        url: `${this.BBBC_BASE}/image_sets/${datasetId}/${imageId}`,
+        url: `/datasets/${datasetId}/${imageId}`,
         data,
         shape: [1024, 1024],
         dtype: 'float32',
-        source: `Synthetic (BBBC unavailable)`,
+        source: `Synthetic (${datasetId} unavailable)`,
       };
     }
   }

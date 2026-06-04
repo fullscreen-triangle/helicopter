@@ -18,7 +18,7 @@ export const SCOPE_EXAMPLES = {
     morphisms {
         measure =
             observe(frame, n=1000)
-            |> measure_distance(a, b)
+            |> measure_distance(nucleus_a, nucleus_b)
     }
 
     dispatch {
@@ -42,7 +42,7 @@ export const SCOPE_EXAMPLES = {
     morphisms {
         measure =
             observe(frame, n=1000)
-            |> measure_distance(a, b)
+            |> measure_distance(nucleus_a, nucleus_b)
     }
 
     dispatch {
@@ -66,7 +66,7 @@ export const SCOPE_EXAMPLES = {
     morphisms {
         measure =
             observe(frame, n=1000)
-            |> measure_distance(a, b)
+            |> measure_distance(nucleus_a, nucleus_b)
     }
 
     dispatch {
@@ -92,7 +92,7 @@ export const SCOPE_EXAMPLES = {
     morphisms {
         measure =
             observe(frame, n=1000)
-            |> measure_distance(a, b)
+            |> measure_distance(nucleus_a, nucleus_b)
     }
 
     dispatch {
@@ -116,7 +116,7 @@ export const SCOPE_EXAMPLES = {
     morphisms {
         measure =
             observe(frame, n=1000)
-            |> measure_distance(a, b)
+            |> measure_distance(nucleus_a, nucleus_b)
     }
 
     dispatch {
@@ -140,7 +140,7 @@ export const SCOPE_EXAMPLES = {
     morphisms {
         model =
             observe(frame, n=1000)
-            |> measure_distance(a, b)
+            |> measure_distance(nucleus_a, nucleus_b)
     }
 
     dispatch {
@@ -164,7 +164,7 @@ export const SCOPE_EXAMPLES = {
     morphisms {
         pathway =
             observe(frame, n=1000)
-            |> measure_distance(a, b)
+            |> measure_distance(nucleus_a, nucleus_b)
     }
 
     dispatch {
