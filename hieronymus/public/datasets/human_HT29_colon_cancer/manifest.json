@@ -1,0 +1,7 @@
+{
+  "dataset": "HT29",
+  "name": "Human HT29 Colon Cancer",
+  "source": "BBBC",
+  "description": "Human colorectal cancer (HT29) cell line microscopy images",
+  "images": []
+}

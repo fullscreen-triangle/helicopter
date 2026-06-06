@@ -20,9 +20,15 @@ interface IDEProps {
 }
 
 export default function ScopeIDELayout({ onCodeChange, onFileSelect, output, isExecuting }: IDEProps) {
-  const [code, setCode] = useState(() => getScopeExample('PROPHASE', 'synthetic'));
+  const [code, setCode] = useState<string>(() => {
+    try {
+      return getScopeExample('PROPHASE', 'synthetic');
+    } catch {
+      return '';
+    }
+  });
   const [selectedFile, setSelectedFile] = useState('examples/prophase.scope');
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['examples', 'datasets']));
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['examples', 'datasets', '/']));
   const outputRef = useRef<HTMLDivElement>(null);
 
   // File tree structure
@@ -49,9 +55,13 @@ export default function ScopeIDELayout({ onCodeChange, onFileSelect, output, isE
         type: 'folder',
         path: '/datasets',
         children: [
-          { name: 'BBBC039_HeLa', type: 'folder', path: '/datasets/BBBC039_HeLa', children: [] },
-          { name: 'BBBC006_CHO', type: 'folder', path: '/datasets/BBBC006_CHO', children: [] },
-          { name: 'AllenCell_3D', type: 'folder', path: '/datasets/AllenCell_3D', children: [] },
+          { name: 'BBBC007_v1_images', type: 'folder', path: '/datasets/BBBC007_v1_images', children: [] },
+          { name: 'BBBC011_v1_images', type: 'folder', path: '/datasets/BBBC011_v1_images', children: [] },
+          { name: 'AICS-24-part06', type: 'folder', path: '/datasets/AICS-24-part06', children: [] },
+          { name: 'drosophila_kc167', type: 'folder', path: '/datasets/drosophila_kc167', children: [] },
+          { name: 'c_elegans', type: 'folder', path: '/datasets/c_elegans', children: [] },
+          { name: 'chinese_hamster_ovary', type: 'folder', path: '/datasets/chinese_hamster_ovary', children: [] },
+          { name: 'human_HT29_colon_cancer', type: 'folder', path: '/datasets/human_HT29_colon_cancer', children: [] },
         ],
       },
       {
@@ -92,7 +102,7 @@ export default function ScopeIDELayout({ onCodeChange, onFileSelect, output, isE
 
     return (
       <div key={node.path}>
-        {level > 0 && (
+        {level >= 0 && (
           <div
             onClick={() => isFolder && toggleFolder(node.path)}
             className={`flex items-center gap-1 px-2 py-1 text-[11px] cursor-pointer transition-colors ${
@@ -154,7 +164,7 @@ export default function ScopeIDELayout({ onCodeChange, onFileSelect, output, isE
             <div className="text-[9px] text-gray-600 uppercase tracking-widest">Files</div>
           </div>
           <div className="flex-1 overflow-y-auto font-mono text-[11px]">
-            {fileTree.children && fileTree.children.map((node) => renderFileTree(node))}
+            {fileTree.children && fileTree.children.map((node) => renderFileTree(node, 1))}
           </div>
         </div>
 

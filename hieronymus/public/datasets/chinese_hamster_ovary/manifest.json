@@ -1,0 +1,7 @@
+{
+  "dataset": "CHO",
+  "name": "Chinese Hamster Ovary Cells",
+  "source": "Custom",
+  "description": "CHO cell line microscopy data",
+  "images": []
+}

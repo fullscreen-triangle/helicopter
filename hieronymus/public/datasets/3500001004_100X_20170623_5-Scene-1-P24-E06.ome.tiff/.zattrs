@@ -1,0 +1,219 @@
+{
+    "multiscales": [
+        {
+            "axes": [
+                {
+                    "name": "t",
+                    "type": "time",
+                    "unit": "millisecond"
+                },
+                {
+                    "name": "c",
+                    "type": "channel"
+                },
+                {
+                    "name": "z",
+                    "type": "space",
+                    "unit": "micrometer"
+                },
+                {
+                    "name": "y",
+                    "type": "space",
+                    "unit": "micrometer"
+                },
+                {
+                    "name": "x",
+                    "type": "space",
+                    "unit": "micrometer"
+                }
+            ],
+            "datasets": [
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                1.0,
+                                0.29,
+                                0.1083333333333333,
+                                0.1083333333333333
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "0"
+                },
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                1.0,
+                                0.29,
+                                0.2166666666666666,
+                                0.2166666666666666
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "1"
+                },
+                {
+                    "coordinateTransformations": [
+                        {
+                            "scale": [
+                                1.0,
+                                1.0,
+                                0.29,
+                                0.4333333333333332,
+                                0.4333333333333332
+                            ],
+                            "type": "scale"
+                        }
+                    ],
+                    "path": "2"
+                }
+            ],
+            "name": "/",
+            "version": "0.4"
+        }
+    ],
+    "omero": {
+        "channels": [
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "Membrane",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "Labeled Structure",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "DNA",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "Bright field",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "SEG_STRUCT",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "SEG_Memb",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "SEG_DNA",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "Con_Memb",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            },
+            {
+                "active": true,
+                "coefficient": 1,
+                "color": "ffffffff",
+                "family": "linear",
+                "inverted": false,
+                "label": "Con_DNA",
+                "window": {
+                    "end": 1.0,
+                    "max": 1.0,
+                    "min": 0.0,
+                    "start": 0.0
+                }
+            }
+        ],
+        "id": 1,
+        "name": "1",
+        "rdefs": {
+            "defaultT": 0,
+            "defaultZ": 32,
+            "model": "color"
+        },
+        "version": "0.4"
+    }
+}

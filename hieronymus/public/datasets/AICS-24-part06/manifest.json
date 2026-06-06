@@ -1,0 +1,9 @@
+{
+  "dataset": "AICS-24",
+  "name": "AllenCell 3D Structure",
+  "source": "AllenCell",
+  "description": "3D volumetric imaging of fixed HeLa cells with fluorescent protein tags",
+  "images": [
+    "2017_10_24_Myosin/AICS-24/AICS-24_515.ome.tif"
+  ]
+}

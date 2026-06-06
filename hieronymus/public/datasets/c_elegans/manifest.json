@@ -1,0 +1,7 @@
+{
+  "dataset": "C_elegans",
+  "name": "C. elegans",
+  "source": "Custom",
+  "description": "C. elegans microscopy imaging data",
+  "images": []
+}

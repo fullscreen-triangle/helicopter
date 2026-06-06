@@ -1,0 +1,7 @@
+{
+  "dataset": "Drosophila_KC167",
+  "name": "Drosophila KC167 Cells",
+  "source": "Custom",
+  "description": "Drosophila Kc167 cell line microscopy data",
+  "images": []
+}

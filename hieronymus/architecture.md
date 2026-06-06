@@ -699,7 +699,35 @@ hieronymus/
 
 ---
 
-## 15. Papers & Theory Reference
+## 15. SCOPE Metalanguage Compiler
+
+The SCOPE compiler translates microscopy observation programs into executable five-phase pipelines. See `publications/studio/compiler.md` for detailed specification.
+
+**Architecture:**
+```
+SCOPE Code
+  ↓
+Lexer (tokenize)
+  ↓
+Parser (AST) + Type Checker (depth matching, entropy conservation)
+  ↓
+Code Generator (ExecutionPlan)
+  ↓
+Executor (five-phase GPU + CPU pipeline)
+  ↓
+ObservationResult (world-space with S-entropy)
+```
+
+**Key Integration Points:**
+- Phase 3 (MEASURE) generates `CoordinateField Φ` from spectral pipeline
+- Phase 4 (EXECUTE) uses `Φ` for world-space measurements via `measure_distance(A,B) = ||Φ(u_A) − Φ(u_B)||`
+- S-entropy conservation verified across all phases
+
+See `publications/studio/examples.md` for progressive tutorial programs.
+
+---
+
+## 16. Papers & Theory Reference
 
 Quick reference for which paper grounds which component:
 

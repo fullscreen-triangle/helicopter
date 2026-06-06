@@ -1,0 +1,16 @@
+{
+  "dataset": "BBBC007",
+  "name": "Drosophila Cell Micrographs",
+  "source": "BBBC",
+  "description": "Fluorescence microscopy images of Drosophila Kc167 cells",
+  "images": [
+    "BBBC007_v1_images/A9/A9 p10d.tif",
+    "BBBC007_v1_images/A9/A9 p10f.tif",
+    "BBBC007_v1_images/A9/A9 p5d.tif",
+    "BBBC007_v1_images/A9/A9 p5f.tif",
+    "BBBC007_v1_images/A9/A9 p7d.tif",
+    "BBBC007_v1_images/A9/A9 p7f.tif",
+    "BBBC007_v1_images/A9/A9 p9d.tif",
+    "BBBC007_v1_images/A9/A9 p9f.tif"
+  ]
+}
