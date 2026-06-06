@@ -8,8 +8,7 @@ import {
   Eye, Code2, Trash2, RefreshCw,
 } from 'lucide-react';
 import { compileScope } from '@/lib/scope-compiler';
-import { executeSCOPE } from '@/lib/scope-runtime';
-import { generateTimingEvents } from '@/lib/scope-client';
+import { executeMinimal } from '@/lib/scope-runtime/minimal-executor';
 import { getScopeExample } from '@/lib/scope-examples';
 import AnalysisEditor from '@/components/analysis/AnalysisEditor';
 
@@ -435,10 +434,10 @@ export default function ScopeIDEMain() {
       log('Compiling SCOPE program...');
       const compiledProgram = compileScope(activeNode.content);
 
-      if (compiledProgram.errors.length > 0) {
+      if (!compiledProgram.success) {
         log('❌ Compilation failed:');
         compiledProgram.errors.forEach((err) => {
-          log(`  Line ${err.line}: ${err.message}`);
+          log(`  ${err}`);
         });
         setLogs(newLogs);
         return;
@@ -459,32 +458,24 @@ export default function ScopeIDEMain() {
       log('');
       log('Executing SCOPE program...');
 
-      const timingEvents = generateTimingEvents('METAPHASE', 1000);
-      log(`Generated ${timingEvents.length} timing events`);
-
-      executeSCOPE(compiledProgram.ir, timingEvents, 'synthetic').then((result) => {
+      executeMinimal(compiledProgram.ir).then((result) => {
         if (result.success) {
           result.logs.forEach((l) => log(l));
 
-          if (result.output?.result) {
-            log('');
-            log('═══ RESULT ═══');
-            log(`Structure: ${result.output.result.structure}`);
-            if (result.output.result.distance) {
-              log(`Distance: ${result.output.result.distance.toExponential(3)} m`);
-              log(`Uncertainty: ±${result.output.result.uncertainty.toExponential(3)} m`);
-            }
-            log(
-              `Position: (${result.output.result.position.x.toFixed(3)}, ${result.output.result.position.y.toFixed(3)}, ${result.output.result.position.z.toFixed(3)})`
-            );
-            log(
-              `S-Entropy: S_k=${result.output.result.s_entropy.S_k.toFixed(3)} S_t=${result.output.result.s_entropy.S_t.toExponential(1)} S_e=${result.output.result.s_entropy.S_e.toFixed(3)}`
-            );
+          log('');
+          log('═══ RESULT ═══');
+          log(`Structure: ${result.structure}`);
+          if (result.distance) {
+            log(`Distance: ${result.distance.toFixed(1)} µm ± ${result.uncertainty?.toFixed(2)} µm`);
           }
-
-          log(`✓ Complete in ${result.timing_ms.toFixed(1)}ms`);
+          log(
+            `Position: (${result.position.x.toFixed(1)}, ${result.position.y.toFixed(1)}, ${result.position.z.toFixed(1)}) µm`
+          );
+          log(
+            `S-Entropy: S_k=${result.s_entropy.S_k.toFixed(3)} S_t=${result.s_entropy.S_t.toFixed(3)} S_e=${result.s_entropy.S_e.toFixed(3)}`
+          );
         } else {
-          log(`❌ Execution failed: ${result.error}`);
+          log(`❌ Execution failed`);
         }
 
         setLogs([...newLogs]);
