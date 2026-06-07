@@ -58,6 +58,33 @@ const initialFiles = {
         lang: 'scope',
         content: getScopeExample('ANAPHASE', 'synthetic'),
       },
+      'tutorial_03_nuclear_separation.scope': {
+        type: 'file',
+        lang: 'scope',
+        content: `scope nuclear_separation_measurement {
+    channels {
+        sync acquisition at 10.0e6 freq
+        cell METAPHASE bounds (-0.8e-6, 0.8e-6) action measure_separation
+    }
+
+    coordinate_space {
+        field 100.0 x 100.0 µm
+        depth 1000
+        lambda_s 0.10
+        lambda_t 0.05
+    }
+
+    morphisms {
+        measure_separation =
+            observe(dapi_frame, n=1000)
+            |> measure_distance(nucleus_a, nucleus_b)
+    }
+
+    dispatch {
+        when METAPHASE do execute(measure_separation)
+    }
+}`,
+      },
       'tutorial_04_load_bbbc007.scope': {
         type: 'file',
         lang: 'scope',
