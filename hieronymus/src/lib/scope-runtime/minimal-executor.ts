@@ -15,6 +15,14 @@ export interface ObservationResult {
   s_entropy: { S_k: number; S_t: number; S_e: number };
   logs: string[];
   timing_ms: number;
+  // Visualization data
+  coordinateField?: any; // CoordinateField type
+  measurements?: Array<{
+    label: string;
+    pixel_a: { u: number; v: number };
+    pixel_b: { u: number; v: number };
+    distance_um: number;
+  }>;
 }
 
 export async function executeMinimal(plan: ExecutionPlan): Promise<ObservationResult> {
