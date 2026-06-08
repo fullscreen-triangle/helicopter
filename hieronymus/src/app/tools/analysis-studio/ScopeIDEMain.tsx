@@ -337,11 +337,13 @@ function Editor({ value, onChange, onCursor }) {
   );
 }
 
-function OutputColumn({ compiled, logs, onRun, onClear }) {
-  const [tab, setTab] = useState('console');
+function OutputColumn({ compiled, logs, onRun, onClear, outputTab, setOutputTab, canvasRef }) {
+  const tab = outputTab;
+  const setTab = setOutputTab;
   const tabs = [
     { id: 'console', label: 'Execution Log', Icon: TerminalIcon },
     { id: 'compiled', label: 'Compiled IR', Icon: Code2 },
+    { id: 'image', label: 'Visualization', Icon: Eye },
   ];
 
   const levelColor = {
@@ -425,6 +427,15 @@ function OutputColumn({ compiled, logs, onRun, onClear }) {
             {compiled || '(compiled output appears here)'}
           </pre>
         )}
+        {tab === 'image' && (
+          <div className="h-full overflow-auto p-3 flex items-center justify-center" style={{ background: theme.editor }}>
+            <canvas
+              ref={canvasRef}
+              className="border border-gray-600 rounded"
+              style={{ maxWidth: '100%', maxHeight: '100%' }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -442,6 +453,9 @@ export default function ScopeIDEMain() {
 
   const [compiled, setCompiled] = useState('');
   const [logs, setLogs] = useState([]);
+  const [outputTab, setOutputTab] = useState<'logs' | 'image'>('logs');
+  const [visualizationData, setVisualizationData] = useState<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const splitRef = useRef(null);
   const dragging = useRef(false);
@@ -501,6 +515,15 @@ export default function ScopeIDEMain() {
           log(
             `S-Entropy: S_k=${result.s_entropy.S_k.toFixed(3)} S_t=${result.s_entropy.S_t.toFixed(3)} S_e=${result.s_entropy.S_e.toFixed(3)}`
           );
+
+          // Store visualization data
+          if (result.coordinateField) {
+            setVisualizationData(result);
+            // Auto-switch to image tab if measurements present
+            if (result.measurements && result.measurements.length > 0) {
+              setOutputTab('image');
+            }
+          }
         } else {
           log(`❌ Execution failed`);
         }
@@ -515,6 +538,30 @@ export default function ScopeIDEMain() {
       setLogs(newLogs);
     }
   }, [files, openTabs, activeTab]);
+
+  // Render visualization when data changes
+  useEffect(() => {
+    if (visualizationData && canvasRef.current && outputTab === 'image') {
+      try {
+        const { visualizeCoordinateField } = require('@/lib/scope-runtime/visualize-field');
+        visualizeCoordinateField(visualizationData.coordinateField, canvasRef.current, {
+          width: 512,
+          height: 512,
+          showGrid: true,
+          showMeasurements: true,
+          measurements: visualizationData.measurements,
+        });
+      } catch (e) {
+        // Fallback: show text
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#d4d4d4';
+          ctx.font = '14px monospace';
+          ctx.fillText('Visualizing coordinate field...', 10, 30);
+        }
+      }
+    }
+  }, [visualizationData, outputTab]);
 
   useEffect(() => {
     const move = (e) => {
@@ -739,7 +786,15 @@ export default function ScopeIDEMain() {
           />
 
           {/* Output column */}
-          <OutputColumn compiled={compiled} logs={logs} onRun={run} onClear={() => setLogs([])} />
+          <OutputColumn
+            compiled={compiled}
+            logs={logs}
+            onRun={run}
+            onClear={() => setLogs([])}
+            outputTab={outputTab}
+            setOutputTab={setOutputTab}
+            canvasRef={canvasRef}
+          />
         </div>
       </div>
 

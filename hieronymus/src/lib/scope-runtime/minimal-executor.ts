@@ -127,6 +127,24 @@ export async function executeMinimal(plan: ExecutionPlan): Promise<ObservationRe
   const timing_ms = performance.now() - startTime;
   logs.push(`✓ Complete in ${timing_ms.toFixed(1)}ms`);
 
+  // Prepare visualization measurements
+  const measurements = result_distance
+    ? [
+        {
+          label: 'nuclear_separation',
+          pixel_a: {
+            u: (field_width_um / 4) / (field_width_um / 512),
+            v: (field_height_um / 2) / (field_height_um / 512),
+          },
+          pixel_b: {
+            u: (3 * field_width_um / 4) / (field_width_um / 512),
+            v: (field_height_um / 2) / (field_height_um / 512),
+          },
+          distance_um: result_distance,
+        },
+      ]
+    : undefined;
+
   return {
     success: true,
     structure: 'partition_observation',
@@ -136,5 +154,7 @@ export async function executeMinimal(plan: ExecutionPlan): Promise<ObservationRe
     s_entropy: { S_k: s_k, S_t: s_t, S_e: s_e },
     logs,
     timing_ms,
+    coordinateField: φ,
+    measurements,
   };
 }
