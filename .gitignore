@@ -564,3 +564,8 @@ hieronymus/.next/
 # Allow hieronymus validation results (JSON/CSV in publications)
 !hieronymus/publications/**/results/*.json
 !hieronymus/publications/**/results/*.csv
+
+# Exclude large dataset files (>100MB) that exceed GitHub limits
+hieronymus/public/datasets/**/*.tif
+hieronymus/public/datasets/**/*.tiff
+hieronymus/public/datasets/**/*.ome.tif
