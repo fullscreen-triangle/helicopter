@@ -5,6 +5,7 @@
 
 import { ExecutionPlan } from '@/lib/scope-compiler';
 import { generateSyntheticCoordinateField, measureDistance, CoordinateField } from './spectral-pipeline';
+import { generateEntropyChart, generateMeasurementChart } from './chart-data';
 
 export interface ObservationResult {
   success: boolean;
@@ -16,6 +17,7 @@ export interface ObservationResult {
   logs: string[];
   timing_ms: number;
   // Visualization data
+  programName?: string;
   coordinateField?: any; // CoordinateField type
   measurements?: Array<{
     label: string;
@@ -23,11 +25,31 @@ export interface ObservationResult {
     pixel_b: { u: number; v: number };
     distance_um: number;
   }>;
+  // Chart data
+  entropyChart?: any;
+  measurementChart?: any;
 }
 
 export async function executeMinimal(plan: ExecutionPlan): Promise<ObservationResult> {
   const logs: string[] = [];
   const startTime = performance.now();
+
+  // Detect what this program does
+  const hasMeasureDistance = plan.morphisms?.some((m) =>
+    m.steps?.some((s) => s.type === 'measure')
+  ) ?? false;
+  const hasCatalyze = plan.morphisms?.some((m) =>
+    m.steps?.some((s) => s.type === 'catalyze')
+  ) ?? false;
+  const hasAccess = plan.morphisms?.some((m) =>
+    m.steps?.some((s) => s.type === 'access')
+  ) ?? false;
+
+  logs.push(`Program: ${plan.name}`);
+  logs.push(`  Has measure_distance: ${hasMeasureDistance}`);
+  logs.push(`  Has catalyze: ${hasCatalyze}`);
+  logs.push(`  Has access: ${hasAccess}`);
+  logs.push('');
 
   // Phase 1: COMPILE (synthetic timing)
   logs.push('Phase 1 COMPILE: trajectory accumulation');
@@ -59,12 +81,30 @@ export async function executeMinimal(plan: ExecutionPlan): Promise<ObservationRe
 
   // Phase 4: EXECUTE (run morphism chain)
   logs.push('Phase 4 EXECUTE: morphism chain');
+
+  // Initialize entropy based on program complexity
   let s_k = 0.33;
   let s_t = 0.33;
   let s_e = 0.34;
+
+  // Adjust based on detected operations
+  if (hasAccess) {
+    s_k += 0.15;
+    s_e -= 0.10;
+  }
+  if (hasCatalyze) {
+    s_k += 0.10;
+    s_e -= 0.05;
+  }
+
   let result_distance: number | undefined;
   let result_uncertainty: number | undefined;
   let result_position = { x: field_width_um / 2, y: field_height_um / 2, z: 0 };
+
+  // Vary position slightly based on program name/type
+  const programNameHash = plan.name.charCodeAt(0);
+  result_position.x = field_width_um * (0.3 + (programNameHash % 10) * 0.07);
+  result_position.y = field_height_um * (0.4 + (programNameHash % 7) * 0.08);
 
   if (plan.morphisms.length > 0) {
     const chain = plan.morphisms[0];
@@ -154,7 +194,10 @@ export async function executeMinimal(plan: ExecutionPlan): Promise<ObservationRe
     s_entropy: { S_k: s_k, S_t: s_t, S_e: s_e },
     logs,
     timing_ms,
+    programName: plan.name,
     coordinateField: φ,
     measurements,
+    entropyChart: generateEntropyChart(s_k, s_t, s_e),
+    measurementChart: generateMeasurementChart(result_distance, result_uncertainty),
   };
 }

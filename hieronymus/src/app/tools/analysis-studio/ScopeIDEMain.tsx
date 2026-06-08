@@ -219,15 +219,15 @@ const initialFiles = {
   },
 };
 
-const fileIcon = (name) => {
+const fileIcon = (name: string) => {
   if (name.endsWith('.scope')) return { Icon: FileCode2, color: '#00d4ff' };
   if (name.endsWith('.json')) return { Icon: FileJson, color: '#cbcb41' };
   if (name.endsWith('.md')) return { Icon: FileText, color: '#519aba' };
   return { Icon: FileText, color: '#858585' };
 };
 
-const getNode = (tree, path) => {
-  let n = { children: tree };
+const getNode = (tree: any, path: string[]) => {
+  let n: any = { children: tree };
   for (const p of path) {
     n = n.children[p];
     if (!n) return null;
@@ -235,7 +235,7 @@ const getNode = (tree, path) => {
   return n;
 };
 
-function Tree({ tree, path = [], depth = 0, expanded, toggle, activePath, openFile }) {
+function Tree({ tree, path = [], depth = 0, expanded, toggle, activePath, openFile }: any) {
   const entries = Object.entries(tree).sort((a, b) =>
     a[1].type !== b[1].type ? (a[1].type === 'folder' ? -1 : 1) : a[0].localeCompare(b[0])
   );
@@ -337,13 +337,15 @@ function Editor({ value, onChange, onCursor }) {
   );
 }
 
-function OutputColumn({ compiled, logs, onRun, onClear, outputTab, setOutputTab, canvasRef }) {
+function OutputColumn({ compiled, logs, onRun, onClear, outputTab, setOutputTab, canvasRef, chartData }: any) {
   const tab = outputTab;
   const setTab = setOutputTab;
   const tabs = [
     { id: 'console', label: 'Execution Log', Icon: TerminalIcon },
-    { id: 'compiled', label: 'Compiled IR', Icon: Code2 },
     { id: 'image', label: 'Visualization', Icon: Eye },
+    { id: 'charts', label: 'Charts', Icon: Blocks },
+    { id: 'measurements', label: 'Measurements', Icon: Code2 },
+    { id: 'compiled', label: 'Compiled IR', Icon: Code2 },
   ];
 
   const levelColor = {
@@ -436,6 +438,48 @@ function OutputColumn({ compiled, logs, onRun, onClear, outputTab, setOutputTab,
             />
           </div>
         )}
+        {tab === 'charts' && chartData?.entropyChart && (
+          <div className="h-full overflow-auto p-4" style={{ background: theme.editor, color: theme.editorFg }}>
+            <div className="mb-6">
+              <h3 className="text-lg font-bold mb-3">{chartData.entropyChart.title}</h3>
+              <div className="flex gap-4">
+                {chartData.entropyChart.phases.map((phase: any, idx: number) => (
+                  <div key={idx} className="flex flex-col gap-1 p-3 rounded" style={{ background: theme.tabInactive }}>
+                    <div className="text-sm font-mono opacity-75">{phase.phase}</div>
+                    <div className="text-xl font-bold text-blue-400">S_k: {phase.S_k.toFixed(3)}</div>
+                    <div className="text-xl font-bold text-yellow-400">S_t: {phase.S_t.toFixed(3)}</div>
+                    <div className="text-xl font-bold text-orange-400">S_e: {phase.S_e.toFixed(3)}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 text-sm opacity-75">
+                Sum: {(chartData.entropyChart.phases[chartData.entropyChart.phases.length - 1].S_k +
+                        chartData.entropyChart.phases[chartData.entropyChart.phases.length - 1].S_t +
+                        chartData.entropyChart.phases[chartData.entropyChart.phases.length - 1].S_e).toFixed(3)} ✓
+              </div>
+            </div>
+          </div>
+        )}
+        {tab === 'measurements' && chartData?.measurementChart && (
+          <div className="h-full overflow-auto p-4" style={{ background: theme.editor, color: theme.editorFg }}>
+            <h3 className="text-lg font-bold mb-3">{chartData.measurementChart.title}</h3>
+            {chartData.measurementChart.measurements.length > 0 ? (
+              <div className="space-y-3">
+                {chartData.measurementChart.measurements.map((m: any, idx: number) => (
+                  <div key={idx} className="p-3 rounded" style={{ background: theme.tabInactive }}>
+                    <div className="font-mono text-sm mb-2">{m.label}</div>
+                    <div className="flex justify-between">
+                      <span className="text-green-400">Distance: {m.distance_um.toFixed(1)} µm</span>
+                      <span className="text-yellow-400">±{m.uncertainty_um.toFixed(2)} µm</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-500">No measurements in this program</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -486,11 +530,13 @@ export default function ScopeIDEMain() {
 
       log('✓ Compilation successful');
       log(`Program: ${compiledProgram.name}`);
+      log(`Morphisms: ${compiledProgram.ir?.morphisms?.length || 0}`);
+      log(`Channels: ${compiledProgram.ir?.channels?.cells?.length || 0} cells`);
 
       if (compiledProgram.warnings.length > 0) {
         log('⚠ Warnings:');
         compiledProgram.warnings.forEach((warn) => {
-          log(`  ${warn.message}`);
+          log(`  ${warn}`);
         });
       }
 
@@ -544,11 +590,14 @@ export default function ScopeIDEMain() {
     if (visualizationData && canvasRef.current && outputTab === 'image') {
       try {
         const { visualizeCoordinateField } = require('@/lib/scope-runtime/visualize-field');
+        const hasMeasure = visualizationData.measurements && visualizationData.measurements.length > 0;
         visualizeCoordinateField(visualizationData.coordinateField, canvasRef.current, {
           width: 512,
           height: 512,
           showGrid: true,
           showMeasurements: true,
+          programName: visualizationData.programName || 'Unknown',
+          hasMeasure,
           measurements: visualizationData.measurements,
         });
       } catch (e) {
@@ -794,6 +843,7 @@ export default function ScopeIDEMain() {
             outputTab={outputTab}
             setOutputTab={setOutputTab}
             canvasRef={canvasRef}
+            chartData={visualizationData}
           />
         </div>
       </div>

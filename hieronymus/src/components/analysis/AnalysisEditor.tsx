@@ -174,12 +174,12 @@ export default function AnalysisEditor({ value, onChange }: AnalysisEditorProps)
           <div>
             <div className="text-gray-500 uppercase tracking-widest mb-2 font-semibold">Chart Types</div>
             <div className="space-y-1 text-gray-400">
-              <div>c.<span className="text-yellow-400">line</span>('id')</div>
-              <div>c.<span className="text-yellow-400">bar</span>('id')</div>
-              <div>c.<span className="text-yellow-400">scatter</span>('id')</div>
-              <div>c.<span className="text-yellow-400">area</span>('id')</div>
-              <div>c.<span className="text-yellow-400">pie</span>('id')</div>
-              <div>c.<span className="text-yellow-400">radar</span>('id')</div>
+              <div>c.<span className="text-yellow-400">line</span>(&apos;id&apos;)</div>
+              <div>c.<span className="text-yellow-400">bar</span>(&apos;id&apos;)</div>
+              <div>c.<span className="text-yellow-400">scatter</span>(&apos;id&apos;)</div>
+              <div>c.<span className="text-yellow-400">area</span>(&apos;id&apos;)</div>
+              <div>c.<span className="text-yellow-400">pie</span>(&apos;id&apos;)</div>
+              <div>c.<span className="text-yellow-400">radar</span>(&apos;id&apos;)</div>
             </div>
           </div>
 

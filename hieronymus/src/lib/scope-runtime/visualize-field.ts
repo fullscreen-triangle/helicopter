@@ -10,6 +10,8 @@ export interface VisualizationOptions {
   height?: number;
   showGrid?: boolean;
   showMeasurements?: boolean;
+  programName?: string;
+  hasMeasure?: boolean;
   measurements?: Array<{
     label: string;
     pixel_a: { u: number; v: number };
@@ -27,6 +29,8 @@ export function visualizeCoordinateField(
   const height = options.height || 512;
   const showGrid = options.showGrid !== false;
   const showMeasurements = options.showMeasurements !== false;
+  const programName = options.programName || 'Unknown';
+  const hasMeasure = options.hasMeasure || false;
 
   canvas.width = width;
   canvas.height = height;
@@ -60,8 +64,16 @@ export function visualizeCoordinateField(
       const dist = Math.sqrt(dx * dx + dy * dy);
       const normalized = Math.min(dist / maxDist, 1);
 
-      // Color gradient: center=blue, edge=red (showing coordinate field structure)
-      const hue = (1 - normalized) * 240; // 240=blue, 0=red in HSL
+      // Color gradient varies based on whether measurements are present
+      let hue: number;
+      if (hasMeasure) {
+        // For measurement programs: blue center → cyan → green → yellow → red edge
+        hue = (1 - normalized) * 300; // 300=blue, 0=red in HSL
+      } else {
+        // For observation programs: blue center → purple → red edge
+        hue = (1 - normalized) * 240; // 240=blue, 0=red in HSL
+      }
+
       const rgb = hslToRgb(hue, 100, 50);
 
       data[idx] = rgb[0];     // R
@@ -108,14 +120,14 @@ export function visualizeCoordinateField(
   }
 
   // Draw measurements
-  if (showMeasurements && options.measurements) {
+  if (showMeasurements && options.measurements && options.measurements.length > 0) {
     for (const meas of options.measurements) {
       const pa = meas.pixel_a;
       const pb = meas.pixel_b;
 
       // Draw line between points
       ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(pa.u, pa.v);
       ctx.lineTo(pb.u, pb.v);
@@ -124,11 +136,11 @@ export function visualizeCoordinateField(
       // Draw circles at endpoints
       ctx.fillStyle = '#00ff00';
       ctx.beginPath();
-      ctx.arc(pa.u, pa.v, 5, 0, Math.PI * 2);
+      ctx.arc(pa.u, pa.v, 6, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.beginPath();
-      ctx.arc(pb.u, pb.v, 5, 0, Math.PI * 2);
+      ctx.arc(pb.u, pb.v, 6, 0, Math.PI * 2);
       ctx.fill();
 
       // Label with distance
@@ -137,9 +149,29 @@ export function visualizeCoordinateField(
       ctx.fillStyle = '#00ff00';
       ctx.font = 'bold 14px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(`${meas.distance_um.toFixed(1)}µm`, midX, midY - 10);
+      ctx.fillText(`${meas.distance_um.toFixed(1)}µm`, midX, midY - 15);
     }
+  } else if (!showMeasurements || !options.measurements || options.measurements.length === 0) {
+    // Show placeholder for observation-only programs
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('(Coordinate Field Φ)', width / 2, height / 2);
   }
+
+  // Draw program info banner
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillRect(0, 0, width, 30);
+
+  ctx.fillStyle = '#00d4ff';
+  ctx.font = 'bold 12px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Program: ${programName}`, 8, 20);
+
+  const typeLabel = hasMeasure ? '📏 Measurement' : '👁 Observation';
+  ctx.fillStyle = hasMeasure ? '#00ff00' : '#ffaa00';
+  ctx.textAlign = 'right';
+  ctx.fillText(typeLabel, width - 8, 20);
 }
 
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {
