@@ -3,7 +3,9 @@
  * Phases 1-5 with coordinate field for world-space measurements
  */
 
-import { ExecutionPlan } from '@/lib/scope-compiler';
+import type { CompileResult } from '@/lib/scope-compiler';
+// TODO: replace with ScopeProgram when runtime is rewritten
+type ExecutionPlan = any;
 import { generateSyntheticCoordinateField, measureDistance, CoordinateField } from './spectral-pipeline';
 import { generateEntropyChart, generateMeasurementChart } from './chart-data';
 

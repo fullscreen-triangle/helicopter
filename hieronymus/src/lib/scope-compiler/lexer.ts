@@ -1,279 +1,226 @@
-// SCOPE Lexer — tokenizes SCOPE source code
+// SCOPE Lexer
 
 export enum TokenType {
   // Keywords
-  SCOPE = 'SCOPE',
-  CHANNELS = 'CHANNELS',
-  SYNC = 'SYNC',
-  CELL = 'CELL',
-  COORDINATE_SPACE = 'COORDINATE_SPACE',
-  FIELD = 'FIELD',
-  DEPTH = 'DEPTH',
-  MORPHISMS = 'MORPHISMS',
-  OBSERVE = 'OBSERVE',
-  CATALYZE = 'CATALYZE',
-  FUSE = 'FUSE',
-  MEASURE_DISTANCE = 'MEASURE_DISTANCE',
-  ACCESS = 'ACCESS',
-  DISPATCH = 'DISPATCH',
-  WHEN = 'WHEN',
-  DO = 'DO',
-  EXECUTE = 'EXECUTE',
-  EMIT = 'EMIT',
-  AT = 'AT',
-  BOUNDS = 'BOUNDS',
-  ACTION = 'ACTION',
-
+  SCOPE = 'scope',
+  CHANNELS = 'channels',
+  SYNC = 'sync',
+  CELL = 'cell',
+  AT = 'at',
+  BOUNDS = 'bounds',
+  ACTION = 'action',
+  COORDINATE_SPACE = 'coordinate_space',
+  FIELD = 'field',
+  DEPTH = 'depth',
+  LAMBDA_S = 'lambda_s',
+  LAMBDA_T = 'lambda_t',
+  GOAL = 'goal',
+  RULE = 'rule',
+  INVARIANT = 'invariant',
+  EPSILON = 'epsilon',
+  DISPATCH = 'dispatch',
+  WHEN = 'when',
+  DO = 'do',
+  EXECUTE = 'execute',
+  EMIT = 'emit',
+  OBSERVE = 'observe',
+  CATALYZE = 'catalyze',
+  FUSE = 'fuse',
+  MEASURE_DISTANCE = 'measure_distance',
+  ACCESS = 'access',
+  VISUALISE = 'visualise',
+  LOAD = 'load',
+  DB = 'db',
+  DATASET = 'dataset',
+  IMAGE = 'image',
+  N = 'n',
+  RHO = 'rho',
+  CONFIDENCE = 'confidence',
+  THRESHOLD = 'threshold',
+  WITHIN = 'within',
   // Literals
-  IDENTIFIER = 'IDENTIFIER',
+  IDENT = 'IDENT',
   NUMBER = 'NUMBER',
   STRING = 'STRING',
-
-  // Symbols
+  UNIT = 'UNIT',
+  // Punctuation
   LBRACE = '{',
   RBRACE = '}',
   LPAREN = '(',
   RPAREN = ')',
-  LBRACKET = '[',
-  RBRACKET = ']',
   EQUALS = '=',
   PIPE = '|>',
   COMMA = ',',
-  DOT = '.',
   COLON = ':',
-
-  // Special
+  LT = '<',
+  LTE = '<=',
+  GT = '>',
+  GTE = '>=',
+  EQEQ = '==',
+  X = 'x',
   EOF = 'EOF',
-  NEWLINE = 'NEWLINE',
 }
 
 export interface Token {
   type: TokenType;
   value: string;
   line: number;
-  column: number;
+  col: number;
 }
 
+const KEYWORDS: Record<string, TokenType> = {
+  scope: TokenType.SCOPE,
+  channels: TokenType.CHANNELS,
+  sync: TokenType.SYNC,
+  cell: TokenType.CELL,
+  at: TokenType.AT,
+  bounds: TokenType.BOUNDS,
+  action: TokenType.ACTION,
+  coordinate_space: TokenType.COORDINATE_SPACE,
+  field: TokenType.FIELD,
+  depth: TokenType.DEPTH,
+  lambda_s: TokenType.LAMBDA_S,
+  lambda_t: TokenType.LAMBDA_T,
+  goal: TokenType.GOAL,
+  rule: TokenType.RULE,
+  invariant: TokenType.INVARIANT,
+  epsilon: TokenType.EPSILON,
+  dispatch: TokenType.DISPATCH,
+  when: TokenType.WHEN,
+  do: TokenType.DO,
+  execute: TokenType.EXECUTE,
+  emit: TokenType.EMIT,
+  observe: TokenType.OBSERVE,
+  catalyze: TokenType.CATALYZE,
+  fuse: TokenType.FUSE,
+  measure_distance: TokenType.MEASURE_DISTANCE,
+  access: TokenType.ACCESS,
+  visualise: TokenType.VISUALISE,
+  load: TokenType.LOAD,
+  db: TokenType.DB,
+  dataset: TokenType.DATASET,
+  image: TokenType.IMAGE,
+  n: TokenType.N,
+  rho: TokenType.RHO,
+  confidence: TokenType.CONFIDENCE,
+  threshold: TokenType.THRESHOLD,
+  within: TokenType.WITHIN,
+  x: TokenType.X,
+};
+
+const UNITS = new Set(['µm', 'nm', 'px', 'freq', 's', 'bits', '%', 'µm/pixel']);
+
 export class Lexer {
-  private input: string;
-  private position: number = 0;
-  private line: number = 1;
-  private column: number = 1;
-  private tokens: Token[] = [];
+  private pos = 0;
+  private line = 1;
+  private col = 1;
 
-  private keywords = new Map<string, TokenType>([
-    ['scope', TokenType.SCOPE],
-    ['channels', TokenType.CHANNELS],
-    ['sync', TokenType.SYNC],
-    ['cell', TokenType.CELL],
-    ['coordinate_space', TokenType.COORDINATE_SPACE],
-    ['field', TokenType.FIELD],
-    ['depth', TokenType.DEPTH],
-    ['morphisms', TokenType.MORPHISMS],
-    ['observe', TokenType.OBSERVE],
-    ['catalyze', TokenType.CATALYZE],
-    ['fuse', TokenType.FUSE],
-    ['measure_distance', TokenType.MEASURE_DISTANCE],
-    ['access', TokenType.ACCESS],
-    ['dispatch', TokenType.DISPATCH],
-    ['when', TokenType.WHEN],
-    ['do', TokenType.DO],
-    ['execute', TokenType.EXECUTE],
-    ['emit', TokenType.EMIT],
-    ['at', TokenType.AT],
-    ['bounds', TokenType.BOUNDS],
-    ['action', TokenType.ACTION],
-  ]);
-
-  constructor(input: string) {
-    this.input = input;
-  }
+  constructor(private src: string) {}
 
   tokenize(): Token[] {
-    while (this.position < this.input.length) {
-      this.skipWhitespaceAndComments();
-      if (this.position >= this.input.length) break;
+    const tokens: Token[] = [];
+    while (this.pos < this.src.length) {
+      this.skipWS();
+      if (this.pos >= this.src.length) break;
 
-      const char = this.current();
+      const ch = this.ch();
+      const startLine = this.line;
+      const startCol = this.col;
 
-      if (char === '{') this.addToken(TokenType.LBRACE, '{');
-      else if (char === '}') this.addToken(TokenType.RBRACE, '}');
-      else if (char === '(') this.addToken(TokenType.LPAREN, '(');
-      else if (char === ')') this.addToken(TokenType.RPAREN, ')');
-      else if (char === '[') this.addToken(TokenType.LBRACKET, '[');
-      else if (char === ']') this.addToken(TokenType.RBRACKET, ']');
-      else if (char === '=') this.addToken(TokenType.EQUALS, '=');
-      else if (char === ',') this.addToken(TokenType.COMMA, ',');
-      else if (char === '.') {
-        // Could be a dot or start of a number like .5
-        if (/\d/.test(this.peek())) {
-          this.readNumber();
-        } else {
-          this.addToken(TokenType.DOT, '.');
-        }
+      if (ch === '/' && this.peek() === '/') {
+        while (this.pos < this.src.length && this.ch() !== '\n') this.advance();
+        continue;
       }
-      else if (char === ':') this.addToken(TokenType.COLON, ':');
-      else if (char === '|' && this.peek() === '>') {
-        this.advance();
-        this.addToken(TokenType.PIPE, '|>');
-      } else if (char === '"' || char === "'") {
-        this.readString();
-      } else if (char === '-' && /[\d.]/.test(this.peek())) {
-        // Negative number
-        this.readNumber();
-      } else if (/\d/.test(char)) {
-        this.readNumber();
-      } else if (/[a-zA-Z_µ]/.test(char) || /[À-ſ]/.test(char)) {
-        // Handle Latin characters and Greek letters like µ
-        this.readIdentifier();
-      } else {
-        throw new Error(`Unexpected character: ${char} (${char.charCodeAt(0)}) at ${this.line}:${this.column}`);
+
+      if (ch === '{') { tokens.push(this.tok(TokenType.LBRACE, '{', startLine, startCol)); this.advance(); continue; }
+      if (ch === '}') { tokens.push(this.tok(TokenType.RBRACE, '}', startLine, startCol)); this.advance(); continue; }
+      if (ch === '(') { tokens.push(this.tok(TokenType.LPAREN, '(', startLine, startCol)); this.advance(); continue; }
+      if (ch === ')') { tokens.push(this.tok(TokenType.RPAREN, ')', startLine, startCol)); this.advance(); continue; }
+      if (ch === ',') { tokens.push(this.tok(TokenType.COMMA, ',', startLine, startCol)); this.advance(); continue; }
+      if (ch === ':') { tokens.push(this.tok(TokenType.COLON, ':', startLine, startCol)); this.advance(); continue; }
+
+      if (ch === '|' && this.peek() === '>') {
+        tokens.push(this.tok(TokenType.PIPE, '|>', startLine, startCol));
+        this.advance(); this.advance();
+        continue;
       }
-    }
 
-    this.addToken(TokenType.EOF, '');
-    return this.tokens;
-  }
-
-  private current(): string {
-    return this.input[this.position] || '';
-  }
-
-  private peek(offset = 1): string {
-    return this.input[this.position + offset] || '';
-  }
-
-  private advance(): string {
-    const char = this.current();
-    this.position++;
-    if (char === '\n') {
-      this.line++;
-      this.column = 1;
-    } else {
-      this.column++;
-    }
-    return char;
-  }
-
-  private skipWhitespaceAndComments(): void {
-    while (this.position < this.input.length) {
-      const char = this.current();
-      if (/\s/.test(char)) {
-        this.advance();
-      } else if (char === '/' && this.peek() === '/') {
-        // Skip line comment
-        while (this.current() !== '\n' && this.position < this.input.length) {
-          this.advance();
-        }
-      } else {
-        break;
+      if (ch === '<' && this.peek() === '=') {
+        tokens.push(this.tok(TokenType.LTE, '<=', startLine, startCol));
+        this.advance(); this.advance();
+        continue;
       }
-    }
-  }
-
-  private readString(): void {
-    const quote = this.current();
-    const startLine = this.line;
-    const startColumn = this.column;
-    this.advance(); // skip opening quote
-
-    let value = '';
-    while (this.current() !== quote && this.position < this.input.length) {
-      if (this.current() === '\\') {
-        this.advance();
-        const char = this.current();
-        if (char === 'n') value += '\n';
-        else if (char === 't') value += '\t';
-        else if (char === '\\') value += '\\';
-        else if (char === quote) value += quote;
-        else value += char;
-        this.advance();
-      } else {
-        value += this.current();
-        this.advance();
+      if (ch === '>' && this.peek() === '=') {
+        tokens.push(this.tok(TokenType.GTE, '>=', startLine, startCol));
+        this.advance(); this.advance();
+        continue;
       }
-    }
+      if (ch === '=' && this.peek() === '=') {
+        tokens.push(this.tok(TokenType.EQEQ, '==', startLine, startCol));
+        this.advance(); this.advance();
+        continue;
+      }
+      if (ch === '<') { tokens.push(this.tok(TokenType.LT, '<', startLine, startCol)); this.advance(); continue; }
+      if (ch === '>') { tokens.push(this.tok(TokenType.GT, '>', startLine, startCol)); this.advance(); continue; }
+      if (ch === '=') { tokens.push(this.tok(TokenType.EQUALS, '=', startLine, startCol)); this.advance(); continue; }
 
-    if (this.current() !== quote) {
-      throw new Error(`Unterminated string at ${startLine}:${startColumn}`);
-    }
-    this.advance(); // skip closing quote
+      if (ch === '"') { tokens.push(this.readString(startLine, startCol)); continue; }
 
-    this.tokens.push({
-      type: TokenType.STRING,
-      value,
-      line: startLine,
-      column: startColumn,
-    });
+      if (ch === '-' || /\d/.test(ch)) { tokens.push(this.readNumber(startLine, startCol)); continue; }
+
+      if (/[a-zA-Z_µ]/.test(ch)) { tokens.push(this.readWord(startLine, startCol)); continue; }
+
+      throw new Error(`Unexpected character '${ch}' at ${this.line}:${this.col}`);
+    }
+    tokens.push(this.tok(TokenType.EOF, '', this.line, this.col));
+    return tokens;
   }
 
-  private readNumber(): void {
-    const startLine = this.line;
-    const startColumn = this.column;
-    let value = '';
+  private ch(): string { return this.src[this.pos] ?? ''; }
+  private peek(n = 1): string { return this.src[this.pos + n] ?? ''; }
+  private advance(): void {
+    if (this.src[this.pos] === '\n') { this.line++; this.col = 1; } else { this.col++; }
+    this.pos++;
+  }
+  private skipWS(): void {
+    while (this.pos < this.src.length && /\s/.test(this.src[this.pos])) this.advance();
+  }
+  private tok(type: TokenType, value: string, line: number, col: number): Token {
+    return { type, value, line, col };
+  }
 
-    // Handle optional leading minus
-    if (this.current() === '-') {
-      value += this.current();
+  private readString(line: number, col: number): Token {
+    this.advance(); // skip "
+    let s = '';
+    while (this.pos < this.src.length && this.ch() !== '"') {
+      if (this.ch() === '\\') { this.advance(); s += this.ch(); } else { s += this.ch(); }
       this.advance();
     }
-
-    // Read digits and decimal point
-    while (/[\d.]/.test(this.current())) {
-      value += this.current();
-      this.advance();
-    }
-
-    // Handle scientific notation (e.g., 1.5e-6)
-    if (/[eE]/.test(this.current())) {
-      value += this.current();
-      this.advance();
-
-      if (/[+\-]/.test(this.current())) {
-        value += this.current();
-        this.advance();
-      }
-
-      while (/\d/.test(this.current())) {
-        value += this.current();
-        this.advance();
-      }
-    }
-
-    this.tokens.push({
-      type: TokenType.NUMBER,
-      value,
-      line: startLine,
-      column: startColumn,
-    });
-  }
-
-  private readIdentifier(): void {
-    const startLine = this.line;
-    const startColumn = this.column;
-    let value = '';
-
-    while (/[a-zA-Z0-9_µ]/.test(this.current()) || /[À-ſ]/.test(this.current())) {
-      value += this.current();
-      this.advance();
-    }
-
-    const type = this.keywords.get(value.toLowerCase()) || TokenType.IDENTIFIER;
-    this.tokens.push({
-      type,
-      value,
-      line: startLine,
-      column: startColumn,
-    });
-  }
-
-  private addToken(type: TokenType, value: string): void {
-    this.tokens.push({
-      type,
-      value,
-      line: this.line,
-      column: this.column,
-    });
+    if (this.ch() !== '"') throw new Error(`Unterminated string at ${line}:${col}`);
     this.advance();
+    return { type: TokenType.STRING, value: s, line, col };
+  }
+
+  private readNumber(line: number, col: number): Token {
+    let s = '';
+    if (this.ch() === '-') { s += '-'; this.advance(); }
+    while (/\d/.test(this.ch())) { s += this.ch(); this.advance(); }
+    if (this.ch() === '.') { s += '.'; this.advance(); while (/\d/.test(this.ch())) { s += this.ch(); this.advance(); } }
+    if (/[eE]/.test(this.ch())) {
+      s += this.ch(); this.advance();
+      if (/[+\-]/.test(this.ch())) { s += this.ch(); this.advance(); }
+      while (/\d/.test(this.ch())) { s += this.ch(); this.advance(); }
+    }
+    return { type: TokenType.NUMBER, value: s, line, col };
+  }
+
+  private readWord(line: number, col: number): Token {
+    let s = '';
+    // µm/pixel needs special handling — read ident chars including µ and /
+    while (/[a-zA-Z0-9_µ/]/.test(this.ch())) { s += this.ch(); this.advance(); }
+    const kw = KEYWORDS[s];
+    if (kw !== undefined) return { type: kw, value: s, line, col };
+    if (UNITS.has(s)) return { type: TokenType.UNIT, value: s, line, col };
+    return { type: TokenType.IDENT, value: s, line, col };
   }
 }

@@ -11,6 +11,7 @@ import { compileScope } from '@/lib/scope-compiler';
 import { executeReal } from '@/lib/scope-runtime/real-executor';
 import { getScopeExample } from '@/lib/scope-examples';
 import AnalysisEditor from '@/components/analysis/AnalysisEditor';
+import { EntropyBarChart, MeasurementChart } from './ScopeIDECharts';
 
 const theme = {
   titlebar: '#3c3c3c',
@@ -343,8 +344,10 @@ function OutputColumn({ compiled, logs, onRun, onClear, outputTab, setOutputTab,
   const tabs = [
     { id: 'console', label: 'Execution Log', Icon: TerminalIcon },
     { id: 'image', label: 'Visualization', Icon: Eye },
-    { id: 'charts', label: 'Charts', Icon: Blocks },
+    { id: 'entropy', label: 'S-Entropy', Icon: Blocks },
     { id: 'measurements', label: 'Measurements', Icon: Code2 },
+    { id: 'quality', label: 'Quality Metrics', Icon: Blocks },
+    { id: 'spectral', label: 'Spectral Data', Icon: Blocks },
     { id: 'compiled', label: 'Compiled IR', Icon: Code2 },
   ];
 
@@ -438,92 +441,68 @@ function OutputColumn({ compiled, logs, onRun, onClear, outputTab, setOutputTab,
             />
           </div>
         )}
-        {tab === 'charts' && chartData?.entropyChart && (
+        {tab === 'entropy' && chartData?.entropyChart && (
           <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
             <div className="mb-6">
               <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>S-Entropy Evolution</h3>
-              <svg width="100%" height="300" style={{ background: theme.tabInactive, borderRadius: '4px' }}>
-                {chartData.entropyChart.phases.map((phase: any, idx: number) => {
-                  const width = 400;
-                  const height = 250;
-                  const x = 40 + (idx * width / chartData.entropyChart.phases.length);
-                  const margin = 20;
-                  const scale = (height - margin) / 1.0;
-
-                  return (
-                    <g key={idx}>
-                      {/* S_k bar */}
-                      <rect
-                        x={x}
-                        y={height - phase.S_k * scale}
-                        width="8"
-                        height={phase.S_k * scale}
-                        fill="#4299e1"
-                      />
-                      {/* S_t bar */}
-                      <rect
-                        x={x + 10}
-                        y={height - phase.S_t * scale}
-                        width="8"
-                        height={phase.S_t * scale}
-                        fill="#f6ad55"
-                      />
-                      {/* S_e bar */}
-                      <rect
-                        x={x + 20}
-                        y={height - phase.S_e * scale}
-                        width="8"
-                        height={phase.S_e * scale}
-                        fill="#fc8181"
-                      />
-                      {/* Label */}
-                      <text
-                        x={x + 12}
-                        y={height + 20}
-                        fontSize="10"
-                        fill={theme.editorFg}
-                        textAnchor="middle"
-                      >
-                        {phase.phase}
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-              <div className="mt-3 flex gap-4 text-sm" style={{ color: theme.editorFg }}>
-                <span className="flex items-center gap-1">
-                  <span style={{ width: '12px', height: '12px', background: '#4299e1' }}></span>
-                  S_k
-                </span>
-                <span className="flex items-center gap-1">
-                  <span style={{ width: '12px', height: '12px', background: '#f6ad55' }}></span>
-                  S_t
-                </span>
-                <span className="flex items-center gap-1">
-                  <span style={{ width: '12px', height: '12px', background: '#fc8181' }}></span>
-                  S_e
-                </span>
+              <EntropyBarChart phases={chartData.entropyChart.phases} />
+            </div>
+          </div>
+        )}
+        {tab === 'quality' && chartData?.qualityMetrics && (
+          <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
+            <div className="mb-6">
+              <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>Quality Metrics</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded" style={{ background: theme.tabInactive }}>
+                  <div className="text-sm opacity-75" style={{ color: theme.editorFg }}>Sharpness</div>
+                  <div className="text-2xl font-bold text-blue-400">{(chartData.qualityMetrics.sharpness * 100).toFixed(1)}%</div>
+                </div>
+                <div className="p-4 rounded" style={{ background: theme.tabInactive }}>
+                  <div className="text-sm opacity-75" style={{ color: theme.editorFg }}>Noise</div>
+                  <div className="text-2xl font-bold text-yellow-400">{(chartData.qualityMetrics.noise * 100).toFixed(1)}%</div>
+                </div>
+                <div className="p-4 rounded" style={{ background: theme.tabInactive }}>
+                  <div className="text-sm opacity-75" style={{ color: theme.editorFg }}>Coherence</div>
+                  <div className="text-2xl font-bold text-green-400">{(chartData.qualityMetrics.coherence * 100).toFixed(1)}%</div>
+                </div>
+                <div className="p-4 rounded" style={{ background: theme.tabInactive }}>
+                  <div className="text-sm opacity-75" style={{ color: theme.editorFg }}>Visibility</div>
+                  <div className="text-2xl font-bold text-purple-400">{(chartData.qualityMetrics.visibility * 100).toFixed(1)}%</div>
+                </div>
               </div>
             </div>
           </div>
         )}
+        {tab === 'spectral' && chartData?.spectralData && (
+          <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
+            <div className="mb-6">
+              <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>Spectral Decomposition</h3>
+              <svg width="100%" height="300" style={{ background: theme.tabInactive, borderRadius: '4px' }}>
+                {chartData.spectralData.wavelengths.map((wl: number, idx: number) => {
+                  const intensity = chartData.spectralData.intensities[idx];
+                  const x = 50 + (idx * 120);
+                  const barHeight = intensity * 200;
+                  const colors = ['#4a90e2', '#50c878', '#ffd700', '#ff6b6b'];
+                  return (
+                    <g key={idx}>
+                      <rect x={x} y={250 - barHeight} width="80" height={barHeight} fill={colors[idx]} opacity="0.8" rx="4" />
+                      <text x={x + 40} y="280" fontSize="12" fill={theme.editorFg} textAnchor="middle">{wl}nm</text>
+                      <text x={x + 40} y={230 - barHeight} fontSize="11" fill={colors[idx]} textAnchor="middle" fontWeight="bold">{(intensity * 100).toFixed(0)}%</text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          </div>
+        )}
         {tab === 'measurements' && chartData?.measurementChart && (
-          <div className="h-full overflow-auto p-4" style={{ background: theme.editor, color: theme.editorFg }}>
-            <h3 className="text-lg font-bold mb-3">{chartData.measurementChart.title}</h3>
+          <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
+            <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>{chartData.measurementChart.title}</h3>
             {chartData.measurementChart.measurements.length > 0 ? (
-              <div className="space-y-3">
-                {chartData.measurementChart.measurements.map((m: any, idx: number) => (
-                  <div key={idx} className="p-3 rounded" style={{ background: theme.tabInactive }}>
-                    <div className="font-mono text-sm mb-2">{m.label}</div>
-                    <div className="flex justify-between">
-                      <span className="text-green-400">Distance: {m.distance_um.toFixed(1)} µm</span>
-                      <span className="text-yellow-400">±{m.uncertainty_um.toFixed(2)} µm</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <MeasurementChart measurements={chartData.measurementChart.measurements} />
             ) : (
-              <div className="text-gray-500">No measurements in this program</div>
+              <div style={{ color: theme.editorFg, opacity: 0.6 }}>No measurements in this program</div>
             )}
           </div>
         )}
@@ -544,7 +523,7 @@ export default function ScopeIDEMain() {
 
   const [compiled, setCompiled] = useState('');
   const [logs, setLogs] = useState([]);
-  const [outputTab, setOutputTab] = useState<'logs' | 'image'>('logs');
+  const [outputTab, setOutputTab] = useState<'console' | 'image' | 'entropy' | 'measurements' | 'quality' | 'spectral' | 'compiled'>('console');
   const [visualizationData, setVisualizationData] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -566,33 +545,32 @@ export default function ScopeIDEMain() {
       log('Compiling SCOPE program...');
       const compiledProgram = compileScope(activeNode.content);
 
-      if (!compiledProgram.success) {
+      if (!compiledProgram.ok) {
         log('❌ Compilation failed:');
         compiledProgram.errors.forEach((err) => {
-          log(`  ${err}`);
+          log(`  ${err.kind}: ${(err as any).message || JSON.stringify(err)}`);
         });
         setLogs(newLogs);
         return;
       }
 
       log('✓ Compilation successful');
-      log(`Program: ${compiledProgram.name}`);
-      log(`Morphisms: ${compiledProgram.ir?.morphisms?.length || 0}`);
-      log(`Channels: ${compiledProgram.ir?.channels?.cells?.length || 0} cells`);
+      log(`Program: ${compiledProgram.program?.name ?? '(unknown)'}`);
+      log(`Morphisms: ${compiledProgram.program?.morphisms?.length || 0}`);
 
       if (compiledProgram.warnings.length > 0) {
         log('⚠ Warnings:');
         compiledProgram.warnings.forEach((warn) => {
-          log(`  ${warn}`);
+          log(`  ${warn.kind}`);
         });
       }
 
-      setCompiled(JSON.stringify(compiledProgram.ir, null, 2));
+      setCompiled(JSON.stringify(compiledProgram.program, null, 2));
 
       log('');
       log('Executing SCOPE program...');
 
-      executeReal(compiledProgram.ir).then((result) => {
+      executeReal(compiledProgram.program as any).then((result) => {
         if (result.success) {
           result.logs.forEach((l) => log(l));
 
