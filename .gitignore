@@ -569,3 +569,4 @@ hieronymus/.next/
 hieronymus/public/datasets/**/*.tif
 hieronymus/public/datasets/**/*.tiff
 hieronymus/public/datasets/**/*.ome.tif
+.hieronymus/publicpublic/datasets/3500001004_100X_20170623_5-Scene-1-P24-E06.ome.tiff

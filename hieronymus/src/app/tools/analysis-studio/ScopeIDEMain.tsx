@@ -8,7 +8,7 @@ import {
   Eye, Code2, Trash2, RefreshCw,
 } from 'lucide-react';
 import { compileScope } from '@/lib/scope-compiler';
-import { executeMinimal } from '@/lib/scope-runtime/minimal-executor';
+import { executeReal } from '@/lib/scope-runtime/real-executor';
 import { getScopeExample } from '@/lib/scope-examples';
 import AnalysisEditor from '@/components/analysis/AnalysisEditor';
 
@@ -439,23 +439,70 @@ function OutputColumn({ compiled, logs, onRun, onClear, outputTab, setOutputTab,
           </div>
         )}
         {tab === 'charts' && chartData?.entropyChart && (
-          <div className="h-full overflow-auto p-4" style={{ background: theme.editor, color: theme.editorFg }}>
+          <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
             <div className="mb-6">
-              <h3 className="text-lg font-bold mb-3">{chartData.entropyChart.title}</h3>
-              <div className="flex gap-4">
-                {chartData.entropyChart.phases.map((phase: any, idx: number) => (
-                  <div key={idx} className="flex flex-col gap-1 p-3 rounded" style={{ background: theme.tabInactive }}>
-                    <div className="text-sm font-mono opacity-75">{phase.phase}</div>
-                    <div className="text-xl font-bold text-blue-400">S_k: {phase.S_k.toFixed(3)}</div>
-                    <div className="text-xl font-bold text-yellow-400">S_t: {phase.S_t.toFixed(3)}</div>
-                    <div className="text-xl font-bold text-orange-400">S_e: {phase.S_e.toFixed(3)}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 text-sm opacity-75">
-                Sum: {(chartData.entropyChart.phases[chartData.entropyChart.phases.length - 1].S_k +
-                        chartData.entropyChart.phases[chartData.entropyChart.phases.length - 1].S_t +
-                        chartData.entropyChart.phases[chartData.entropyChart.phases.length - 1].S_e).toFixed(3)} ✓
+              <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>S-Entropy Evolution</h3>
+              <svg width="100%" height="300" style={{ background: theme.tabInactive, borderRadius: '4px' }}>
+                {chartData.entropyChart.phases.map((phase: any, idx: number) => {
+                  const width = 400;
+                  const height = 250;
+                  const x = 40 + (idx * width / chartData.entropyChart.phases.length);
+                  const margin = 20;
+                  const scale = (height - margin) / 1.0;
+
+                  return (
+                    <g key={idx}>
+                      {/* S_k bar */}
+                      <rect
+                        x={x}
+                        y={height - phase.S_k * scale}
+                        width="8"
+                        height={phase.S_k * scale}
+                        fill="#4299e1"
+                      />
+                      {/* S_t bar */}
+                      <rect
+                        x={x + 10}
+                        y={height - phase.S_t * scale}
+                        width="8"
+                        height={phase.S_t * scale}
+                        fill="#f6ad55"
+                      />
+                      {/* S_e bar */}
+                      <rect
+                        x={x + 20}
+                        y={height - phase.S_e * scale}
+                        width="8"
+                        height={phase.S_e * scale}
+                        fill="#fc8181"
+                      />
+                      {/* Label */}
+                      <text
+                        x={x + 12}
+                        y={height + 20}
+                        fontSize="10"
+                        fill={theme.editorFg}
+                        textAnchor="middle"
+                      >
+                        {phase.phase}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+              <div className="mt-3 flex gap-4 text-sm" style={{ color: theme.editorFg }}>
+                <span className="flex items-center gap-1">
+                  <span style={{ width: '12px', height: '12px', background: '#4299e1' }}></span>
+                  S_k
+                </span>
+                <span className="flex items-center gap-1">
+                  <span style={{ width: '12px', height: '12px', background: '#f6ad55' }}></span>
+                  S_t
+                </span>
+                <span className="flex items-center gap-1">
+                  <span style={{ width: '12px', height: '12px', background: '#fc8181' }}></span>
+                  S_e
+                </span>
               </div>
             </div>
           </div>
@@ -545,7 +592,7 @@ export default function ScopeIDEMain() {
       log('');
       log('Executing SCOPE program...');
 
-      executeMinimal(compiledProgram.ir).then((result) => {
+      executeReal(compiledProgram.ir).then((result) => {
         if (result.success) {
           result.logs.forEach((l) => log(l));
 
