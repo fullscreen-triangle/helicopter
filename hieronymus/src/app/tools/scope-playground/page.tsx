@@ -13,6 +13,10 @@ import ScaleHistogram from './components/charts/ScaleHistogram';
 import EntropySphere from './components/threed/EntropySphere';
 import DistanceTube from './components/threed/DistanceTube';
 import ScaleFieldSurface from './components/threed/ScaleFieldSurface';
+import PointCloud from './components/threed/PointCloud';
+
+// ── Image payload (preloaded before any Run) ──────────────────────────────────
+interface ImagePayload { data: Float32Array; width: number; height: number; synthetic?: boolean; }
 
 // ── State ────────────────────────────────────────────────────────────────────
 
@@ -60,10 +64,10 @@ const INITIAL: State = {
   result: null,
   log: [],
   error: null,
-  activeTab: 'dataset',
-  activeVisMode: 'geodesic',
+  activeTab: 'visualise',   // open on the image viewer by default
+  activeVisMode: 'raw_image',
   activeChartMode: 'spectral_power',
-  active3DMode: 'scale_field',
+  active3DMode: 'point_cloud',
 };
 
 // ── Main page ────────────────────────────────────────────────────────────────
@@ -71,7 +75,31 @@ const INITIAL: State = {
 export default function ScopePlayground() {
   const [state, dispatch] = useReducer(reducer, INITIAL);
   const [examplesOpen, setExamplesOpen] = useState(false);
+  const [preloadImage, setPreloadImage] = useState<ImagePayload | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // ── Preload the first example's image as soon as the page mounts ─────────────
+  // This ensures the user always sees real cell imagery before pressing Run.
+  useEffect(() => {
+    async function loadPreview() {
+      try {
+        const params = new URLSearchParams({ db: 'BBBC', dataset: 'BBBC007', image: 'A9 p10d.tif' });
+        const res = await fetch(`/api/image-proxy?${params}`);
+        const json = await res.json();
+        if (!json.error) {
+          setPreloadImage({
+            data: new Float32Array(json.data as number[]),
+            width: json.width as number,
+            height: json.height as number,
+            synthetic: json.synthetic ?? false,
+          });
+        }
+      } catch {
+        // leave preloadImage null — Canvas2D will show the no-data placeholder
+      }
+    }
+    loadPreview();
+  }, []);
 
   const run = useCallback(async () => {
     dispatch({ type: 'RUN_START' });
@@ -91,7 +119,7 @@ export default function ScopePlayground() {
       const firstLoad = program.morphisms.find(
         m => m.expr.observe.frame.kind === 'LoadRef'
       )?.expr.observe.frame;
-      let imagePayload: { data: Float32Array; width: number; height: number };
+      let imagePayload: ImagePayload;
 
       if (firstLoad?.kind === 'LoadRef') {
         const params = new URLSearchParams({
@@ -108,9 +136,12 @@ export default function ScopePlayground() {
           data: new Float32Array(raw),
           width: json.width as number,
           height: json.height as number,
+          synthetic: json.synthetic ?? false,
         };
         if (json.synthetic) log.push(`[FETCH]    ⚠ using synthetic fallback image`);
-        else log.push(`[FETCH]    ${json.width}×${json.height} pixels loaded`);
+        else log.push(`[FETCH]    ${json.width}×${json.height} pixels loaded (local)`);
+        // Update preload so the visualise tab shows this image immediately
+        setPreloadImage(imagePayload);
       } else {
         // No load() — generate synthetic
         const W = 256, H = 256;
@@ -120,7 +151,7 @@ export default function ScopePlayground() {
           data[y*W+x] = Math.max(0, Math.min(1,
             0.05 + 0.9*Math.exp(-d1/1250) + 0.9*Math.exp(-d2/968)));
         }
-        imagePayload = { data, width: W, height: H };
+        imagePayload = { data, width: W, height: H, synthetic: true };
         log.push(`[FETCH]    synthetic 256×256 image`);
       }
 
@@ -266,7 +297,7 @@ export default function ScopePlayground() {
           <div className="flex-1 overflow-auto p-3">
 
             {activeTab === 'dataset' && (
-              <DatasetTab />
+              <DatasetTab preloadImage={preloadImage} />
             )}
 
             {activeTab === 'visualise' && (
@@ -274,6 +305,7 @@ export default function ScopePlayground() {
                 result={result}
                 mode={state.activeVisMode}
                 onMode={m => dispatch({ type: 'SET_VIS', mode: m })}
+                preloadImage={preloadImage}
               />
             )}
 
@@ -290,6 +322,7 @@ export default function ScopePlayground() {
                 result={result}
                 mode={state.active3DMode}
                 onMode={m => dispatch({ type: 'SET_3D', mode: m })}
+                preloadImage={preloadImage}
               />
             )}
           </div>
@@ -340,38 +373,102 @@ export default function ScopePlayground() {
 
 // ── Sub-tabs ─────────────────────────────────────────────────────────────────
 
-function DatasetTab() {
-  const datasets = [
-    { id: 'BBBC039', label: 'BBBC039 — HeLa cells (Hoechst + Actin)', res: '0.1 µm/px', size: '1024×1024', ch: 'DAPI, Actin' },
-    { id: 'BBBC006', label: 'BBBC006 — CHO cells (Tubulin)',          res: '0.063 µm/px', size: '696×520',   ch: 'Tubulin' },
-    { id: 'BBBC008', label: 'BBBC008 — Drosophila (GFP + DAPI)',      res: '0.08 µm/px',  size: '1024×1024', ch: 'GFP, DAPI' },
-    { id: 'AllenCell', label: 'Allen Cell — 3D structures',           res: '0.065 µm/px', size: '1×z-stack', ch: 'GFP, DAPI' },
-    { id: 'IDR',      label: 'IDR — Time-lapse',                      res: '0.1 µm/px',   size: 'varies',    ch: 'GFP, DAPI, RFP' },
-    { id: 'OpenCell', label: 'OpenCell — Protein localisation',       res: '0.08 µm/px',  size: '1024×1024', ch: 'GFP, DAPI' },
+// Thumbnail canvas — renders a grayscale preview of an ImagePayload
+function ThumbnailCanvas({ img }: { img: ImagePayload }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const { data, width, height } = img;
+    canvas.width  = width;
+    canvas.height = height;
+    const id = ctx.createImageData(width, height);
+    for (let i = 0; i < width * height; i++) {
+      const v = Math.round(Math.max(0, Math.min(1, data[i])) * 255);
+      id.data[i * 4 + 0] = v;
+      id.data[i * 4 + 1] = v;
+      id.data[i * 4 + 2] = v;
+      id.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(id, 0, 0);
+  }, [img]);
+  return (
+    <canvas
+      ref={canvasRef}
+      className="w-full rounded border border-[#3a3a3a]"
+      style={{ imageRendering: 'pixelated', maxHeight: 200 }}
+    />
+  );
+}
+
+interface DatasetTabProps { preloadImage: ImagePayload | null; }
+
+function DatasetTab({ preloadImage }: DatasetTabProps) {
+  const LOCAL_IMAGES = [
+    { dataset: 'BBBC007', image: 'A9 p10d.tif',  label: 'A9 p10 — DAPI',           res: '0.1 µm/px' },
+    { dataset: 'BBBC007', image: 'A9 p10f.tif',  label: 'A9 p10 — Fluorescence',    res: '0.1 µm/px' },
+    { dataset: 'BBBC007', image: 'A9 p9d.tif',   label: 'A9 p9 — DAPI',            res: '0.1 µm/px' },
+    { dataset: 'BBBC007', image: 'A9 p7d.tif',   label: 'A9 p7 — DAPI',            res: '0.1 µm/px' },
+    { dataset: 'BBBC007', image: 'A9 p5d.tif',   label: 'A9 p5 — DAPI',            res: '0.1 µm/px' },
+    { dataset: 'BBBC007', image: '17P1_POS0006_D_1UL.tif', label: 'f96 POS0006 — DAPI', res: '0.08 µm/px' },
+    { dataset: 'BBBC007', image: '17P1_POS0006_F_2UL.tif', label: 'f96 POS0006 — GFP',  res: '0.08 µm/px' },
+    { dataset: 'BBBC007', image: '20P1_POS0002_D_1UL.tif', label: 'f9620 POS0002 — DAPI', res: '0.08 µm/px' },
+    { dataset: 'BBBC007', image: 'AS_09125_040701150004_A02f00d0.tif', label: 'f113 A02 — DAPI', res: '0.08 µm/px' },
+    { dataset: 'BBBC007', image: 'AS_09125_040701150004_A02f00d1.tif', label: 'f113 A02 — GFP',  res: '0.08 µm/px' },
+    { dataset: 'AICS',    image: 'AICS-24_515.ome.tif', label: 'AICS-24_515 — OME-TIFF', res: '0.065 µm/px' },
   ];
-  const [sel, setSel] = useState('BBBC039');
-  const info = datasets.find(d => d.id === sel)!;
+
+  const [sel, setSel] = useState(0);
+  const [thumb, setThumb] = useState<ImagePayload | null>(preloadImage);
+  const [loading, setLoading] = useState(false);
+
+  // On selection change, fetch the chosen image
+  useEffect(() => {
+    if (sel === 0 && preloadImage) { setThumb(preloadImage); return; }
+    const entry = LOCAL_IMAGES[sel];
+    setLoading(true);
+    fetch(`/api/image-proxy?db=BBBC&dataset=${entry.dataset}&image=${encodeURIComponent(entry.image)}`)
+      .then(r => r.json())
+      .then(json => {
+        if (!json.error) setThumb({ data: new Float32Array(json.data), width: json.width, height: json.height });
+      })
+      .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sel]);
+
+  // If preloadImage arrives late for slot 0, accept it
+  useEffect(() => { if (preloadImage && sel === 0) setThumb(preloadImage); }, [preloadImage, sel]);
+
+  const entry = LOCAL_IMAGES[sel];
 
   return (
     <div className="space-y-3 text-xs">
-      <div className="space-y-1">
-        {datasets.map(d => (
-          <button key={d.id} onClick={() => setSel(d.id)}
-            className={`w-full text-left px-3 py-2 rounded ${sel === d.id ? 'bg-[#37373d] border border-[#007acc]' : 'hover:bg-[#2a2a2a]'}`}>
-            {d.label}
+      <div className="grid grid-cols-2 gap-1">
+        {LOCAL_IMAGES.map((d, i) => (
+          <button key={i} onClick={() => setSel(i)}
+            className={`text-left px-2 py-1.5 rounded text-[0.7rem] leading-tight ${
+              sel === i ? 'bg-[#37373d] border border-[#007acc] text-white' : 'hover:bg-[#2a2a2a] text-[#858585]'}`}>
+            <div className="text-[#4ec9b0] truncate">{d.label}</div>
+            <div>{d.dataset} · {d.res}</div>
           </button>
         ))}
       </div>
-      <div className="border border-[#3a3a3a] rounded p-3 space-y-1 text-[#858585]">
-        <div><span className="text-[#d4d4d4]">Selected: </span>{info.id}</div>
-        <div><span className="text-[#d4d4d4]">Resolution: </span>{info.res}</div>
-        <div><span className="text-[#d4d4d4]">Size: </span>{info.size}</div>
-        <div><span className="text-[#d4d4d4]">Channels: </span>{info.ch}</div>
-      </div>
-      <p className="text-[#555] leading-relaxed">
-        Images are fetched at runtime via <code className="text-[#4ec9b0]">/api/image-proxy</code>.
-        If the database is unreachable, a synthetic 256×256 two-nucleus image is used as fallback.
-      </p>
+
+      {loading && <div className="text-[#555] text-center py-4">Loading…</div>}
+      {!loading && thumb && (
+        <div className="space-y-1">
+          <div className="text-[#858585]">
+            {entry.dataset}/{entry.image} — {thumb.width}×{thumb.height}px
+            {thumb.synthetic && <span className="ml-2 text-[#ffa500]">(synthetic fallback)</span>}
+          </div>
+          <ThumbnailCanvas img={thumb} />
+        </div>
+      )}
+      {!loading && !thumb && (
+        <div className="text-[#555] py-8 text-center">Loading cell image…</div>
+      )}
     </div>
   );
 }
@@ -380,8 +477,9 @@ const VIS_MODES = ['raw_image','scale_field','segmentation','distance_map','geod
 const CHART_MODES = ['spectral_power','entropy_trajectory','uncertainty_bar','scale_histogram','channel_capacity'] as const;
 const SCENE_MODES = ['scale_field','point_cloud','entropy_sphere','distance_tube','partition_tree'] as const;
 
-function VisualiseTab({ result, mode, onMode }: {
+function VisualiseTab({ result, mode, onMode, preloadImage }: {
   result: ScopeResult | null; mode: string; onMode: (m: string) => void;
+  preloadImage: ImagePayload | null;
 }) {
   return (
     <div className="space-y-2">
@@ -393,7 +491,7 @@ function VisualiseTab({ result, mode, onMode }: {
           </button>
         ))}
       </div>
-      <Canvas2D result={result} mode={mode} />
+      <Canvas2D result={result} mode={mode} preloadImage={preloadImage} />
     </div>
   );
 }
@@ -421,27 +519,52 @@ function ChartsTab({ result, mode, onMode }: {
   );
 }
 
-function ThreeDTab({ result, mode, onMode }: {
+function ThreeDTab({ result, mode, onMode, preloadImage }: {
   result: ScopeResult | null; mode: string; onMode: (m: string) => void;
+  preloadImage: ImagePayload | null;
 }) {
+  // Resolve the image to display: result's raw image > preload > null
+  const imgData   = result?.visualData?.rawImage ?? preloadImage?.data ?? null;
+  const imgWidth  = result?.visualData?.width    ?? preloadImage?.width  ?? 0;
+  const imgHeight = result?.visualData?.height   ?? preloadImage?.height ?? 0;
+  const scaleField = result?.visualData?.scaleField ?? null;
+  const segMask    = result?.visualData?.segmentationMask ?? null;
+
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-1">
         {SCENE_MODES.map(m => (
           <button key={m} onClick={() => onMode(m)}
             className={`px-2 py-0.5 text-xs rounded ${mode === m ? 'bg-[#007acc] text-white' : 'bg-[#2d2d2d] hover:bg-[#37373d]'}`}>
-            {m.replace('_', ' ')}
+            {m.replace(/_/g, ' ')}
           </button>
         ))}
       </div>
-      {!result && <div className="text-[#555] text-xs py-8 text-center">Run a program to see 3D visualisation.</div>}
-      {result && mode === 'scale_field'    && <ScaleFieldSurface result={result} />}
-      {result && mode === 'entropy_sphere' && <EntropySphere sk={result.sEntropy.sk} st={result.sEntropy.st} se={result.sEntropy.se} />}
-      {result && mode === 'distance_tube'  && <DistanceTube result={result} />}
-      {result && (mode === 'point_cloud' || mode === 'partition_tree') && (
-        <div className="text-[#555] text-xs py-4 text-center">
-          {mode === 'point_cloud' ? 'Point cloud — switch to Scale Field or Distance Tube.' : 'Partition tree — coming in a later example.'}
-        </div>
+
+      {/* point_cloud — always shows cells as soon as preload arrives */}
+      {mode === 'point_cloud' && imgData && (
+        <PointCloud
+          imageData={imgData}
+          width={imgWidth}
+          height={imgHeight}
+          scaleField={scaleField}
+          segMask={segMask}
+          pixelSizeµm={0.1}
+          zScale={5}
+        />
+      )}
+      {mode === 'point_cloud' && !imgData && (
+        <div className="text-[#555] text-xs py-8 text-center">Loading cell image…</div>
+      )}
+
+      {mode === 'scale_field'    && result && <ScaleFieldSurface result={result} />}
+      {mode === 'scale_field'    && !result && <div className="text-[#555] text-xs py-8 text-center">Run a program to see the scale field surface.</div>}
+      {mode === 'entropy_sphere' && result && <EntropySphere sk={result.sEntropy.sk} st={result.sEntropy.st} se={result.sEntropy.se} />}
+      {mode === 'entropy_sphere' && !result && <div className="text-[#555] text-xs py-8 text-center">Run a program to see the entropy sphere.</div>}
+      {mode === 'distance_tube'  && result && <DistanceTube result={result} />}
+      {mode === 'distance_tube'  && !result && <div className="text-[#555] text-xs py-8 text-center">Run a program to see the distance tube.</div>}
+      {mode === 'partition_tree' && (
+        <div className="text-[#555] text-xs py-4 text-center">Partition tree (n,ℓ,m,s) graph — coming in Phase 5.</div>
       )}
     </div>
   );

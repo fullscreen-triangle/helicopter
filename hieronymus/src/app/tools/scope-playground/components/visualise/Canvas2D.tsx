@@ -6,6 +6,7 @@ import type { ScopeResult } from '@/lib/scope-runtime/runtime';
 interface Props {
   result: ScopeResult | null;
   mode: string;
+  preloadImage?: { data: Float32Array; width: number; height: number } | null;
 }
 
 const VIRIDIS: [number, number, number][] = [
@@ -21,7 +22,7 @@ function viridis(t: number): [number, number, number] {
   return [a[0] + f * (b[0] - a[0]), a[1] + f * (b[1] - a[1]), a[2] + f * (b[2] - a[2])];
 }
 
-export default function Canvas2D({ result, mode }: Props) {
+export default function Canvas2D({ result, mode, preloadImage }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -31,12 +32,20 @@ export default function Canvas2D({ result, mode }: Props) {
     if (!ctx) return;
 
     if (!result) {
-      ctx.fillStyle = '#1e1e1e';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#555';
-      ctx.font = '13px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('No result — run a program first.', canvas.width / 2, canvas.height / 2);
+      // Show preloaded cell image for raw_image mode, dark placeholder otherwise
+      if ((mode === 'raw_image' || mode === 'overlay') && preloadImage) {
+        const { data, width, height } = preloadImage;
+        canvas.width  = width;
+        canvas.height = height;
+        drawRaw(ctx, data, width, height);
+      } else {
+        ctx.fillStyle = '#1e1e1e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#555';
+        ctx.font = '13px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Run a program to see this view.', canvas.width / 2, canvas.height / 2);
+      }
       return;
     }
 
@@ -67,7 +76,7 @@ export default function Canvas2D({ result, mode }: Props) {
       if (visualData.segmentationContour) drawContour(ctx, visualData.segmentationContour, W, H);
       if (visualData.geodesicPath) drawGeodesic(ctx, visualData.geodesicPath);
     }
-  }, [result, mode]);
+  }, [result, mode, preloadImage]);
 
   return (
     <div className="flex flex-col items-center gap-2">
