@@ -54,19 +54,24 @@ export async function executeReal(plan: ExecutionPlan): Promise<ObservationResul
   const { field_width_um, field_height_um, depth } = plan.coordinate_space;
 
   // Detect what this program does
-  const hasMeasureDistance = plan.morphisms?.some((m) =>
-    m.steps?.some((s) => s.type === 'measure')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const hasMeasureDistance = (plan as any).morphisms?.some((m: any) =>
+    m.steps?.some((s: any) => s.type === 'measure')
   ) ?? false;
-  const hasCatalyze = plan.morphisms?.some((m) =>
-    m.steps?.some((s) => s.type === 'catalyze')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const hasCatalyze = (plan as any).morphisms?.some((m: any) =>
+    m.steps?.some((s: any) => s.type === 'catalyze')
   ) ?? false;
-  const hasAccess = plan.morphisms?.some((m) =>
-    m.steps?.some((s) => s.type === 'access')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const hasAccess = (plan as any).morphisms?.some((m: any) =>
+    m.steps?.some((s: any) => s.type === 'access')
   ) ?? false;
-  const hasFuse = plan.morphisms?.some((m) =>
-    m.steps?.some((s) => s.type === 'fuse')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const hasFuse = (plan as any).morphisms?.some((m: any) =>
+    m.steps?.some((s: any) => s.type === 'fuse')
   ) ?? false;
-  const catalyzeCount = plan.morphisms?.flatMap(m => m.steps || []).filter(s => s.type === 'catalyze').length || 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const catalyzeCount = (plan as any).morphisms?.flatMap((m: any) => m.steps || []).filter((s: any) => s.type === 'catalyze').length || 0;
 
   logs.push('Phase 1 COMPILE: trajectory accumulation');
   const trajectory = Array.from({ length: 100 }, (_, i) => ({

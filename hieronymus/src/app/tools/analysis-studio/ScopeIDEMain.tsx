@@ -47,17 +47,17 @@ const initialFiles = {
       'tutorial_01_hello.scope': {
         type: 'file',
         lang: 'scope',
-        content: getScopeExample('PROPHASE', 'synthetic'),
+        content: getScopeExample('ex1-nuclear-separation')?.source ?? '',
       },
       'tutorial_02_measurement.scope': {
         type: 'file',
         lang: 'scope',
-        content: getScopeExample('METAPHASE', 'synthetic'),
+        content: getScopeExample('ex3-confidence-threshold')?.source ?? '',
       },
       'tutorial_03_anaphase.scope': {
         type: 'file',
         lang: 'scope',
-        content: getScopeExample('ANAPHASE', 'synthetic'),
+        content: getScopeExample('ex5-anaphase')?.source ?? '',
       },
       'tutorial_03_nuclear_separation.scope': {
         type: 'file',
@@ -237,7 +237,8 @@ const getNode = (tree: any, path: string[]) => {
 };
 
 function Tree({ tree, path = [], depth = 0, expanded, toggle, activePath, openFile }: any) {
-  const entries = Object.entries(tree).sort((a, b) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const entries = (Object.entries(tree) as [string, any][]).sort((a, b) =>
     a[1].type !== b[1].type ? (a[1].type === 'folder' ? -1 : 1) : a[0].localeCompare(b[0])
   );
 

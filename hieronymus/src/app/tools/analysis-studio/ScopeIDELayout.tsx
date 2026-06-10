@@ -21,11 +21,7 @@ interface IDEProps {
 
 export default function ScopeIDELayout({ onCodeChange, onFileSelect, output, isExecuting }: IDEProps) {
   const [code, setCode] = useState<string>(() => {
-    try {
-      return getScopeExample('PROPHASE', 'synthetic');
-    } catch {
-      return '';
-    }
+    return getScopeExample('ex1-nuclear-separation')?.source ?? '';
   });
   const [selectedFile, setSelectedFile] = useState('examples/prophase.scope');
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['examples', 'datasets', '/']));
@@ -89,7 +85,7 @@ export default function ScopeIDELayout({ onCodeChange, onFileSelect, output, isE
     if (name.endsWith('.scope')) {
       setSelectedFile(path);
       // Load example code
-      const exampleCode = getScopeExample('PROPHASE', 'synthetic');
+      const exampleCode = getScopeExample('ex1-nuclear-separation')?.source ?? '';
       setCode(exampleCode);
       onFileSelect(path, exampleCode);
     }
