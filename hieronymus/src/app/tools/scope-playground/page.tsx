@@ -513,7 +513,7 @@ function ChartsTab({ result, mode, onMode }: {
       {result && mode === 'spectral_power'     && <SpectralPowerChart data={result.chartData.spectralPower} exponent={result.chartData.powerLawExponent} />}
       {result && mode === 'entropy_trajectory' && <EntropyTrajectoryChart data={result.chartData.entropyTrajectory} />}
       {result && mode === 'uncertainty_bar'    && <UncertaintyBar data={result.chartData.uncertaintyBar} />}
-      {result && mode === 'scale_histogram'    && <ScaleHistogram data={result.chartData.scaleHistogram} mean={result.chartData.powerLawExponent} />}
+      {result && mode === 'scale_histogram'    && <ScaleHistogram data={result.chartData.scaleHistogram} mean={result.chartData.alphaMean} />}
       {result && mode === 'channel_capacity'   && <SpectralPowerChart data={result.chartData.spectralPower} exponent={result.chartData.powerLawExponent} />}
     </div>
   );

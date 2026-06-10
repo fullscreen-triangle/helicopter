@@ -16,6 +16,7 @@ export interface EntropyPhasePoint  { phase: string; sk: number; st: number; se:
 export interface ChartData {
   spectralPower: SpectralPowerPoint[];
   powerLawExponent: number;
+  alphaMean: number;            // mean of α(x,y) scale field — for ScaleHistogram mean line
   scaleHistogram: ScaleHistogramBin[];
   entropyTrajectory: EntropyPhasePoint[];
   uncertaintyBar: { d: number; deltaD: number; goals: GoalStatus[] };

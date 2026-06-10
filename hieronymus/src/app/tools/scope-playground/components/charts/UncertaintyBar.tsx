@@ -12,6 +12,21 @@ export default function UncertaintyBar({ data }: Props) {
 
   useEffect(() => {
     if (!ref.current) return;
+
+    const { d, deltaD, goals } = data;
+
+    // No measurement ran — show placeholder
+    if (d === 0 && deltaD === 0 && goals.length === 0) {
+      const svg = d3.select(ref.current);
+      svg.selectAll('*').remove();
+      svg.attr('viewBox', '0 0 380 160');
+      svg.append('text')
+        .attr('x', '50%').attr('y', '50%').attr('text-anchor', 'middle')
+        .attr('fill', '#555').attr('font-size', 12)
+        .text('No distance measured — add a measure_distance() step');
+      return;
+    }
+
     const svg = d3.select(ref.current);
     svg.selectAll('*').remove();
 
@@ -23,30 +38,50 @@ export default function UncertaintyBar({ data }: Props) {
 
     svg.attr('viewBox', `0 0 ${W} ${H}`);
 
-    const { d, deltaD, goals } = data;
-    const maxY = Math.max(d + deltaD * 2, ...goals.map(g => g.threshold)) * 1.2;
+    // Guard: if d is 0 but goals exist, use goal threshold as reference scale
+    const refD = d > 0 ? d : (goals[0]?.threshold ?? 1);
+    const refDeltaD = deltaD > 0 ? deltaD : refD * 0.05;
+    const maxY = Math.max(refD + refDeltaD * 2, ...goals.map(g => g.threshold), 0.01) * 1.2;
 
     const x = d3.scaleBand().domain(['distance', 'δd']).range([0, iW]).padding(0.35);
     const y = d3.scaleLinear().domain([0, maxY]).range([iH, 0]);
 
     const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
 
+    // Background
+    g.append('rect').attr('width', iW).attr('height', iH).attr('fill', '#0d1117');
+
     g.append('g').call(d3.axisLeft(y).ticks(4).tickSize(-iW))
       .selectAll('line').attr('stroke', '#2a2a2a');
     g.selectAll('.domain').remove();
 
-    // Main distance bar
-    g.append('rect')
-      .attr('x', x('distance')!).attr('y', y(d))
-      .attr('width', x.bandwidth()).attr('height', iH - y(d))
-      .attr('fill', '#569cd6').attr('opacity', 0.8);
+    // Main distance bar — only draw if d > 0
+    if (d > 0) {
+      g.append('rect')
+        .attr('x', x('distance')!).attr('y', y(d))
+        .attr('width', x.bandwidth()).attr('height', iH - y(d))
+        .attr('fill', '#569cd6').attr('opacity', 0.8);
+      g.append('text').attr('x', x('distance')! + x.bandwidth() / 2).attr('y', y(d) - 4)
+        .attr('fill', '#d4d4d4').attr('font-size', 9).attr('text-anchor', 'middle')
+        .text(`${d.toFixed(3)} µm`);
+    } else {
+      g.append('text').attr('x', x('distance')! + x.bandwidth() / 2).attr('y', iH / 2)
+        .attr('fill', '#555').attr('font-size', 9).attr('text-anchor', 'middle').text('—');
+    }
 
-    // Error bar for δd
-    const bx = x('δd')! + x.bandwidth() / 2;
-    g.append('rect')
-      .attr('x', x('δd')!).attr('y', y(deltaD))
-      .attr('width', x.bandwidth()).attr('height', iH - y(deltaD))
-      .attr('fill', '#c586c0').attr('opacity', 0.8);
+    // Error bar — only draw if deltaD > 0
+    if (deltaD > 0) {
+      g.append('rect')
+        .attr('x', x('δd')!).attr('y', y(deltaD))
+        .attr('width', x.bandwidth()).attr('height', iH - y(deltaD))
+        .attr('fill', '#c586c0').attr('opacity', 0.8);
+      g.append('text').attr('x', x('δd')! + x.bandwidth() / 2).attr('y', y(deltaD) - 4)
+        .attr('fill', '#d4d4d4').attr('font-size', 9).attr('text-anchor', 'middle')
+        .text(`±${deltaD.toFixed(3)}`);
+    } else {
+      g.append('text').attr('x', x('δd')! + x.bandwidth() / 2).attr('y', iH / 2)
+        .attr('fill', '#555').attr('font-size', 9).attr('text-anchor', 'middle').text('—');
+    }
 
     // Goal threshold lines
     const colors = ['#4caf50', '#ffa500', '#f44336'];
@@ -65,14 +100,6 @@ export default function UncertaintyBar({ data }: Props) {
         .text(`goal: δd ${goal.op} ${goal.threshold}${goal.unit}`);
     });
 
-    // Value labels
-    g.append('text').attr('x', x('distance')! + x.bandwidth() / 2).attr('y', y(d) - 4)
-      .attr('fill', '#d4d4d4').attr('font-size', 9).attr('text-anchor', 'middle')
-      .text(`${d.toFixed(3)} µm`);
-    g.append('text').attr('x', x('δd')! + x.bandwidth() / 2).attr('y', y(deltaD) - 4)
-      .attr('fill', '#d4d4d4').attr('font-size', 9).attr('text-anchor', 'middle')
-      .text(`±${deltaD.toFixed(3)}`);
-
     // Axes
     g.append('g').attr('transform', `translate(0,${iH})`)
       .call(d3.axisBottom(x))
@@ -86,7 +113,7 @@ export default function UncertaintyBar({ data }: Props) {
   }, [data]);
 
   return (
-    <div className="bg-[#1e1e1e] border border-[#3a3a3a] rounded p-2">
+    <div className="bg-[#0d1117] border border-[#3a3a3a] rounded p-2">
       <div className="text-[#858585] text-xs mb-1">Distance ± Uncertainty vs Goal thresholds</div>
       <svg ref={ref} className="w-full" style={{ height: 160 }} />
     </div>

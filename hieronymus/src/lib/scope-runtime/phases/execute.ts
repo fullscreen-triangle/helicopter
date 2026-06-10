@@ -137,9 +137,12 @@ export function executePhase(
           contour: seg.contour,
         };
 
-        // Add to combined mask for visualisation
+        // Label each nucleus distinctly: nucleus_a / first-accessed → 1, second → 2
+        const accessedNames = Object.keys(accessed);
+        const labelIdx = accessedNames.indexOf(as.target);
+        const maskLabel = (labelIdx <= 0) ? 1 : 2;
         for (let i = 0; i < combinedMask.length; i++) {
-          if (seg.mask[i]) combinedMask[i] = 1;
+          if (seg.mask[i] && combinedMask[i] === 0) combinedMask[i] = maskLabel;
         }
         combinedContour.push(...seg.contour);
 

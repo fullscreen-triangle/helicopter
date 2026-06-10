@@ -54,6 +54,7 @@ export function emitPhase(
   const chartData: ChartData = {
     spectralPower: measure.spectralPower,
     powerLawExponent: measure.scaleField.powerLawExponent,
+    alphaMean: measure.scaleField.mean,
     scaleHistogram: measure.scaleHistogram,
     entropyTrajectory,
     uncertaintyBar: {
