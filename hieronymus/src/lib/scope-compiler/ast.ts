@@ -97,7 +97,8 @@ export interface VisualiseStep {
 export type VisMode =
   | 'scale_field' | 'segmentation' | 'distance_map' | 'geodesic'
   | 'point_cloud' | 'entropy_sphere' | 'partition_tree'
-  | 'spectral_power' | 'entropy_trajectory' | 'uncertainty_bar';
+  | 'spectral_power' | 'entropy_trajectory' | 'uncertainty_bar'
+  | 'scale_histogram';
 
 // ── dispatch ──────────────────────────────────────────────────────────────────
 

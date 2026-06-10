@@ -302,6 +302,7 @@ export class Parser {
       'scale_field', 'segmentation', 'distance_map', 'geodesic',
       'point_cloud', 'entropy_sphere', 'partition_tree',
       'spectral_power', 'entropy_trajectory', 'uncertainty_bar',
+      'scale_histogram',
     ];
     if (!(VALID_MODES as string[]).includes(raw)) {
       throw new ParseError(`Unknown visualise mode '${raw}'`, t.line, t.col);
