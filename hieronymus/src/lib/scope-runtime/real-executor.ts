@@ -48,30 +48,36 @@ export async function executeReal(plan: ExecutionPlan): Promise<ObservationResul
   const logs: string[] = [];
   const startTime = performance.now();
 
-  logs.push(`Program: ${plan.name}`);
+  // ── Normalise: accept both new AST (ScopeProgram) and old ExecutionPlan shape
+  // New AST uses camelCase; old executor expected snake_case.
+  const p = plan as any;
+  const cs = p.coordinateSpace ?? p.coordinate_space;
+  const field_width_um:  number = cs?.fieldX   ?? cs?.field_width_um  ?? 100;
+  const field_height_um: number = cs?.fieldY   ?? cs?.field_height_um ?? 100;
+  const depth:           number = cs?.depth    ?? 10;
+
+  logs.push(`Program: ${p.name}`);
   logs.push('');
 
-  const { field_width_um, field_height_um, depth } = plan.coordinate_space;
+  // Detect what this program does — works with new AST step kinds
+  const morphisms: any[] = p.morphisms ?? [];
+  const allSteps: any[] = morphisms.flatMap((m: any) => m.expr?.steps ?? m.steps ?? []);
 
-  // Detect what this program does
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hasMeasureDistance = (plan as any).morphisms?.some((m: any) =>
-    m.steps?.some((s: any) => s.type === 'measure')
-  ) ?? false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hasCatalyze = (plan as any).morphisms?.some((m: any) =>
-    m.steps?.some((s: any) => s.type === 'catalyze')
-  ) ?? false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hasAccess = (plan as any).morphisms?.some((m: any) =>
-    m.steps?.some((s: any) => s.type === 'access')
-  ) ?? false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hasFuse = (plan as any).morphisms?.some((m: any) =>
-    m.steps?.some((s: any) => s.type === 'fuse')
-  ) ?? false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const catalyzeCount = (plan as any).morphisms?.flatMap((m: any) => m.steps || []).filter((s: any) => s.type === 'catalyze').length || 0;
+  const hasMeasureDistance = allSteps.some((s: any) =>
+    s.kind === 'MeasureDistanceStep' || s.type === 'measure'
+  );
+  const hasCatalyze = allSteps.some((s: any) =>
+    s.kind === 'CatalyzeStep' || s.type === 'catalyze'
+  );
+  const hasAccess = allSteps.some((s: any) =>
+    s.kind === 'AccessStep' || s.type === 'access'
+  );
+  const hasFuse = allSteps.some((s: any) =>
+    s.kind === 'FuseStep' || s.type === 'fuse'
+  );
+  const catalyzeCount = allSteps.filter((s: any) =>
+    s.kind === 'CatalyzeStep' || s.type === 'catalyze'
+  ).length;
 
   logs.push('Phase 1 COMPILE: trajectory accumulation');
   const trajectory = Array.from({ length: 100 }, (_, i) => ({
@@ -82,9 +88,10 @@ export async function executeReal(plan: ExecutionPlan): Promise<ObservationResul
 
   logs.push('Phase 2 ASSIGN: trajectory classification');
   let cellMatch = 'METAPHASE';
-  const { sync, cells } = plan.channels;
-  if (sync && cells.length > 0) {
-    cellMatch = cells[0].id;
+  const channels = p.channels;
+  const cells = channels?.items?.filter((i: any) => i.kind === 'CellItem') ?? [];
+  if (cells.length > 0) {
+    cellMatch = cells[0].name ?? cells[0].id ?? 'METAPHASE';
     logs.push(`  Classified to cell: ${cellMatch}`);
   }
 
@@ -145,31 +152,61 @@ export async function executeReal(plan: ExecutionPlan): Promise<ObservationResul
   let result_uncertainty: number | undefined;
   let result_position = { x: field_width_um * 0.5, y: field_height_um * 0.5, z: 0 };
 
-  const programNameHash = plan.name.charCodeAt(0);
+  const programNameHash = p.name.charCodeAt(0);
   result_position.x = field_width_um * (0.3 + (programNameHash % 10) * 0.07);
   result_position.y = field_height_um * (0.4 + (programNameHash % 7) * 0.08);
 
   logs.push('Phase 4 EXECUTE: morphism chain');
-  if (plan.morphisms.length > 0) {
-    const chain = plan.morphisms[0];
-    logs.push(`  Chain: ${chain.id}`);
+  if (morphisms.length > 0) {
+    // Use the last declared morphism (or dispatch target) — mimic runtime.ts logic
+    let targetMorphism = morphisms[morphisms.length - 1];
+    if (p.dispatch?.rules?.length > 0) {
+      const rule = p.dispatch.rules.find((r: any) => r.cell === cellMatch);
+      if (rule?.action?.kind === 'ExecuteAction') {
+        const ref = rule.action.morphismRef;
+        const found = morphisms.find((m: any) => m.name === ref);
+        if (found) targetMorphism = found;
+      }
+    }
+    const chain = targetMorphism;
+    logs.push(`  Chain: ${chain.name ?? chain.id ?? '?'}`);
 
-    for (const step of chain.steps) {
-      if (step.type === 'observe') {
-        logs.push(`    observe(${step.params.frame}, n=${step.params.depth})`);
-      } else if (step.type === 'catalyze') {
-        logs.push(`    catalyze(${step.params.constraint})`);
-      } else if (step.type === 'measure') {
-        logs.push(`    measure_distance(${step.params.target_a}, ${step.params.target_b})`);
-        result_distance = 35 + Math.random() * 35;
-        result_uncertainty = 1.5 + Math.random() * 1.5;
-        logs.push(
-          `      Distance: ${result_distance.toFixed(1)} µm ± ${result_uncertainty.toFixed(2)} µm`
-        );
-      } else if (step.type === 'fuse') {
-        logs.push(`    fuse(${step.params.chain}, rho=${step.params.rho})`);
-      } else if (step.type === 'access') {
-        logs.push(`    access(${step.params.structure})`);
+    // Steps live at chain.expr.steps (new AST) or chain.steps (old)
+    const steps: any[] = chain.expr?.steps ?? chain.steps ?? [];
+    // Also log the observe
+    const obs = chain.expr?.observe;
+    if (obs) {
+      const frame = obs.frame;
+      const frameStr = frame?.kind === 'LoadRef'
+        ? `load(dataset="${frame.dataset}", image="${frame.image}")`
+        : (frame?.name ?? 'channel');
+      logs.push(`    observe(${frameStr}, n=${obs.depth})`);
+    }
+
+    for (const step of steps) {
+      const kind: string = step.kind ?? step.type ?? '';
+      if (kind === 'CatalyzeStep' || kind === 'catalyze') {
+        const name = step.constraintName ?? step.params?.constraint ?? '?';
+        const arg  = step.constraintArg  ?? '';
+        const conf = step.confidence ?? 1.0;
+        logs.push(`    catalyze(${name}(${arg}), confidence=${conf.toFixed(2)})`);
+      } else if (kind === 'AccessStep' || kind === 'access') {
+        const target = step.target ?? step.params?.structure ?? '?';
+        logs.push(`    access(${target}, threshold=${step.threshold ?? 0.5})`);
+      } else if (kind === 'MeasureDistanceStep' || kind === 'measure') {
+        const t1 = step.target1 ?? step.params?.target_a ?? '?';
+        const t2 = step.target2 ?? step.params?.target_b ?? '?';
+        result_distance = 3.5 + Math.random() * 15;
+        result_uncertainty = 0.1 + Math.random() * 0.4;
+        logs.push(`    measure_distance(${t1}, ${t2})`);
+        logs.push(`      d = ${result_distance.toFixed(3)} µm  δd = ${result_uncertainty.toFixed(3)} µm`);
+      } else if (kind === 'FuseStep' || kind === 'fuse') {
+        const ref = step.morphismRef ?? step.params?.chain ?? '?';
+        const rho = step.rho ?? step.params?.rho ?? 0;
+        logs.push(`    fuse(${ref}, rho=${rho})`);
+      } else if (kind === 'VisualiseStep' || kind === 'visualise') {
+        const mode = step.mode ?? step.params?.mode ?? '?';
+        logs.push(`    visualise(${mode})`);
       }
     }
   }

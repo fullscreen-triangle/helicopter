@@ -63,117 +63,146 @@ const initialFiles = {
         type: 'file',
         lang: 'scope',
         content: `scope nuclear_separation_measurement {
-    channels {
-        sync acquisition at 10.0e6 freq
-        cell METAPHASE bounds (-0.8e-6, 0.8e-6) action measure_separation
-    }
+  channels {
+    sync dapi at 0.1 µm/pixel
+    cell METAPHASE bounds (-0.8e-6, 0.8e-6) action measure_separation
+  }
 
-    coordinate_space {
-        field 100.0 x 100.0 µm
-        depth 1000
-        lambda_s 0.10
-        lambda_t 0.05
-    }
+  coordinate_space {
+    field 100 x 100 µm
+    depth 10
+    lambda_s 0.10
+    lambda_t 0.05
+  }
 
-    morphisms {
-        measure_separation =
-            observe(dapi_frame, n=1000)
-            |> measure_distance(nucleus_a, nucleus_b)
-    }
+  goal {
+    distance_uncertainty < 0.5 µm
+  }
 
-    dispatch {
-        when METAPHASE do execute(measure_separation)
-    }
+  rule conservation(dna_mass) {
+    invariant: "DAPI-stained area conserved"
+    epsilon: 0.008
+  }
+
+  measure_separation = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 10)
+    |> visualise(scale_field)
+    |> catalyze(conservation(dna_mass))
+    |> access(nucleus_a)
+    |> access(nucleus_b)
+    |> visualise(segmentation)
+    |> measure_distance(nucleus_a, nucleus_b)
+    |> visualise(geodesic)
+
+  dispatch {
+    when METAPHASE do execute(measure_separation)
+  }
 }`,
       },
       'tutorial_04_load_bbbc007.scope': {
         type: 'file',
         lang: 'scope',
-        content: `scope load_bbbc007_drosophila {
-    // Tutorial 4: Load real microscopy data from BBBC007
-    // This analyzes actual Drosophila cell images
+        content: `scope load_bbbc007_hela {
+  coordinate_space {
+    field 100 x 100 µm
+    depth 10
+    lambda_s 0.10
+    lambda_t 0.05
+  }
 
-    channels {
-        sync acquisition at 10000000
-        cell METAPHASE bounds (-0.8, 0.8) action analyze_cells
-    }
+  goal {
+    distance_uncertainty < 0.5 µm
+    snr > 6.0
+  }
 
-    coordinate_space {
-        field 100.0 x 100.0 um
-        depth 1000
-        lambda_s 0.10
-        lambda_t 0.05
-    }
+  rule conservation(dna_mass) {
+    invariant: "DAPI-stained area conserved across field"
+    epsilon: 0.008
+  }
 
-    morphisms {
-        analyze_cells =
-            observe(bbbc007_image, n=1000)
-            |> measure_distance(nucleus_a, nucleus_b)
-    }
-
-    dispatch {
-        when METAPHASE do execute(analyze_cells)
-    }
+  analyze_cells = observe(load(db="BBBC", dataset="BBBC007", image="A9 p9d.tif"), n = 10)
+    |> visualise(scale_field)
+    |> catalyze(conservation(dna_mass))
+    |> catalyze(phase_lock(chromatin), confidence = 0.85)
+    |> access(nucleus_a)
+    |> access(nucleus_b)
+    |> visualise(segmentation)
+    |> measure_distance(nucleus_a, nucleus_b)
+    |> visualise(spectral_power)
+    |> visualise(entropy_trajectory)
 }`,
       },
-      'tutorial_05_allencell_3d.scope': {
+      'tutorial_05_f96_spindle.scope': {
         type: 'file',
         lang: 'scope',
-        content: `scope allencell_volumetric_analysis {
-    // Tutorial 5: Analyze 3D volumetric data from AllenCell
-    // Works with high-resolution 3D cell structures
+        content: `scope f96_spindle_measurement {
+  coordinate_space {
+    field 64 x 64 µm
+    depth 10
+    lambda_s 0.08
+    lambda_t 0.03
+  }
 
-    channels {
-        sync acquisition at 10000000
-        cell METAPHASE bounds (-0.8, 0.8) action analyze_structure
-    }
+  goal {
+    distance_uncertainty < 0.2 µm
+  }
 
-    coordinate_space {
-        field 100.0 x 100.0 um
-        depth 2000
-        lambda_s 0.15
-        lambda_t 0.05
-    }
+  rule symmetry(bilateral) {
+    invariant: "mitotic spindle has bilateral symmetry"
+    epsilon: 0.006
+  }
 
-    morphisms {
-        analyze_structure =
-            observe(allencell_frame, n=2000)
-            |> measure_distance(organelle_a, organelle_b)
-    }
+  rule conservation(dna_mass) {
+    invariant: "DAPI-stained area conserved"
+    epsilon: 0.008
+  }
 
-    dispatch {
-        when METAPHASE do execute(analyze_structure)
-    }
+  spindle = observe(load(db="BBBC", dataset="BBBC007", image="17P1_POS0006_D_1UL.tif"), n = 10)
+    |> visualise(scale_field)
+    |> catalyze(symmetry(bilateral), confidence = 0.8)
+    |> catalyze(conservation(dna_mass))
+    |> access(nucleus_a, threshold = 0.7)
+    |> access(nucleus_b, threshold = 0.7)
+    |> visualise(segmentation)
+    |> measure_distance(nucleus_a, nucleus_b)
+    |> visualise(distance_map)
+    |> visualise(scale_histogram)
 }`,
       },
-      'tutorial_06_compare_datasets.scope': {
+      'tutorial_06_dual_channel.scope': {
         type: 'file',
         lang: 'scope',
-        content: `scope compare_multiple_datasets {
-    // Tutorial 6: Compare structure measurements across multiple datasets
-    // BBBC007 (Drosophila), HT29 (human cancer), AllenCell (3D)
+        content: `scope f113_dual_channel {
+  channels {
+    sync gfp  at 0.08 µm/pixel
+    sync dapi at 0.08 µm/pixel
+  }
 
-    channels {
-        sync acquisition at 10000000
-        cell METAPHASE bounds (-0.8, 0.8) action measure_all
-    }
+  coordinate_space {
+    field 82 x 82 µm
+    depth 10
+    lambda_s 0.09
+    lambda_t 0.04
+  }
 
-    coordinate_space {
-        field 100.0 x 100.0 um
-        depth 1500
-        lambda_s 0.12
-        lambda_t 0.05
-    }
+  goal {
+    distance_uncertainty < 0.15 µm
+    crlb_pixels < 0.1
+  }
 
-    morphisms {
-        measure_all =
-            observe(dataset_image, n=1500)
-            |> measure_distance(structure_1, structure_2)
-    }
+  rule conservation(dna_mass) {
+    invariant: "DAPI-stained area conserved across channels"
+    epsilon: 0.008
+  }
 
-    dispatch {
-        when METAPHASE do execute(measure_all)
-    }
+  dapi_channel = observe(load(db="BBBC", dataset="BBBC007", image="AS_09125_040701150004_A02f00d0.tif"), n = 10)
+    |> visualise(scale_field)
+    |> catalyze(conservation(dna_mass))
+    |> access(nucleus_a)
+    |> access(nucleus_b)
+    |> visualise(segmentation)
+    |> measure_distance(nucleus_a, nucleus_b)
+    |> visualise(uncertainty_bar)
+    |> visualise(entropy_trajectory)
 }`,
       },
     },
@@ -571,37 +600,41 @@ export default function ScopeIDEMain() {
       log('');
       log('Executing SCOPE program...');
 
-      executeReal(compiledProgram.program as any).then((result) => {
-        if (result.success) {
-          result.logs.forEach((l) => log(l));
+      executeReal(compiledProgram.program as any)
+        .then((result) => {
+          if (result.success) {
+            result.logs.forEach((l) => log(l));
 
-          log('');
-          log('═══ RESULT ═══');
-          log(`Structure: ${result.structure}`);
-          if (result.distance) {
-            log(`Distance: ${result.distance.toFixed(1)} µm ± ${result.uncertainty?.toFixed(2)} µm`);
-          }
-          log(
-            `Position: (${result.position.x.toFixed(1)}, ${result.position.y.toFixed(1)}, ${result.position.z.toFixed(1)}) µm`
-          );
-          log(
-            `S-Entropy: S_k=${result.s_entropy.S_k.toFixed(3)} S_t=${result.s_entropy.S_t.toFixed(3)} S_e=${result.s_entropy.S_e.toFixed(3)}`
-          );
-
-          // Store visualization data
-          if (result.coordinateField) {
-            setVisualizationData(result);
-            // Auto-switch to image tab if measurements present
-            if (result.measurements && result.measurements.length > 0) {
-              setOutputTab('image');
+            log('');
+            log('═══ RESULT ═══');
+            log(`Structure: ${result.structure}`);
+            if (result.distance) {
+              log(`Distance: ${result.distance.toFixed(3)} µm ± ${result.uncertainty?.toFixed(3)} µm`);
             }
-          }
-        } else {
-          log(`❌ Execution failed`);
-        }
+            log(
+              `Position: (${result.position.x.toFixed(1)}, ${result.position.y.toFixed(1)}, ${result.position.z.toFixed(1)}) µm`
+            );
+            log(
+              `S-Entropy: S_k=${result.s_entropy.S_k.toFixed(3)} S_t=${result.s_entropy.S_t.toFixed(3)} S_e=${result.s_entropy.S_e.toFixed(3)}`
+            );
 
-        setLogs([...newLogs]);
-      });
+            // Store visualization data
+            if (result.coordinateField) {
+              setVisualizationData(result);
+              // Auto-switch to image tab if measurements present
+              if (result.measurements && result.measurements.length > 0) {
+                setOutputTab('image');
+              }
+            }
+          } else {
+            log(`❌ Execution failed`);
+          }
+          setLogs([...newLogs]);
+        })
+        .catch((err) => {
+          log(`❌ Execution error: ${err instanceof Error ? err.message : String(err)}`);
+          setLogs([...newLogs]);
+        });
 
       setLogs(newLogs);
     } catch (error) {
