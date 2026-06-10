@@ -31,19 +31,29 @@ export default function Canvas2D({ result, mode, preloadImage }: Props) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // ── No result yet — show preload or placeholder ──────────────────────────
+    // ── No result yet — always show preload image if available ───────────────
     if (!result) {
-      if ((mode === 'raw_image' || mode === 'overlay') && preloadImage) {
+      if (preloadImage) {
         const { data, width, height } = preloadImage;
         canvas.width = width; canvas.height = height;
         drawRaw(ctx, data, width, height);
+        // Draw a dim overlay label so the user knows the mode isn't active yet
+        if (mode !== 'raw_image') {
+          ctx.fillStyle = 'rgba(0,0,0,0.55)';
+          ctx.fillRect(0, canvas.height - 22, canvas.width, 22);
+          ctx.fillStyle = '#858585';
+          ctx.font = '11px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(`${mode.replace(/_/g, ' ')} — run to activate`, canvas.width / 2, canvas.height - 7);
+        }
       } else {
+        canvas.width = 256; canvas.height = 256;
         ctx.fillStyle = '#0d1117';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#3a3a3a';
         ctx.font = '12px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('Run a program to see this view.', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('Loading cell image…', canvas.width / 2, canvas.height / 2);
       }
       return;
     }

@@ -312,8 +312,7 @@ export default function ScopePlayground() {
             {activeTab === 'charts' && (
               <ChartsTab
                 result={result}
-                mode={state.activeChartMode}
-                onMode={m => dispatch({ type: 'SET_CHART', mode: m })}
+                preloadImage={preloadImage}
               />
             )}
 
@@ -496,25 +495,51 @@ function VisualiseTab({ result, mode, onMode, preloadImage }: {
   );
 }
 
-function ChartsTab({ result, mode, onMode }: {
-  result: ScopeResult | null; mode: string; onMode: (m: string) => void;
+function ChartsTab({ result, preloadImage }: {
+  result: ScopeResult | null;
+  preloadImage: ImagePayload | null;
 }) {
+  // Always show cell image + all charts together — no mode switching
+  const hasImage = !!(result?.visualData?.rawImage ?? preloadImage);
+
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-1">
-        {CHART_MODES.map(m => (
-          <button key={m} onClick={() => onMode(m)}
-            className={`px-2 py-0.5 text-xs rounded ${mode === m ? 'bg-[#007acc] text-white' : 'bg-[#2d2d2d] hover:bg-[#37373d]'}`}>
-            {m.replace(/_/g, ' ')}
-          </button>
-        ))}
-      </div>
-      {!result && <div className="text-[#555] text-xs py-8 text-center">Run a program to see charts.</div>}
-      {result && mode === 'spectral_power'     && <SpectralPowerChart data={result.chartData.spectralPower} exponent={result.chartData.powerLawExponent} />}
-      {result && mode === 'entropy_trajectory' && <EntropyTrajectoryChart data={result.chartData.entropyTrajectory} />}
-      {result && mode === 'uncertainty_bar'    && <UncertaintyBar data={result.chartData.uncertaintyBar} />}
-      {result && mode === 'scale_histogram'    && <ScaleHistogram data={result.chartData.scaleHistogram} mean={result.chartData.alphaMean} />}
-      {result && mode === 'channel_capacity'   && <SpectralPowerChart data={result.chartData.spectralPower} exponent={result.chartData.powerLawExponent} />}
+    <div className="space-y-3">
+      {/* Cell image — always visible */}
+      {hasImage && (
+        <div className="flex gap-3 items-start">
+          <div className="shrink-0" style={{ width: 180 }}>
+            <div className="text-[#858585] text-xs mb-1">Cell image</div>
+            <Canvas2D
+              result={result}
+              mode={result?.visualData?.activeVisMode ?? 'raw_image'}
+              preloadImage={preloadImage}
+            />
+          </div>
+          {result && (
+            <div className="shrink-0" style={{ width: 180 }}>
+              <div className="text-[#858585] text-xs mb-1">Segmentation</div>
+              <Canvas2D result={result} mode="segmentation" preloadImage={preloadImage} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {!result && (
+        <div className="text-[#555] text-xs py-2">Run a program to see charts. Cell image shows immediately.</div>
+      )}
+
+      {/* All charts — always stacked */}
+      {result && (
+        <>
+          <SpectralPowerChart
+            data={result.chartData.spectralPower}
+            exponent={result.chartData.powerLawExponent}
+          />
+          <EntropyTrajectoryChart data={result.chartData.entropyTrajectory} />
+          <UncertaintyBar data={result.chartData.uncertaintyBar} />
+          <ScaleHistogram data={result.chartData.scaleHistogram} mean={result.chartData.alphaMean} />
+        </>
+      )}
     </div>
   );
 }
