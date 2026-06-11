@@ -2,67 +2,168 @@
 
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
-  Files, Search, GitBranch, Play, Blocks, Settings, ChevronRight, ChevronDown,
+  Files, Search, GitBranch, Play, ChevronRight, ChevronDown,
   X, Circle, FileCode2, FileJson, FileText, Folder, FolderOpen,
-  Terminal as TerminalIcon, AlertCircle, Bell, PanelBottomClose, Check,
-  Eye, Code2, Trash2, RefreshCw,
+  Terminal as TerminalIcon, BarChart2, Image as ImageIcon, Trash2, RefreshCw,
 } from 'lucide-react';
-import { compileScope } from '@/lib/scope-compiler';
-import { executeReal } from '@/lib/scope-runtime/real-executor';
-import { getScopeExample } from '@/lib/scope-examples';
-import AnalysisEditor from '@/components/analysis/AnalysisEditor';
-import { EntropyBarChart, MeasurementChart } from './ScopeIDECharts';
+import { compile } from '@/lib/scope-compiler';
+import { runScope } from '@/lib/scope-runtime/runtime';
+import type { ScopeResult } from '@/lib/scope-runtime/result-types';
+import SpectralPowerChart from '@/app/tools/scope-playground/components/charts/SpectralPowerChart';
+import EntropyTrajectoryChart from '@/app/tools/scope-playground/components/charts/EntropyTrajectoryChart';
+import UncertaintyBar from '@/app/tools/scope-playground/components/charts/UncertaintyBar';
+import ScaleHistogram from '@/app/tools/scope-playground/components/charts/ScaleHistogram';
 
-const theme = {
-  titlebar: '#3c3c3c',
-  activitybar: '#333333',
-  activitybarFg: '#858585',
-  activitybarFgActive: '#ffffff',
-  sidebar: '#252526',
-  sidebarFg: '#cccccc',
-  sidebarHeader: '#bbbbbb',
-  editor: '#1e1e1e',
-  editorFg: '#d4d4d4',
-  tabBar: '#252526',
-  tabActive: '#1e1e1e',
-  tabInactive: '#2d2d2d',
-  tabFg: '#969696',
-  tabFgActive: '#ffffff',
-  border: '#3c3c3c',
-  accent: '#0e639c',
-  accentBright: '#007acc',
-  statusBar: '#007acc',
-  statusFg: '#ffffff',
-  panel: '#1e1e1e',
-  gutter: '#858585',
-  lineActive: '#2a2d2e',
-  selection: '#264f78',
+// ─────────────────────────────────────────────────────────────────────────────
+// Theme
+// ─────────────────────────────────────────────────────────────────────────────
+const T = {
+  titlebar:   '#3c3c3c', activitybar: '#333333', activitybarFg: '#858585',
+  activitybarFgActive: '#ffffff', sidebar: '#252526', sidebarFg: '#cccccc',
+  sidebarHeader: '#bbbbbb', editor: '#1e1e1e', editorFg: '#d4d4d4',
+  tabBar: '#252526', tabActive: '#1e1e1e', tabInactive: '#2d2d2d',
+  tabFg: '#969696', tabFgActive: '#ffffff', border: '#3c3c3c',
+  accent: '#0e639c', accentBright: '#007acc', statusBar: '#007acc',
+  statusFg: '#ffffff', gutter: '#858585', lineActive: '#2a2d2e',
 };
 
-// In-memory file system for SCOPE scripts
-const initialFiles = {
-  examples: {
-    type: 'folder',
-    children: {
-      'tutorial_01_hello.scope': {
-        type: 'file',
-        lang: 'scope',
-        content: getScopeExample('ex1-nuclear-separation')?.source ?? '',
-      },
-      'tutorial_02_measurement.scope': {
-        type: 'file',
-        lang: 'scope',
-        content: getScopeExample('ex3-confidence-threshold')?.source ?? '',
-      },
-      'tutorial_03_anaphase.scope': {
-        type: 'file',
-        lang: 'scope',
-        content: getScopeExample('ex5-anaphase')?.source ?? '',
-      },
-      'tutorial_03_nuclear_separation.scope': {
-        type: 'file',
-        lang: 'scope',
-        content: `scope nuclear_separation_measurement {
+// ─────────────────────────────────────────────────────────────────────────────
+// Tutorial scripts — each one builds on the previous
+// ─────────────────────────────────────────────────────────────────────────────
+const TUTORIAL_SCRIPTS: Record<string, string> = {
+
+'tutorial_01_observe.scope': `// Tutorial 01 — Observe
+// The simplest possible SCOPE program.
+// Load one image, measure the scale field α(x,y), emit position.
+// Introduces: observe(), coordinate_space, depth.
+
+scope hello_microscopy {
+  coordinate_space {
+    field 100 x 100 µm
+    depth 8
+    lambda_s 0.10
+    lambda_t 0.05
+  }
+
+  hello = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 8)
+    |> visualise(scale_field)
+}`,
+
+'tutorial_02_scale_field.scope': `// Tutorial 02 — Scale Field
+// Compute the spectral metric α(x,y) and inspect its statistics.
+// Introduces: visualise(scale_field), goal/SNR criterion.
+
+scope scale_field_analysis {
+  coordinate_space {
+    field 100 x 100 µm
+    depth 10
+    lambda_s 0.10
+    lambda_t 0.05
+  }
+
+  goal {
+    snr > 4.0
+  }
+
+  measure = observe(load(db="BBBC", dataset="BBBC007", image="A9 p9d.tif"), n = 10)
+    |> visualise(scale_field)
+}`,
+
+'tutorial_03_segmentation.scope': `// Tutorial 03 — Segmentation
+// Access nucleus_a and nucleus_b from a single DAPI image.
+// Introduces: access(), visualise(segmentation), conservation rule.
+
+scope nucleus_segmentation {
+  coordinate_space {
+    field 100 x 100 µm
+    depth 10
+    lambda_s 0.10
+    lambda_t 0.05
+  }
+
+  rule conservation(dna_mass) {
+    invariant: "DAPI-stained area conserved"
+    epsilon: 0.008
+  }
+
+  segment = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 10)
+    |> catalyze(conservation(dna_mass))
+    |> access(nucleus_a)
+    |> access(nucleus_b)
+    |> visualise(segmentation)
+}`,
+
+'tutorial_04_distance.scope': `// Tutorial 04 — Nuclear Separation
+// Measure the geodesic distance between two nuclei.
+// Introduces: measure_distance(), visualise(geodesic), uncertainty goal.
+
+scope nuclear_separation {
+  coordinate_space {
+    field 100 x 100 µm
+    depth 10
+    lambda_s 0.10
+    lambda_t 0.05
+  }
+
+  goal {
+    distance_uncertainty < 0.5 µm
+  }
+
+  rule conservation(dna_mass) {
+    invariant: "DAPI-stained area conserved"
+    epsilon: 0.008
+  }
+
+  measure = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 10)
+    |> catalyze(conservation(dna_mass))
+    |> access(nucleus_a)
+    |> access(nucleus_b)
+    |> measure_distance(nucleus_a, nucleus_b)
+    |> visualise(geodesic)
+}`,
+
+'tutorial_05_confidence.scope': `// Tutorial 05 — Confidence & Catalysis
+// Add a bilateral symmetry constraint with reduced confidence.
+// Introduces: catalyze(..., confidence=…), multiple constraints, S-entropy effect.
+
+scope spindle_with_confidence {
+  coordinate_space {
+    field 64 x 64 µm
+    depth 10
+    lambda_s 0.08
+    lambda_t 0.03
+  }
+
+  goal {
+    distance_uncertainty < 0.2 µm
+    snr > 5.0
+  }
+
+  rule symmetry(bilateral) {
+    invariant: "mitotic spindle has bilateral symmetry"
+    epsilon: 0.006
+  }
+
+  rule conservation(dna_mass) {
+    invariant: "DAPI-stained area conserved"
+    epsilon: 0.008
+  }
+
+  spindle = observe(load(db="BBBC", dataset="BBBC007", image="17P1_POS0006_D_1UL.tif"), n = 10)
+    |> visualise(scale_field)
+    |> catalyze(symmetry(bilateral), confidence = 0.80)
+    |> catalyze(conservation(dna_mass))
+    |> access(nucleus_a, threshold = 0.70)
+    |> access(nucleus_b, threshold = 0.70)
+    |> measure_distance(nucleus_a, nucleus_b)
+    |> visualise(distance_map)
+}`,
+
+'tutorial_06_dispatch.scope': `// Tutorial 06 — Dispatch & Cell Classification
+// Use a dispatch block to select a morphism based on cell phase.
+// Introduces: channels, dispatch, when/do, full five-phase pipeline.
+
+scope phase_dispatch {
   channels {
     sync dapi at 0.1 µm/pixel
     cell METAPHASE bounds (-0.8e-6, 0.8e-6) action measure_separation
@@ -97,84 +198,16 @@ const initialFiles = {
     when METAPHASE do execute(measure_separation)
   }
 }`,
-      },
-      'tutorial_04_load_bbbc007.scope': {
-        type: 'file',
-        lang: 'scope',
-        content: `scope load_bbbc007_hela {
-  coordinate_space {
-    field 100 x 100 µm
-    depth 10
-    lambda_s 0.10
-    lambda_t 0.05
-  }
 
-  goal {
-    distance_uncertainty < 0.5 µm
-    snr > 6.0
-  }
+'tutorial_07_full_pipeline.scope': `// Tutorial 07 — Full Pipeline
+// All five phases: COMPILE → ASSIGN → MEASURE → EXECUTE → EMIT.
+// Two constraints, dispatch, goals, CRLB criterion.
+// Uses f9620 image for a different cell morphology.
 
-  rule conservation(dna_mass) {
-    invariant: "DAPI-stained area conserved across field"
-    epsilon: 0.008
-  }
-
-  analyze_cells = observe(load(db="BBBC", dataset="BBBC007", image="A9 p9d.tif"), n = 10)
-    |> visualise(scale_field)
-    |> catalyze(conservation(dna_mass))
-    |> catalyze(phase_lock(chromatin), confidence = 0.85)
-    |> access(nucleus_a)
-    |> access(nucleus_b)
-    |> visualise(segmentation)
-    |> measure_distance(nucleus_a, nucleus_b)
-    |> visualise(spectral_power)
-    |> visualise(entropy_trajectory)
-}`,
-      },
-      'tutorial_05_f96_spindle.scope': {
-        type: 'file',
-        lang: 'scope',
-        content: `scope f96_spindle_measurement {
-  coordinate_space {
-    field 64 x 64 µm
-    depth 10
-    lambda_s 0.08
-    lambda_t 0.03
-  }
-
-  goal {
-    distance_uncertainty < 0.2 µm
-  }
-
-  rule symmetry(bilateral) {
-    invariant: "mitotic spindle has bilateral symmetry"
-    epsilon: 0.006
-  }
-
-  rule conservation(dna_mass) {
-    invariant: "DAPI-stained area conserved"
-    epsilon: 0.008
-  }
-
-  spindle = observe(load(db="BBBC", dataset="BBBC007", image="17P1_POS0006_D_1UL.tif"), n = 10)
-    |> visualise(scale_field)
-    |> catalyze(symmetry(bilateral), confidence = 0.8)
-    |> catalyze(conservation(dna_mass))
-    |> access(nucleus_a, threshold = 0.7)
-    |> access(nucleus_b, threshold = 0.7)
-    |> visualise(segmentation)
-    |> measure_distance(nucleus_a, nucleus_b)
-    |> visualise(distance_map)
-    |> visualise(scale_histogram)
-}`,
-      },
-      'tutorial_06_dual_channel.scope': {
-        type: 'file',
-        lang: 'scope',
-        content: `scope f113_dual_channel {
+scope full_pipeline_f9620 {
   channels {
-    sync gfp  at 0.08 µm/pixel
     sync dapi at 0.08 µm/pixel
+    cell METAPHASE bounds (-0.8e-6, 0.8e-6) action analyze
   }
 
   coordinate_space {
@@ -185,32 +218,59 @@ const initialFiles = {
   }
 
   goal {
-    distance_uncertainty < 0.15 µm
-    crlb_pixels < 0.1
+    distance_uncertainty < 0.3 µm
+    snr > 5.0
+    crlb_pixels < 0.15
   }
 
   rule conservation(dna_mass) {
-    invariant: "DAPI-stained area conserved across channels"
+    invariant: "DAPI-stained area conserved"
     epsilon: 0.008
   }
 
-  dapi_channel = observe(load(db="BBBC", dataset="BBBC007", image="AS_09125_040701150004_A02f00d0.tif"), n = 10)
+  rule phase_lock(chromatin) {
+    invariant: "chromatin condensation consistent with metaphase"
+    epsilon: 0.012
+  }
+
+  analyze = observe(load(db="BBBC", dataset="BBBC007", image="20P1_POS0002_D_1UL.tif"), n = 10)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
+    |> catalyze(phase_lock(chromatin), confidence = 0.85)
     |> access(nucleus_a)
     |> access(nucleus_b)
     |> visualise(segmentation)
     |> measure_distance(nucleus_a, nucleus_b)
-    |> visualise(uncertainty_bar)
-    |> visualise(entropy_trajectory)
+    |> visualise(geodesic)
+
+  dispatch {
+    when METAPHASE do execute(analyze)
+  }
 }`,
-      },
-    },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// File system
+// ─────────────────────────────────────────────────────────────────────────────
+const initialFiles: any = {
+  examples: {
+    type: 'folder',
+    children: Object.fromEntries(
+      Object.entries(TUTORIAL_SCRIPTS).map(([name, content]) => [
+        name,
+        { type: 'file', lang: 'scope', content },
+      ])
+    ),
   },
   datasets: {
     type: 'folder',
     children: {
-      'BBBC007_v1_images': { type: 'folder', children: {} },
+      'BBBC007_v1_images': { type: 'folder', children: {
+        'A9_p10d.tif': { type: 'file', lang: 'tif', content: '// HeLa A9 p10 DAPI — 512×512, 0.1 µm/px' },
+        'A9_p9d.tif':  { type: 'file', lang: 'tif', content: '// HeLa A9 p9 DAPI — 512×512, 0.1 µm/px' },
+        '17P1_POS0006_D_1UL.tif': { type: 'file', lang: 'tif', content: '// f96 spindle DAPI — 512×512, 0.08 µm/px' },
+        '20P1_POS0002_D_1UL.tif': { type: 'file', lang: 'tif', content: '// f9620 fused DAPI — 512×512, 0.08 µm/px' },
+      }},
       'AICS-24-part06': { type: 'folder', children: {} },
       'human_HT29_colon_cancer': { type: 'folder', children: {} },
     },
@@ -219,58 +279,60 @@ const initialFiles = {
     type: 'folder',
     children: {
       'analysis.scope': {
-        type: 'file',
-        lang: 'scope',
-        content: `scope my_analysis {
-    channels {
-        sync acquisition at 10000000
-        cell METAPHASE bounds (-0.8, 0.8) action measure
-    }
+        type: 'file', lang: 'scope',
+        content: `// My Analysis — start from tutorial_04 and customise
+scope my_analysis {
+  coordinate_space {
+    field 100 x 100 µm
+    depth 10
+    lambda_s 0.10
+    lambda_t 0.05
+  }
 
-    coordinate_space {
-        field 100.0 x 100.0 um
-        depth 1000
-        lambda_s 0.10
-        lambda_t 0.05
-    }
+  goal {
+    distance_uncertainty < 0.5 µm
+  }
 
-    morphisms {
-        measure =
-            observe(frame, n=1000)
-            |> measure_distance(nucleus_a, nucleus_b)
-    }
+  rule conservation(dna_mass) {
+    invariant: "DAPI-stained area conserved"
+    epsilon: 0.008
+  }
 
-    dispatch {
-        when METAPHASE do execute(measure)
-    }
+  measure = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 10)
+    |> catalyze(conservation(dna_mass))
+    |> access(nucleus_a)
+    |> access(nucleus_b)
+    |> measure_distance(nucleus_a, nucleus_b)
+    |> visualise(geodesic)
 }`,
       },
     },
   },
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
 const fileIcon = (name: string) => {
   if (name.endsWith('.scope')) return { Icon: FileCode2, color: '#00d4ff' };
   if (name.endsWith('.json')) return { Icon: FileJson, color: '#cbcb41' };
-  if (name.endsWith('.md')) return { Icon: FileText, color: '#519aba' };
+  if (name.endsWith('.tif') || name.endsWith('.tiff')) return { Icon: ImageIcon, color: '#4ec9b0' };
   return { Icon: FileText, color: '#858585' };
 };
 
 const getNode = (tree: any, path: string[]) => {
   let n: any = { children: tree };
-  for (const p of path) {
-    n = n.children[p];
-    if (!n) return null;
-  }
+  for (const p of path) { n = n.children[p]; if (!n) return null; }
   return n;
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// File tree
+// ─────────────────────────────────────────────────────────────────────────────
 function Tree({ tree, path = [], depth = 0, expanded, toggle, activePath, openFile }: any) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const entries = (Object.entries(tree) as [string, any][]).sort((a, b) =>
     a[1].type !== b[1].type ? (a[1].type === 'folder' ? -1 : 1) : a[0].localeCompare(b[0])
   );
-
   return (
     <>
       {entries.map(([name, node]) => {
@@ -282,46 +344,24 @@ function Tree({ tree, path = [], depth = 0, expanded, toggle, activePath, openFi
         const { Icon, color } = isFolder
           ? { Icon: isOpen ? FolderOpen : Folder, color: '#90a4ae' }
           : fileIcon(name);
-
         return (
           <div key={key}>
             <button
-              onClick={() => (isFolder ? toggle(key) : openFile(fullPath))}
-              className="flex w-full items-center gap-1 py-0.5 pr-2 text-left text-[13px] leading-relaxed transition-colors"
-              style={{
-                paddingLeft: 8 + depth * 12,
-                color: theme.sidebarFg,
-                background: isActive ? theme.lineActive : 'transparent',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.background = '#2a2d2e';
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.background = 'transparent';
-              }}
+              onClick={() => isFolder ? toggle(key) : openFile(fullPath)}
+              className="flex w-full items-center gap-1 py-0.5 pr-2 text-left text-[13px] leading-relaxed"
+              style={{ paddingLeft: 8 + depth * 12, color: T.sidebarFg, background: isActive ? T.lineActive : 'transparent' }}
+              onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#2a2d2e'; }}
+              onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              {isFolder ? (
-                isOpen ? (
-                  <ChevronDown size={14} className="shrink-0 opacity-70" />
-                ) : (
-                  <ChevronRight size={14} className="shrink-0 opacity-70" />
-                )
-              ) : (
-                <span className="w-[14px] shrink-0" />
-              )}
+              {isFolder
+                ? isOpen ? <ChevronDown size={14} className="shrink-0 opacity-70" /> : <ChevronRight size={14} className="shrink-0 opacity-70" />
+                : <span className="w-[14px] shrink-0" />}
               <Icon size={15} className="shrink-0" style={{ color }} />
               <span className="truncate">{name}</span>
             </button>
             {isFolder && isOpen && (
-              <Tree
-                tree={node.children}
-                path={fullPath}
-                depth={depth + 1}
-                expanded={expanded}
-                toggle={toggle}
-                activePath={activePath}
-                openFile={openFile}
-              />
+              <Tree tree={node.children} path={fullPath} depth={depth + 1}
+                expanded={expanded} toggle={toggle} activePath={activePath} openFile={openFile} />
             )}
           </div>
         );
@@ -330,594 +370,893 @@ function Tree({ tree, path = [], depth = 0, expanded, toggle, activePath, openFi
   );
 }
 
-function Editor({ value, onChange, onCursor }) {
-  const gutterRef = useRef(null);
+// ─────────────────────────────────────────────────────────────────────────────
+// Editor
+// ─────────────────────────────────────────────────────────────────────────────
+function Editor({ value, onChange, onCursor }: any) {
+  const gutterRef = useRef<HTMLDivElement>(null);
   const lines = value.split('\n');
-
-  const syncScroll = (e) => {
-    if (gutterRef.current) gutterRef.current.scrollTop = e.target.scrollTop;
-  };
-
-  const handleCursor = (e) => {
-    const upto = e.target.value.slice(0, e.target.selectionStart);
-    onCursor({ ln: upto.split('\n').length, col: upto.length - upto.lastIndexOf('\n') });
-  };
-
   return (
-    <div className="flex min-h-0 flex-1" style={{ background: theme.editor }}>
-      <div
-        ref={gutterRef}
-        className="select-none overflow-hidden py-3 text-right font-mono text-[13px] leading-[1.5]"
-        style={{ color: theme.gutter, minWidth: 52, paddingRight: 16 }}
-      >
-        {lines.map((_, i) => (
-          <div key={i}>{i + 1}</div>
-        ))}
+    <div className="flex min-h-0 flex-1" style={{ background: T.editor }}>
+      <div ref={gutterRef} className="select-none overflow-hidden py-3 text-right font-mono text-[13px] leading-[1.5]"
+        style={{ color: T.gutter, minWidth: 52, paddingRight: 16 }}>
+        {lines.map((_: any, i: number) => <div key={i}>{i + 1}</div>)}
       </div>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onScroll={syncScroll}
-        onKeyUp={handleCursor}
-        onClick={handleCursor}
+      <textarea value={value} onChange={e => onChange(e.target.value)}
+        onScroll={e => { if (gutterRef.current) gutterRef.current.scrollTop = (e.target as HTMLTextAreaElement).scrollTop; }}
+        onKeyUp={e => { const u = (e.target as HTMLTextAreaElement).value.slice(0, (e.target as HTMLTextAreaElement).selectionStart); onCursor({ ln: u.split('\n').length, col: u.length - u.lastIndexOf('\n') }); }}
+        onClick={e => { const u = (e.target as HTMLTextAreaElement).value.slice(0, (e.target as HTMLTextAreaElement).selectionStart); onCursor({ ln: u.split('\n').length, col: u.length - u.lastIndexOf('\n') }); }}
         spellCheck={false}
         className="min-h-0 flex-1 resize-none border-0 bg-transparent py-3 pr-4 font-mono text-[13px] leading-[1.5] outline-none"
-        style={{ color: theme.editorFg, tabSize: 2, caretColor: '#fff' }}
+        style={{ color: T.editorFg, tabSize: 2, caretColor: '#fff' }}
       />
     </div>
   );
 }
 
-function OutputColumn({ compiled, logs, onRun, onClear, outputTab, setOutputTab, canvasRef, chartData }: any) {
-  const tab = outputTab;
-  const setTab = setOutputTab;
-  const tabs = [
-    { id: 'console', label: 'Execution Log', Icon: TerminalIcon },
-    { id: 'image', label: 'Visualization', Icon: Eye },
-    { id: 'entropy', label: 'S-Entropy', Icon: Blocks },
-    { id: 'measurements', label: 'Measurements', Icon: Code2 },
-    { id: 'quality', label: 'Quality Metrics', Icon: Blocks },
-    { id: 'spectral', label: 'Spectral Data', Icon: Blocks },
-    { id: 'compiled', label: 'Compiled IR', Icon: Code2 },
+// ─────────────────────────────────────────────────────────────────────────────
+// Viridis helper (for inline canvas draws)
+// ─────────────────────────────────────────────────────────────────────────────
+const VIRIDIS: [number,number,number][] = [
+  [68,1,84],[72,35,116],[64,67,135],[52,94,141],[41,120,142],
+  [32,144,140],[34,167,132],[68,190,112],[121,209,81],[189,222,38],[253,231,37],
+];
+function viridis(t: number): [number,number,number] {
+  const i = Math.min(VIRIDIS.length - 2, Math.max(0, Math.floor(t * (VIRIDIS.length - 1))));
+  const f = t * (VIRIDIS.length - 1) - i;
+  const a = VIRIDIS[i], b = VIRIDIS[i + 1];
+  return [a[0]+f*(b[0]-a[0]), a[1]+f*(b[1]-a[1]), a[2]+f*(b[2]-a[2])];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ImagePanel — shows raw image + scale field + segmentation + geodesic annotations
+// ─────────────────────────────────────────────────────────────────────────────
+function ImagePanel({ result }: { result: ScopeResult | null }) {
+  const rawRef  = useRef<HTMLCanvasElement>(null);
+  const segRef  = useRef<HTMLCanvasElement>(null);
+  const sfRef   = useRef<HTMLCanvasElement>(null);
+  const geoRef  = useRef<HTMLCanvasElement>(null);
+  const dmRef   = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!result) return;
+    const { visualData } = result;
+    const W = visualData.width, H = visualData.height;
+
+    // 1. Raw grayscale
+    const draw = (ref: React.RefObject<HTMLCanvasElement | null>, fn: (ctx: CanvasRenderingContext2D) => void) => {
+      const c = ref.current; if (!c) return;
+      c.width = W; c.height = H;
+      const ctx = c.getContext('2d'); if (!ctx) return;
+      fn(ctx);
+    };
+
+    draw(rawRef, ctx => {
+      const id = ctx.createImageData(W, H);
+      for (let i = 0; i < W * H; i++) {
+        const v = Math.round(Math.max(0, Math.min(1, visualData.rawImage[i])) * 255);
+        id.data[i*4]=v; id.data[i*4+1]=v; id.data[i*4+2]=v; id.data[i*4+3]=255;
+      }
+      ctx.putImageData(id, 0, 0);
+    });
+
+    // 2. Scale field viridis
+    draw(sfRef, ctx => {
+      const f = visualData.scaleField;
+      if (!f) return;
+      let mn = Infinity, mx = -Infinity;
+      for (let i = 0; i < f.length; i++) { if (isFinite(f[i])) { if (f[i]<mn) mn=f[i]; if (f[i]>mx) mx=f[i]; } }
+      const rng = (mx-mn)||1;
+      const id = ctx.createImageData(W, H);
+      for (let i = 0; i < W*H; i++) {
+        const [r,g,b] = viridis((f[i]-mn)/rng);
+        id.data[i*4]=r; id.data[i*4+1]=g; id.data[i*4+2]=b; id.data[i*4+3]=255;
+      }
+      ctx.putImageData(id, 0, 0);
+    });
+
+    // 3. Segmentation overlay
+    draw(segRef, ctx => {
+      // base raw
+      const id0 = ctx.createImageData(W, H);
+      for (let i = 0; i < W*H; i++) {
+        const v = Math.round(Math.max(0,Math.min(1,visualData.rawImage[i]))*255);
+        id0.data[i*4]=v; id0.data[i*4+1]=v; id0.data[i*4+2]=v; id0.data[i*4+3]=255;
+      }
+      ctx.putImageData(id0, 0, 0);
+      // overlay
+      const mask = visualData.segmentationMask;
+      if (mask) {
+        const mid = ctx.createImageData(W, H);
+        for (let i = 0; i < W*H; i++) {
+          if (mask[i]===1) { mid.data[i*4]=78; mid.data[i*4+1]=201; mid.data[i*4+2]=176; mid.data[i*4+3]=130; }
+          else if (mask[i]===2) { mid.data[i*4]=197; mid.data[i*4+1]=134; mid.data[i*4+2]=192; mid.data[i*4+3]=130; }
+        }
+        const off = new OffscreenCanvas(W, H);
+        off.getContext('2d')!.putImageData(mid, 0, 0);
+        ctx.drawImage(off, 0, 0);
+      }
+      // contour
+      const cont = visualData.segmentationContour;
+      if (cont?.length) {
+        ctx.fillStyle = '#4ec9b0';
+        const step = Math.max(1, Math.floor(cont.length / 3000));
+        for (let i = 0; i < cont.length; i += step) ctx.fillRect(cont[i][0], cont[i][1], 1, 1);
+      }
+      // label centroids
+      const targets = Object.entries(result.visualData as any);
+      // draw distance value annotation if available
+      if (result.distance !== null) {
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillRect(2, H - 20, 200, 18);
+        ctx.fillStyle = '#4ec9b0';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(`d = ${result.distance.toFixed(3)} ± ${(result.uncertainty??0).toFixed(3)} µm`, 6, H - 6);
+      }
+    });
+
+    // 4. Geodesic path
+    draw(geoRef, ctx => {
+      const id0 = ctx.createImageData(W, H);
+      for (let i = 0; i < W*H; i++) {
+        const v = Math.round(Math.max(0,Math.min(1,visualData.rawImage[i]))*255);
+        id0.data[i*4]=v; id0.data[i*4+1]=v; id0.data[i*4+2]=v; id0.data[i*4+3]=255;
+      }
+      ctx.putImageData(id0, 0, 0);
+      const path = visualData.geodesicPath;
+      if (path?.length) {
+        ctx.save();
+        ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2;
+        ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 6;
+        ctx.beginPath(); ctx.moveTo(path[0][0], path[0][1]);
+        for (let i = 1; i < path.length; i++) ctx.lineTo(path[i][0], path[i][1]);
+        ctx.stroke();
+        for (const pt of [path[0], path[path.length-1]]) {
+          ctx.fillStyle = '#ffd700'; ctx.beginPath(); ctx.arc(pt[0], pt[1], 4, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.restore();
+      }
+      if (result.distance !== null) {
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillRect(2, H - 20, 220, 18);
+        ctx.fillStyle = '#ffd700'; ctx.font = 'bold 11px monospace';
+        ctx.fillText(`d = ${result.distance.toFixed(3)} ± ${(result.uncertainty??0).toFixed(3)} µm`, 6, H - 6);
+      }
+    });
+
+    // 5. Distance map
+    draw(dmRef, ctx => {
+      const dm = visualData.distanceMap;
+      if (!dm) { ctx.fillStyle='#0d1117'; ctx.fillRect(0,0,W,H); return; }
+      let mn=Infinity, mx=-Infinity;
+      for (let i=0;i<dm.length;i++) { if (isFinite(dm[i])) { if(dm[i]<mn)mn=dm[i]; if(dm[i]>mx)mx=dm[i]; } }
+      const rng=(mx-mn)||1;
+      const id=ctx.createImageData(W,H);
+      for (let i=0;i<W*H;i++) {
+        const [r,g,b]=viridis((dm[i]-mn)/rng);
+        id.data[i*4]=r; id.data[i*4+1]=g; id.data[i*4+2]=b; id.data[i*4+3]=255;
+      }
+      ctx.putImageData(id,0,0);
+    });
+
+  }, [result]);
+
+  if (!result) {
+    return (
+      <div className="flex h-full items-center justify-center" style={{ color: '#5a5a5a' }}>
+        Run a program to see the processed image.
+      </div>
+    );
+  }
+
+  const panels = [
+    { ref: rawRef,  label: 'Raw image' },
+    { ref: sfRef,   label: 'Scale field α(x,y)' },
+    { ref: segRef,  label: 'Segmentation + annotations' },
+    { ref: geoRef,  label: 'Geodesic path' },
+    { ref: dmRef,   label: 'Distance map T(x,y)' },
   ];
 
-  const levelColor = {
-    log: '#d4d4d4',
-    info: '#9cdcfe',
-    warn: '#dcdcaa',
-    error: '#f48771',
-  };
-
   return (
-    <div
-      className="flex min-w-0 flex-1 flex-col"
-      style={{ background: theme.editor, borderLeft: `1px solid ${theme.border}` }}
-    >
-      <div className="flex h-9 shrink-0 items-center justify-between pr-2" style={{ background: theme.tabInactive }}>
-        <div className="flex h-full">
-          {tabs.map(({ id, label, Icon }) => {
-            const active = tab === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setTab(id)}
-                className="relative flex items-center gap-1.5 px-3 text-[12px] transition-colors"
-                style={{
-                  color: active ? theme.tabFgActive : theme.tabFg,
-                  background: active ? theme.tabActive : 'transparent',
-                }}
-              >
-                <Icon size={13} /> {label}
-                {id === 'console' && logs.length > 0 && (
-                  <span className="rounded-full px-1.5 text-[10px]" style={{ background: theme.accent, color: '#fff' }}>
-                    {logs.length}
-                  </span>
-                )}
-                {active && <span className="absolute left-0 top-0 h-0.5 w-full" style={{ background: theme.accentBright }} />}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-1">
-          {tab === 'console' && (
-            <button
-              onClick={onClear}
-              title="Clear console"
-              className="flex h-6 w-6 items-center justify-center rounded"
-              style={{ color: theme.tabFg }}
-            >
-              <Trash2 size={14} />
-            </button>
+    <div className="h-full overflow-y-auto p-3 space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        {panels.map(({ ref, label }) => (
+          <div key={label} className="space-y-1">
+            <div className="text-[#858585] text-[10px]">{label}</div>
+            <canvas ref={ref} className="w-full rounded border border-[#3a3a3a]"
+              style={{ imageRendering: 'pixelated' }} />
+          </div>
+        ))}
+        {/* S-entropy summary */}
+        <div className="border border-[#3a3a3a] rounded p-3 space-y-2 text-[11px]">
+          <div className="text-[#858585]">Partition state summary</div>
+          <div className="space-y-1">
+            {[
+              ['S_k (knowledge)', result.sEntropy.sk, '#4ec9b0'],
+              ['S_t (temporal)',  result.sEntropy.st, '#569cd6'],
+              ['S_e (emission)',  result.sEntropy.se, '#c586c0'],
+            ].map(([label, val, color]) => (
+              <div key={label as string} className="flex items-center gap-2">
+                <div className="text-[#858585] w-28">{label as string}</div>
+                <div className="flex-1 h-2 rounded bg-[#1a1a1a]">
+                  <div className="h-2 rounded" style={{ width: `${(val as number)*100}%`, background: color as string }} />
+                </div>
+                <div style={{ color: color as string }} className="w-12 text-right">{(val as number).toFixed(3)}</div>
+              </div>
+            ))}
+            <div className="text-[#858585] pt-1">
+              Σ = {result.sEntropy.sum.toFixed(12)} {Math.abs(result.sEntropy.sum-1)<1e-9?'✓':'⚠'}
+            </div>
+          </div>
+          {result.distance !== null && (
+            <div className="pt-1 space-y-0.5">
+              <div className="text-[#4ec9b0]">d = {result.distance.toFixed(3)} µm</div>
+              <div className="text-[#858585]">δd = ±{(result.uncertainty??0).toFixed(3)} µm ({((result.relativeUncertainty??0)*100).toFixed(2)}%)</div>
+              <div className="text-[#858585]">SNR = {result.snr.toFixed(1)}  CRLB = {result.crlbPixels.toFixed(3)} px</div>
+            </div>
           )}
-          <button
-            onClick={onRun}
-            title="Re-run"
-            className="flex h-6 items-center gap-1 rounded px-2 text-[12px]"
-            style={{ background: theme.accent, color: '#fff' }}
-          >
-            <RefreshCw size={12} /> Run
-          </button>
+          {result.goalStatus.length > 0 && (
+            <div className="pt-1 space-y-0.5">
+              {result.goalStatus.map((g, i) => (
+                <div key={i} className={g.passed ? 'text-[#4caf50]' : 'text-[#f44336]'}>
+                  {g.passed?'✓':'✗'} {g.metric} {g.op} {g.threshold} {g.unit}
+                  <span className="text-[#858585]"> (got {g.actual.toPrecision(4)})</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-
-      <div className="min-h-0 flex-1">
-        {tab === 'console' && (
-          <div className="h-full overflow-y-auto p-2 font-mono text-[12px] leading-relaxed">
-            {logs.length === 0 ? (
-              <div className="px-1 pt-1" style={{ color: '#5a5a5a' }}>
-                Execution log appears here.
-              </div>
-            ) : (
-              logs.map((l, i) => (
-                <div key={i} className="border-b px-1 py-1" style={{ color: levelColor[l.level] || '#d4d4d4', borderColor: '#2a2a2a' }}>
-                  <span className="mr-2 opacity-50">[{l.level}]</span>
-                  {l.message}
-                </div>
-              ))
-            )}
-          </div>
-        )}
-        {tab === 'compiled' && (
-          <pre className="h-full overflow-auto p-3 font-mono text-[12px] leading-[1.5]" style={{ color: theme.editorFg }}>
-            {compiled || '(compiled output appears here)'}
-          </pre>
-        )}
-        {tab === 'image' && (
-          <div className="h-full overflow-auto p-3 flex items-center justify-center" style={{ background: theme.editor }}>
-            <canvas
-              ref={canvasRef}
-              className="border border-gray-600 rounded"
-              style={{ maxWidth: '100%', maxHeight: '100%' }}
-            />
-          </div>
-        )}
-        {tab === 'entropy' && chartData?.entropyChart && (
-          <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
-            <div className="mb-6">
-              <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>S-Entropy Evolution</h3>
-              <EntropyBarChart phases={chartData.entropyChart.phases} />
-            </div>
-          </div>
-        )}
-        {tab === 'quality' && chartData?.qualityMetrics && (
-          <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
-            <div className="mb-6">
-              <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>Quality Metrics</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded" style={{ background: theme.tabInactive }}>
-                  <div className="text-sm opacity-75" style={{ color: theme.editorFg }}>Sharpness</div>
-                  <div className="text-2xl font-bold text-blue-400">{(chartData.qualityMetrics.sharpness * 100).toFixed(1)}%</div>
-                </div>
-                <div className="p-4 rounded" style={{ background: theme.tabInactive }}>
-                  <div className="text-sm opacity-75" style={{ color: theme.editorFg }}>Noise</div>
-                  <div className="text-2xl font-bold text-yellow-400">{(chartData.qualityMetrics.noise * 100).toFixed(1)}%</div>
-                </div>
-                <div className="p-4 rounded" style={{ background: theme.tabInactive }}>
-                  <div className="text-sm opacity-75" style={{ color: theme.editorFg }}>Coherence</div>
-                  <div className="text-2xl font-bold text-green-400">{(chartData.qualityMetrics.coherence * 100).toFixed(1)}%</div>
-                </div>
-                <div className="p-4 rounded" style={{ background: theme.tabInactive }}>
-                  <div className="text-sm opacity-75" style={{ color: theme.editorFg }}>Visibility</div>
-                  <div className="text-2xl font-bold text-purple-400">{(chartData.qualityMetrics.visibility * 100).toFixed(1)}%</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {tab === 'spectral' && chartData?.spectralData && (
-          <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
-            <div className="mb-6">
-              <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>Spectral Decomposition</h3>
-              <svg width="100%" height="300" style={{ background: theme.tabInactive, borderRadius: '4px' }}>
-                {chartData.spectralData.wavelengths.map((wl: number, idx: number) => {
-                  const intensity = chartData.spectralData.intensities[idx];
-                  const x = 50 + (idx * 120);
-                  const barHeight = intensity * 200;
-                  const colors = ['#4a90e2', '#50c878', '#ffd700', '#ff6b6b'];
-                  return (
-                    <g key={idx}>
-                      <rect x={x} y={250 - barHeight} width="80" height={barHeight} fill={colors[idx]} opacity="0.8" rx="4" />
-                      <text x={x + 40} y="280" fontSize="12" fill={theme.editorFg} textAnchor="middle">{wl}nm</text>
-                      <text x={x + 40} y={230 - barHeight} fontSize="11" fill={colors[idx]} textAnchor="middle" fontWeight="bold">{(intensity * 100).toFixed(0)}%</text>
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-          </div>
-        )}
-        {tab === 'measurements' && chartData?.measurementChart && (
-          <div className="h-full overflow-auto p-4" style={{ background: theme.editor }}>
-            <h3 className="text-lg font-bold mb-4" style={{ color: theme.editorFg }}>{chartData.measurementChart.title}</h3>
-            {chartData.measurementChart.measurements.length > 0 ? (
-              <MeasurementChart measurements={chartData.measurementChart.measurements} />
-            ) : (
-              <div style={{ color: theme.editorFg, opacity: 0.6 }}>No measurements in this program</div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ChartsPanel — 10 charts per execution
+// ─────────────────────────────────────────────────────────────────────────────
+function ChartsPanel({ result }: { result: ScopeResult | null }) {
+  if (!result) {
+    return (
+      <div className="flex h-full items-center justify-center" style={{ color: '#5a5a5a' }}>
+        Run a program to see charts.
+      </div>
+    );
+  }
+
+  const cd = result.chartData;
+
+  // Chart 5: SNR vs CRLB scatter (inline SVG)
+  const snrVal = result.snr;
+  const crlbVal = result.crlbPixels;
+
+  // Chart 6: Goal pass/fail bar
+  const goals = result.goalStatus;
+
+  // Chart 7: Partition state tree (bar per step)
+  const psNodes = result.visualData.partitionStates ?? [];
+
+  // Chart 8: Scale field radial profile (inline)
+  const sf = result.visualData.scaleField;
+  const W = result.visualData.width, H = result.visualData.height;
+  const cx = Math.floor(W/2), cy = Math.floor(H/2);
+  const radialBins = 16;
+  const radialProfile: number[] = Array(radialBins).fill(0);
+  const radialCounts: number[]  = Array(radialBins).fill(0);
+  const maxR = Math.sqrt(cx*cx + cy*cy);
+  if (sf) {
+    for (let y=0; y<H; y++) for (let x=0; x<W; x++) {
+      const r = Math.sqrt((x-cx)**2 + (y-cy)**2);
+      const bin = Math.min(radialBins-1, Math.floor(r/maxR*radialBins));
+      radialProfile[bin] += sf[y*W+x];
+      radialCounts[bin]++;
+    }
+  }
+  const radialMean = radialProfile.map((s,i) => radialCounts[i] ? s/radialCounts[i] : 0);
+  const radialMax = Math.max(...radialMean, 0.001);
+
+  // Chart 9: Uncertainty budget (stacked bar)
+  const distVal = result.distance ?? 0;
+  const uncVal  = result.uncertainty ?? 0;
+
+  // Chart 10: Channel capacity arc
+  const C = result.channelCapacity;
+
+  return (
+    <div className="h-full overflow-y-auto p-3 space-y-3">
+      {/* Row 1 */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <div className="text-[#858585] text-[10px] mb-1">Chart 1 — Spectral power |û(k)|² vs k</div>
+          <SpectralPowerChart data={cd.spectralPower} exponent={cd.powerLawExponent} />
+        </div>
+        <div>
+          <div className="text-[#858585] text-[10px] mb-1">Chart 2 — Scale field α(x,y) histogram</div>
+          <ScaleHistogram data={cd.scaleHistogram} mean={cd.alphaMean ?? cd.powerLawExponent} />
+        </div>
+      </div>
+
+      {/* Row 2 */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <div className="text-[#858585] text-[10px] mb-1">Chart 3 — S-entropy trajectory</div>
+          <EntropyTrajectoryChart data={cd.entropyTrajectory} />
+        </div>
+        <div>
+          <div className="text-[#858585] text-[10px] mb-1">Chart 4 — Distance ± uncertainty</div>
+          <UncertaintyBar data={cd.uncertaintyBar} />
+        </div>
+      </div>
+
+      {/* Row 3 */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Chart 5: SNR / CRLB */}
+        <InlineChart title="Chart 5 — SNR & CRLB">
+          {(W, H) => {
+            const mrgL=52, mrgB=30, mrgT=12, mrgR=12;
+            const iW=W-mrgL-mrgR, iH=H-mrgT-mrgB;
+            const vals = [{ label:'SNR', val:snrVal, max:20, color:'#4ec9b0' }, { label:'CRLB (px)', val:crlbVal, max:1, color:'#c586c0', invert:true }];
+            return (
+              <g transform={`translate(${mrgL},${mrgT})`}>
+                <rect width={iW} height={iH} fill="#0d1117" />
+                {vals.map(({ label, val, max, color, invert }, i) => {
+                  const bw=iW/vals.length*0.55, x=iW/(vals.length)*(i+0.5)-bw/2;
+                  const pct = invert ? Math.max(0,1-val/max) : Math.min(1,val/max);
+                  const bh = pct * iH;
+                  return (
+                    <g key={label}>
+                      <rect x={x} y={iH-bh} width={bw} height={bh} fill={color} opacity={0.8} />
+                      <text x={x+bw/2} y={iH-bh-4} fill={color} fontSize={9} textAnchor="middle">{val.toFixed(2)}</text>
+                      <text x={x+bw/2} y={iH+16} fill="#858585" fontSize={9} textAnchor="middle">{label}</text>
+                    </g>
+                  );
+                })}
+                <line x1={0} y1={iH*0.5} x2={iW} y2={iH*0.5} stroke="#3a3a3a" strokeDasharray="3,2" />
+                <text x={-2} y={iH*0.5+4} fill="#555" fontSize={8} textAnchor="end">50%</text>
+              </g>
+            );
+          }}
+        </InlineChart>
+
+        {/* Chart 6: Goal pass/fail */}
+        <InlineChart title="Chart 6 — Goal criteria">
+          {(W, H) => {
+            const mrgL=8, mrgB=12, mrgT=12, mrgR=8;
+            const iW=W-mrgL-mrgR, iH=H-mrgT-mrgB;
+            if (goals.length === 0) return (
+              <g transform={`translate(${mrgL},${mrgT})`}>
+                <text x={iW/2} y={iH/2} fill="#555" fontSize={11} textAnchor="middle">No goal criteria</text>
+              </g>
+            );
+            const rowH = iH / goals.length;
+            return (
+              <g transform={`translate(${mrgL},${mrgT})`}>
+                {goals.map((g, i) => {
+                  const barW = Math.min(iW, (g.actual / g.threshold) * iW * 0.8);
+                  const color = g.passed ? '#4caf50' : '#f44336';
+                  return (
+                    <g key={i} transform={`translate(0,${i*rowH})`}>
+                      <rect x={0} y={4} width={iW} height={rowH-8} fill="#0d1117" rx={2} />
+                      <rect x={0} y={4} width={barW} height={rowH-8} fill={color} opacity={0.35} rx={2} />
+                      <line x1={(g.threshold/g.threshold)*iW*0.8} y1={2} x2={(g.threshold/g.threshold)*iW*0.8} y2={rowH-2} stroke={color} strokeWidth={1.5} strokeDasharray="3,2" />
+                      <text x={4} y={rowH/2+4} fill={color} fontSize={9}>{g.passed?'✓':'✗'} {g.metric} {g.op} {g.threshold}{g.unit}</text>
+                      <text x={iW-4} y={rowH/2+4} fill="#858585" fontSize={9} textAnchor="end">{g.actual.toPrecision(3)}</text>
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          }}
+        </InlineChart>
+      </div>
+
+      {/* Row 4 */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Chart 7: Partition state S_k progression */}
+        <InlineChart title="Chart 7 — S_k progression through steps">
+          {(W, H) => {
+            const mrgL=44, mrgB=36, mrgT=12, mrgR=12;
+            const iW=W-mrgL-mrgR, iH=H-mrgT-mrgB;
+            if (!psNodes.length) return <text x={W/2} y={H/2} fill="#555" fontSize={11} textAnchor="middle">No partition states</text>;
+            const xScale = (i: number) => (i/(psNodes.length-1||1))*iW;
+            const yScale = (v: number) => iH * (1-v);
+            return (
+              <g transform={`translate(${mrgL},${mrgT})`}>
+                <rect width={iW} height={iH} fill="#0d1117" />
+                {[['sk','#4ec9b0'],['st','#569cd6'],['se','#c586c0']].map(([k,c]) => (
+                  <polyline key={k} fill="none" stroke={c} strokeWidth={1.5} opacity={0.9}
+                    points={psNodes.map((n,i) => `${xScale(i)},${yScale((n as any)[k])}`).join(' ')} />
+                ))}
+                {psNodes.map((n, i) => (
+                  <g key={i}>
+                    <circle cx={xScale(i)} cy={yScale(n.sk)} r={2.5} fill="#4ec9b0" />
+                    {i % Math.max(1,Math.floor(psNodes.length/4)) === 0 && (
+                      <text x={xScale(i)} y={iH+14} fill="#858585" fontSize={7} textAnchor="middle"
+                        transform={`rotate(-20,${xScale(i)},${iH+14})`}>{n.label.slice(0,12)}</text>
+                    )}
+                  </g>
+                ))}
+                {[0,0.25,0.5,0.75,1].map(v => (
+                  <g key={v}>
+                    <line x1={0} x2={iW} y1={yScale(v)} y2={yScale(v)} stroke="#1e2a2a" strokeDasharray="2,2" />
+                    <text x={-4} y={yScale(v)+4} fill="#555" fontSize={8} textAnchor="end">{v.toFixed(2)}</text>
+                  </g>
+                ))}
+              </g>
+            );
+          }}
+        </InlineChart>
+
+        {/* Chart 8: Radial profile of α */}
+        <InlineChart title="Chart 8 — α radial profile (centre→edge)">
+          {(W, H) => {
+            const mrgL=44, mrgB=30, mrgT=12, mrgR=12;
+            const iW=W-mrgL-mrgR, iH=H-mrgT-mrgB;
+            const xS = (i: number) => (i/(radialBins-1))*iW;
+            const yS = (v: number) => iH*(1-v/radialMax);
+            const pts = radialMean.map((v,i) => `${xS(i)},${yS(v)}`).join(' ');
+            return (
+              <g transform={`translate(${mrgL},${mrgT})`}>
+                <rect width={iW} height={iH} fill="#0d1117" />
+                <polyline fill="none" stroke="#4ec9b0" strokeWidth={2} points={pts} />
+                {radialMean.map((v,i) => <circle key={i} cx={xS(i)} cy={yS(v)} r={2} fill="#4ec9b0" />)}
+                {[0,0.5,1].map(t => {
+                  const v=t*radialMax;
+                  return <g key={t}>
+                    <line x1={0} x2={iW} y1={yS(v)} y2={yS(v)} stroke="#1e2a2a" strokeDasharray="2,2" />
+                    <text x={-4} y={yS(v)+4} fill="#555" fontSize={8} textAnchor="end">{v.toFixed(2)}</text>
+                  </g>;
+                })}
+                <text x={iW/2} y={iH+22} fill="#858585" fontSize={9} textAnchor="middle">radial bin (centre → edge)</text>
+                <text transform="rotate(-90)" x={-iH/2} y={-32} fill="#858585" fontSize={9} textAnchor="middle">ᾱ</text>
+              </g>
+            );
+          }}
+        </InlineChart>
+      </div>
+
+      {/* Row 5 */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Chart 9: Uncertainty budget */}
+        <InlineChart title="Chart 9 — Measurement uncertainty budget">
+          {(W, H) => {
+            const mrgL=52, mrgB=30, mrgT=12, mrgR=12;
+            const iW=W-mrgL-mrgR, iH=H-mrgT-mrgB;
+            const total = Math.max(distVal + uncVal*2, 0.001);
+            const dBar = (distVal/total)*iH, uBar = (uncVal/total)*iH;
+            const cx2 = iW/2;
+            const bw = iW*0.3;
+            return (
+              <g transform={`translate(${mrgL},${mrgT})`}>
+                <rect width={iW} height={iH} fill="#0d1117" />
+                {/* distance bar */}
+                <rect x={cx2-bw-4} y={iH-dBar} width={bw} height={dBar} fill="#569cd6" opacity={0.85} />
+                <text x={cx2-bw/2-4} y={iH-dBar-4} fill="#569cd6" fontSize={9} textAnchor="middle">
+                  {distVal.toFixed(3)} µm
+                </text>
+                <text x={cx2-bw/2-4} y={iH+18} fill="#858585" fontSize={9} textAnchor="middle">distance</text>
+                {/* uncertainty bar */}
+                <rect x={cx2+4} y={iH-uBar} width={bw} height={uBar} fill="#c586c0" opacity={0.85} />
+                <text x={cx2+bw/2+4} y={iH-uBar-4} fill="#c586c0" fontSize={9} textAnchor="middle">
+                  ±{uncVal.toFixed(3)}
+                </text>
+                <text x={cx2+bw/2+4} y={iH+18} fill="#858585" fontSize={9} textAnchor="middle">δd</text>
+                {/* relative uncertainty */}
+                {distVal > 0 && (
+                  <text x={iW/2} y={12} fill="#dcdcaa" fontSize={9} textAnchor="middle">
+                    {((uncVal/distVal)*100).toFixed(2)}% relative uncertainty
+                  </text>
+                )}
+                {/* y axis */}
+                {[0,0.5,1].map(t => {
+                  const y = iH*(1-t);
+                  return <g key={t}>
+                    <line x1={0} x2={iW} y1={y} y2={y} stroke="#1e2a2a" strokeDasharray="2,2"/>
+                    <text x={-4} y={y+4} fill="#555" fontSize={8} textAnchor="end">{(t*total).toFixed(2)}</text>
+                  </g>;
+                })}
+              </g>
+            );
+          }}
+        </InlineChart>
+
+        {/* Chart 10: Channel capacity */}
+        <InlineChart title="Chart 10 — Channel capacity C (bits/px)">
+          {(W, H) => {
+            const cx2=W/2, cy2=H/2, r=Math.min(W,H)*0.32;
+            const maxC = 8, pct = Math.min(1, C/maxC);
+            const arc = (frac: number) => {
+              const a = -Math.PI/2 + frac*2*Math.PI;
+              return { x: cx2 + r*Math.cos(a), y: cy2 + r*Math.sin(a) };
+            };
+            const p0 = arc(0), p1 = arc(pct);
+            const largeArc = pct > 0.5 ? 1 : 0;
+            return (
+              <>
+                <circle cx={cx2} cy={cy2} r={r} fill="none" stroke="#1e2a2a" strokeWidth={18} />
+                <path d={`M ${p0.x} ${p0.y} A ${r} ${r} 0 ${largeArc} 1 ${p1.x} ${p1.y}`}
+                  fill="none" stroke="#569cd6" strokeWidth={18} strokeLinecap="round" />
+                <text x={cx2} y={cy2-8} fill="#d4d4d4" fontSize={22} textAnchor="middle" fontWeight="bold">
+                  {C.toFixed(2)}
+                </text>
+                <text x={cx2} y={cy2+14} fill="#858585" fontSize={11} textAnchor="middle">bits/px</text>
+                <text x={cx2} y={H-10} fill="#858585" fontSize={9} textAnchor="middle">
+                  Shannon C = ½ log₂(1 + SNR²)
+                </text>
+              </>
+            );
+          }}
+        </InlineChart>
+      </div>
+    </div>
+  );
+}
+
+// Inline SVG chart wrapper
+function InlineChart({ title, children }: { title: string; children: (W: number, H: number) => React.ReactNode }) {
+  const W = 340, H = 200;
+  return (
+    <div className="bg-[#0d1117] border border-[#3a3a3a] rounded p-2">
+      <div className="text-[#858585] text-[10px] mb-1">{title}</div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }}>
+        {children(W, H)}
+      </svg>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OutputColumn — 3 tabs: Console | Charts | Image
+// ─────────────────────────────────────────────────────────────────────────────
+function OutputColumn({ logs, onRun, onClear, outputTab, setOutputTab, result, running }: {
+  logs: Array<{ level: string; message: string }>;
+  onRun: () => void;
+  onClear: () => void;
+  outputTab: string;
+  setOutputTab: (t: string) => void;
+  result: ScopeResult | null;
+  running: boolean;
+}) {
+  const tabs = [
+    { id: 'console', label: 'Console',  Icon: TerminalIcon },
+    { id: 'charts',  label: 'Charts',   Icon: BarChart2 },
+    { id: 'image',   label: 'Image',    Icon: ImageIcon },
+  ];
+  const levelColor: Record<string, string> = {
+    log: '#d4d4d4', info: '#9cdcfe', warn: '#dcdcaa', error: '#f48771',
+  };
+
+  return (
+    <div className="flex min-w-0 flex-1 flex-col" style={{ background: T.editor, borderLeft: `1px solid ${T.border}` }}>
+      <div className="flex h-9 shrink-0 items-center justify-between pr-2" style={{ background: T.tabInactive }}>
+        <div className="flex h-full">
+          {tabs.map(({ id, label, Icon }) => {
+            const active = outputTab === id;
+            return (
+              <button key={id} onClick={() => setOutputTab(id)}
+                className="relative flex items-center gap-1.5 px-3 text-[12px] transition-colors"
+                style={{ color: active ? T.tabFgActive : T.tabFg, background: active ? T.tabActive : 'transparent' }}>
+                <Icon size={13} /> {label}
+                {id === 'console' && logs.length > 0 && (
+                  <span className="rounded-full px-1.5 text-[10px]" style={{ background: T.accent, color: '#fff' }}>
+                    {logs.length}
+                  </span>
+                )}
+                {active && <span className="absolute left-0 top-0 h-0.5 w-full" style={{ background: T.accentBright }} />}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-1">
+          {outputTab === 'console' && (
+            <button onClick={onClear} title="Clear" className="flex h-6 w-6 items-center justify-center rounded"
+              style={{ color: T.tabFg }}>
+              <Trash2 size={14} />
+            </button>
+          )}
+          <button onClick={onRun} disabled={running}
+            className="flex h-6 items-center gap-1 rounded px-2 text-[12px] disabled:opacity-50"
+            style={{ background: T.accent, color: '#fff' }}>
+            {running ? <RefreshCw size={12} className="animate-spin" /> : <Play size={12} fill="white" />}
+            {running ? 'Running…' : 'Run'}
+          </button>
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {outputTab === 'console' && (
+          <div className="h-full overflow-y-auto p-2 font-mono text-[12px] leading-relaxed">
+            {logs.length === 0
+              ? <div className="px-1 pt-1" style={{ color: '#5a5a5a' }}>Press Run to execute the active script.</div>
+              : logs.map((l, i) => (
+                <div key={i} className="border-b px-1 py-0.5" style={{ color: levelColor[l.level] ?? '#d4d4d4', borderColor: '#2a2a2a' }}>
+                  <span className="mr-2 opacity-40">[{l.level}]</span>{l.message}
+                </div>
+              ))
+            }
+          </div>
+        )}
+        {outputTab === 'charts'  && <ChartsPanel result={result} />}
+        {outputTab === 'image'   && <ImagePanel result={result} />}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main component
+// ─────────────────────────────────────────────────────────────────────────────
 export default function ScopeIDEMain() {
-  const [files, setFiles] = useState(initialFiles);
+  const [files, setFiles]       = useState(initialFiles);
   const [expanded, setExpanded] = useState(new Set(['examples', 'datasets', 'my-analysis']));
-  const [openTabs, setOpenTabs] = useState([['examples', 'tutorial_01_hello.scope']]);
-  const [activeTab, setActiveTab] = useState('examples/tutorial_01_hello.scope');
-  const [dirty, setDirty] = useState(new Set());
-  const [sidebar, setSidebar] = useState(true);
-  const [cursor, setCursor] = useState({ ln: 1, col: 1 });
+  const [openTabs, setOpenTabs] = useState([['examples', 'tutorial_01_observe.scope']]);
+  const [activeTab, setActiveTab] = useState('examples/tutorial_01_observe.scope');
+  const [dirty, setDirty]       = useState(new Set<string>());
+  const [sidebar, setSidebar]   = useState(true);
+  const [cursor, setCursor]     = useState({ ln: 1, col: 1 });
   const [activity, setActivity] = useState('files');
 
-  const [compiled, setCompiled] = useState('');
-  const [logs, setLogs] = useState([]);
-  const [outputTab, setOutputTab] = useState<'console' | 'image' | 'entropy' | 'measurements' | 'quality' | 'spectral' | 'compiled'>('console');
-  const [visualizationData, setVisualizationData] = useState<any>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [logs, setLogs]           = useState<Array<{ level: string; message: string }>>([]);
+  const [outputTab, setOutputTab] = useState('console');
+  const [result, setResult]       = useState<ScopeResult | null>(null);
+  const [running, setRunning]     = useState(false);
 
-  const splitRef = useRef(null);
-  const dragging = useRef(false);
-  const [editorWidth, setEditorWidth] = useState(55);
+  const splitRef  = useRef<HTMLDivElement>(null);
+  const dragging  = useRef(false);
+  const [editorWidth, setEditorWidth] = useState(45);
 
-  const run = useCallback(() => {
-    const activePathArr = openTabs.find((t) => t.join('/') === activeTab);
+  // ── Run ──────────────────────────────────────────────────────────────────
+  const run = useCallback(async () => {
+    const activePathArr = openTabs.find(t => t.join('/') === activeTab);
     if (!activePathArr) return;
-
     const activeNode = getNode(files, activePathArr);
-    if (!activeNode) return;
+    if (!activeNode || activeNode.type !== 'file' || activeNode.lang !== 'scope') return;
 
-    const newLogs = [];
-    const log = (msg) => newLogs.push({ level: 'log', message: msg });
+    setRunning(true);
+    setResult(null);
+    const newLogs: Array<{ level: string; message: string }> = [];
+    const log = (msg: string, level = 'log') => newLogs.push({ level, message: msg });
 
     try {
-      log('Compiling SCOPE program...');
-      const compiledProgram = compileScope(activeNode.content);
+      // 1. Compile
+      log('Compiling SCOPE program…');
+      const cr = compile(activeNode.content);
 
-      if (!compiledProgram.ok) {
-        log('❌ Compilation failed:');
-        compiledProgram.errors.forEach((err) => {
-          log(`  ${err.kind}: ${(err as any).message || JSON.stringify(err)}`);
-        });
-        setLogs(newLogs);
+      if (!cr.ok || !cr.program) {
+        log('❌ Compilation failed:', 'error');
+        cr.errors.forEach(e => log(`  ${e.kind}: ${(e as any).message ?? JSON.stringify(e)}`, 'error'));
+        setLogs([...newLogs]);
+        setRunning(false);
         return;
       }
+      log(`✓ Compiled: ${cr.program.name}  (${cr.program.morphisms.length} morphism${cr.program.morphisms.length!==1?'s':''})`);
+      if (cr.warnings.length) cr.warnings.forEach(w => log(`  ⚠ ${w.kind}`, 'warn'));
 
-      log('✓ Compilation successful');
-      log(`Program: ${compiledProgram.program?.name ?? '(unknown)'}`);
-      log(`Morphisms: ${compiledProgram.program?.morphisms?.length || 0}`);
+      // 2. Fetch image
+      const firstLoad = cr.program.morphisms
+        .map(m => m.expr.observe.frame)
+        .find(f => f.kind === 'LoadRef');
 
-      if (compiledProgram.warnings.length > 0) {
-        log('⚠ Warnings:');
-        compiledProgram.warnings.forEach((warn) => {
-          log(`  ${warn.kind}`);
-        });
+      let imagePayload: { data: Float32Array; width: number; height: number };
+
+      if (firstLoad?.kind === 'LoadRef') {
+        log(`Fetching ${firstLoad.dataset}/${firstLoad.image}…`);
+        const params = new URLSearchParams({ db: firstLoad.db, dataset: firstLoad.dataset, image: firstLoad.image });
+        const res = await fetch(`/api/image-proxy?${params}`);
+        const json = await res.json();
+        if (json.error) throw new Error(json.error);
+        imagePayload = { data: new Float32Array(json.data as number[]), width: json.width as number, height: json.height as number };
+        log(`✓ Image: ${json.width}×${json.height}px${json.synthetic ? ' (synthetic fallback)' : ''}`);
+      } else {
+        const W2 = 256, H2 = 256;
+        const data = new Float32Array(W2 * H2);
+        for (let y = 0; y < H2; y++) for (let x = 0; x < W2; x++) {
+          const d1=(x-80)**2+(y-128)**2, d2=(x-176)**2+(y-128)**2;
+          data[y*W2+x] = Math.max(0, Math.min(1, 0.05 + 0.9*Math.exp(-d1/1250) + 0.9*Math.exp(-d2/968)));
+        }
+        imagePayload = { data, width: W2, height: H2 };
+        log('Using synthetic 256×256 image');
       }
 
-      setCompiled(JSON.stringify(compiledProgram.program, null, 2));
+      // 3. Run 5-phase pipeline
+      log('Running SCOPE pipeline (COMPILE → ASSIGN → MEASURE → EXECUTE → EMIT)…');
+      setLogs([...newLogs]);
 
+      const scopeResult = await runScope(cr.program, imagePayload);
+
+      // Append pipeline logs
+      scopeResult.log.forEach(l => log(l));
       log('');
-      log('Executing SCOPE program...');
+      log('═══ RESULT ═══');
+      if (scopeResult.distance !== null) {
+        log(`d = ${scopeResult.distance.toFixed(4)} µm  δd = ±${(scopeResult.uncertainty??0).toFixed(4)} µm  (${((scopeResult.relativeUncertainty??0)*100).toFixed(2)}%)`);
+      }
+      log(`SNR = ${scopeResult.snr.toFixed(2)}  CRLB = ${scopeResult.crlbPixels.toFixed(4)} px  C = ${scopeResult.channelCapacity.toFixed(3)} bits/px`);
+      log(`S_k=${scopeResult.sEntropy.sk.toFixed(4)}  S_t=${scopeResult.sEntropy.st.toFixed(4)}  S_e=${scopeResult.sEntropy.se.toFixed(4)}  Σ=${scopeResult.sEntropy.sum.toFixed(12)}`);
+      if (scopeResult.goalStatus.length) {
+        log('Goals:');
+        scopeResult.goalStatus.forEach(g => log(`  ${g.passed?'✓':'✗'} ${g.metric} ${g.op} ${g.threshold} ${g.unit}  (got ${g.actual.toPrecision(4)})`));
+      }
 
-      executeReal(compiledProgram.program as any)
-        .then((result) => {
-          if (result.success) {
-            result.logs.forEach((l) => log(l));
-
-            log('');
-            log('═══ RESULT ═══');
-            log(`Structure: ${result.structure}`);
-            if (result.distance) {
-              log(`Distance: ${result.distance.toFixed(3)} µm ± ${result.uncertainty?.toFixed(3)} µm`);
-            }
-            log(
-              `Position: (${result.position.x.toFixed(1)}, ${result.position.y.toFixed(1)}, ${result.position.z.toFixed(1)}) µm`
-            );
-            log(
-              `S-Entropy: S_k=${result.s_entropy.S_k.toFixed(3)} S_t=${result.s_entropy.S_t.toFixed(3)} S_e=${result.s_entropy.S_e.toFixed(3)}`
-            );
-
-            // Store visualization data
-            if (result.coordinateField) {
-              setVisualizationData(result);
-              // Auto-switch to image tab if measurements present
-              if (result.measurements && result.measurements.length > 0) {
-                setOutputTab('image');
-              }
-            }
-          } else {
-            log(`❌ Execution failed`);
-          }
-          setLogs([...newLogs]);
-        })
-        .catch((err) => {
-          log(`❌ Execution error: ${err instanceof Error ? err.message : String(err)}`);
-          setLogs([...newLogs]);
-        });
-
-      setLogs(newLogs);
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      log(`❌ Error: ${errorMsg}`);
-      setLogs(newLogs);
+      setResult(scopeResult);
+      setLogs([...newLogs]);
+      // Auto-switch to image tab when done
+      setOutputTab('image');
+    } catch (err) {
+      log(`❌ ${err instanceof Error ? err.message : String(err)}`, 'error');
+      setLogs([...newLogs]);
+    } finally {
+      setRunning(false);
     }
   }, [files, openTabs, activeTab]);
 
-  // Render visualization when data changes
+  // Ctrl+Enter shortcut
   useEffect(() => {
-    if (visualizationData && canvasRef.current && outputTab === 'image') {
-      try {
-        const { visualizeCoordinateField } = require('@/lib/scope-runtime/visualize-field');
-        const hasMeasure = visualizationData.measurements && visualizationData.measurements.length > 0;
-        visualizeCoordinateField(visualizationData.coordinateField, canvasRef.current, {
-          width: 512,
-          height: 512,
-          showGrid: true,
-          showMeasurements: true,
-          programName: visualizationData.programName || 'Unknown',
-          hasMeasure,
-          measurements: visualizationData.measurements,
-        });
-      } catch (e) {
-        // Fallback: show text
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) {
-          ctx.fillStyle = '#d4d4d4';
-          ctx.font = '14px monospace';
-          ctx.fillText('Visualizing coordinate field...', 10, 30);
-        }
-      }
-    }
-  }, [visualizationData, outputTab]);
+    const h = (e: KeyboardEvent) => { if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); run(); } };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [run]);
 
+  // Splitter drag
   useEffect(() => {
-    const move = (e) => {
+    const move = (e: MouseEvent) => {
       if (!dragging.current || !splitRef.current) return;
       const r = splitRef.current.getBoundingClientRect();
-      const pct = ((e.clientX - r.left) / r.width) * 100;
-      setEditorWidth(Math.min(80, Math.max(25, pct)));
+      setEditorWidth(Math.min(75, Math.max(20, ((e.clientX - r.left) / r.width) * 100)));
     };
-    const up = () => {
-      dragging.current = false;
-      document.body.style.cursor = '';
-    };
+    const up = () => { dragging.current = false; document.body.style.cursor = ''; };
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
-    return () => {
-      window.removeEventListener('mousemove', move);
-      window.removeEventListener('mouseup', up);
-    };
+    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
   }, []);
 
-  const toggleFolder = useCallback((key) => {
-    setExpanded((prev) => {
-      const n = new Set(prev);
-      n.has(key) ? n.delete(key) : n.add(key);
-      return n;
-    });
+  const toggleFolder = useCallback((key: string) => {
+    setExpanded(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
   }, []);
 
-  const openFile = useCallback((pathArr) => {
+  const openFile = useCallback((pathArr: string[]) => {
     const key = pathArr.join('/');
-    setOpenTabs((prev) => (prev.some((t) => t.join('/') === key) ? prev : [...prev, pathArr]));
+    setOpenTabs(prev => prev.some(t => t.join('/')===key) ? prev : [...prev, pathArr]);
     setActiveTab(key);
   }, []);
 
-  const closeTab = useCallback(
-    (key, e) => {
-      e.stopPropagation();
-      setOpenTabs((prev) => {
-        const next = prev.filter((t) => t.join('/') !== key);
-        if (activeTab === key) setActiveTab(next.length ? next[next.length - 1].join('/') : null);
-        return next;
-      });
-      setDirty((prev) => {
-        const n = new Set(prev);
-        n.delete(key);
-        return n;
-      });
-    },
-    [activeTab]
-  );
+  const closeTab = useCallback((key: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenTabs(prev => {
+      const next = prev.filter(t => t.join('/')!==key);
+      if (activeTab===key) setActiveTab(next.length ? next[next.length-1].join('/') : '');
+      return next;
+    });
+    setDirty(prev => { const n = new Set(prev); n.delete(key); return n; });
+  }, [activeTab]);
 
-  const activePathArr = useMemo(
-    () => openTabs.find((t) => t.join('/') === activeTab) || null,
-    [openTabs, activeTab]
-  );
-  const activeNode = activePathArr ? getNode(files, activePathArr) : null;
+  const activePathArr = useMemo(() => openTabs.find(t => t.join('/')===activeTab) ?? null, [openTabs, activeTab]);
+  const activeNode    = activePathArr ? getNode(files, activePathArr) : null;
 
-  const updateContent = useCallback(
-    (val) => {
-      if (!activePathArr) return;
-      setFiles((prev) => {
-        const next = structuredClone(prev);
-        getNode(next, activePathArr).content = val;
-        return next;
-      });
-      setDirty((prev) => new Set(prev).add(activeTab));
-    },
-    [activePathArr, activeTab]
-  );
+  const updateContent = useCallback((val: string) => {
+    if (!activePathArr) return;
+    setFiles((prev: typeof initialFiles) => { const next = structuredClone(prev); getNode(next, activePathArr!).content = val; return next; });
+    setDirty(prev => new Set(prev).add(activeTab));
+  }, [activePathArr, activeTab]);
 
   const activities = [
-    { id: 'files', Icon: Files, label: 'Explorer' },
-    { id: 'search', Icon: Search, label: 'Search' },
-    { id: 'git', Icon: GitBranch, label: 'Source Control' },
+    { id: 'files',  Icon: Files,     label: 'Explorer' },
+    { id: 'search', Icon: Search,    label: 'Search' },
+    { id: 'git',    Icon: GitBranch, label: 'Source Control' },
   ];
 
   return (
-    <div
-      className="flex h-screen w-screen flex-col overflow-hidden text-sm"
-      style={{ background: theme.editor, color: theme.editorFg, border: `1px solid ${theme.border}` }}
-    >
+    <div className="flex h-screen w-screen flex-col overflow-hidden text-sm"
+      style={{ background: T.editor, color: T.editorFg, border: `1px solid ${T.border}` }}>
+
       {/* Title bar */}
-      <div className="flex h-9 shrink-0 items-center justify-between px-3" style={{ background: theme.titlebar }}>
+      <div className="flex h-9 shrink-0 items-center justify-between px-3" style={{ background: T.titlebar }}>
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-full" style={{ background: '#ff5f56' }} />
           <span className="h-3 w-3 rounded-full" style={{ background: '#ffbd2e' }} />
           <span className="h-3 w-3 rounded-full" style={{ background: '#27c93f' }} />
         </div>
-        <span className="text-xs" style={{ color: '#cccccc' }}>SCOPE Sandbox — Microscopy Analysis</span>
+        <span className="text-xs" style={{ color: '#cccccc' }}>SCOPE Analysis Studio — Microscopy Measurement Framework</span>
         <div className="w-12" />
       </div>
 
       <div className="flex min-h-0 flex-1">
         {/* Activity bar */}
-        <div className="flex w-12 shrink-0 flex-col items-center py-2" style={{ background: theme.activitybar }}>
-          <div className="flex flex-col items-center gap-1">
-            {activities.map(({ id, Icon, label }) => {
-              const active = activity === id;
-              return (
-                <button
-                  key={id}
-                  title={label}
-                  onClick={() => {
-                    if (active) setSidebar((s) => !s);
-                    else {
-                      setActivity(id);
-                      setSidebar(true);
-                    }
-                  }}
-                  className="relative flex h-11 w-12 items-center justify-center transition-colors"
-                  style={{ color: active ? theme.activitybarFgActive : theme.activitybarFg }}
-                >
-                  {active && (
-                    <span
-                      className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2"
-                      style={{ background: '#ffffff' }}
-                    />
-                  )}
-                  <Icon size={24} strokeWidth={1.5} />
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex w-12 shrink-0 flex-col items-center py-2" style={{ background: T.activitybar }}>
+          {activities.map(({ id, Icon, label }) => {
+            const active = activity === id;
+            return (
+              <button key={id} title={label}
+                onClick={() => { if (active) setSidebar(s=>!s); else { setActivity(id); setSidebar(true); } }}
+                className="relative flex h-11 w-12 items-center justify-center transition-colors"
+                style={{ color: active ? T.activitybarFgActive : T.activitybarFg }}>
+                {active && <span className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2" style={{ background: '#fff' }} />}
+                <Icon size={24} strokeWidth={1.5} />
+              </button>
+            );
+          })}
         </div>
 
         {/* Sidebar */}
         {sidebar && (
-          <div
-            className="flex w-60 shrink-0 flex-col overflow-hidden"
-            style={{ background: theme.sidebar, borderRight: `1px solid ${theme.border}` }}
-          >
-            <div
-              className="flex h-9 shrink-0 items-center px-4 text-[11px] font-medium uppercase tracking-wider"
-              style={{ color: theme.sidebarHeader }}
-            >
-              {activities.find((a) => a.id === activity)?.label}
+          <div className="flex w-60 shrink-0 flex-col overflow-hidden"
+            style={{ background: T.sidebar, borderRight: `1px solid ${T.border}` }}>
+            <div className="flex h-9 shrink-0 items-center px-4 text-[11px] font-medium uppercase tracking-wider"
+              style={{ color: T.sidebarHeader }}>
+              {activities.find(a => a.id===activity)?.label}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto pb-2">
-              {activity === 'files' ? (
-                <Tree tree={files} expanded={expanded} toggle={toggleFolder} activePath={activeTab} openFile={openFile} />
-              ) : (
-                <div className="px-4 py-6 text-[13px]" style={{ color: theme.tabFg }}>
-                  {activities.find((a) => a.id === activity)?.label} panel
-                </div>
-              )}
+              {activity === 'files'
+                ? <Tree tree={files} expanded={expanded} toggle={toggleFolder} activePath={activeTab} openFile={openFile} />
+                : <div className="px-4 py-6 text-[13px]" style={{ color: T.tabFg }}>{activities.find(a=>a.id===activity)?.label} panel</div>
+              }
             </div>
           </div>
         )}
 
         {/* Editor + Output split */}
         <div ref={splitRef} className="flex min-w-0 flex-1">
-          {/* Editor column */}
+          {/* Editor */}
           <div className="flex min-w-0 flex-col" style={{ width: `${editorWidth}%` }}>
-            <div className="flex h-9 shrink-0 items-stretch overflow-x-auto" style={{ background: theme.tabInactive }}>
-              {openTabs.map((pathArr) => {
+            {/* Tab bar */}
+            <div className="flex h-9 shrink-0 items-stretch overflow-x-auto" style={{ background: T.tabInactive }}>
+              {openTabs.map(pathArr => {
                 const key = pathArr.join('/');
-                const name = pathArr[pathArr.length - 1];
+                const name = pathArr[pathArr.length-1];
                 const active = key === activeTab;
                 const isDirty = dirty.has(key);
                 const { Icon, color } = fileIcon(name);
                 return (
-                  <div
-                    key={key}
-                    onClick={() => setActiveTab(key)}
+                  <div key={key} onClick={() => setActiveTab(key)}
                     className="group flex cursor-pointer items-center gap-2 border-r px-3 text-[13px]"
-                    style={{
-                      background: active ? theme.tabActive : theme.tabInactive,
-                      color: active ? theme.tabFgActive : theme.tabFg,
-                      borderColor: theme.border,
-                      borderTop: active ? `1px solid ${theme.accentBright}` : '1px solid transparent',
-                    }}
-                  >
+                    style={{ background: active ? T.tabActive : T.tabInactive, color: active ? T.tabFgActive : T.tabFg,
+                      borderColor: T.border, borderTop: active ? `1px solid ${T.accentBright}` : '1px solid transparent' }}>
                     <Icon size={15} style={{ color }} />
                     <span className="whitespace-nowrap">{name}</span>
-                    <button
-                      onClick={(e) => closeTab(key, e)}
+                    <button onClick={e => closeTab(key, e)}
                       className="flex h-5 w-5 items-center justify-center rounded"
-                      style={{ color: active ? theme.tabFgActive : theme.tabFg }}
-                    >
-                      {isDirty ? (
-                        <Circle size={9} fill="currentColor" className="group-hover:hidden" />
-                      ) : null}
+                      style={{ color: active ? T.tabFgActive : T.tabFg }}>
+                      {isDirty ? <Circle size={9} fill="currentColor" className="group-hover:hidden" /> : null}
                       <X size={15} className={isDirty ? 'hidden group-hover:block' : 'opacity-0 group-hover:opacity-100'} />
                     </button>
                   </div>
                 );
               })}
             </div>
-
+            {/* Breadcrumb */}
             {activePathArr && (
-              <div className="flex h-6 shrink-0 items-center gap-1 px-4 text-[12px]" style={{ background: theme.editor, color: theme.tabFg }}>
+              <div className="flex h-6 shrink-0 items-center gap-1 px-4 text-[12px]"
+                style={{ background: T.editor, color: T.tabFg }}>
                 {activePathArr.map((p, i) => (
                   <span key={i} className="flex items-center gap-1">
-                    {i > 0 && <ChevronRight size={12} className="opacity-60" />}
-                    {p}
+                    {i > 0 && <ChevronRight size={12} className="opacity-60" />}{p}
                   </span>
                 ))}
               </div>
             )}
-
-            {activeNode ? (
-              <Editor value={activeNode.content} onChange={updateContent} onCursor={setCursor} />
-            ) : (
-              <div
-                className="flex min-h-0 flex-1 items-center justify-center text-sm"
-                style={{ background: theme.editor, color: '#5a5a5a' }}
-              >
-                Select a file to start editing
-              </div>
-            )}
+            {activeNode?.lang === 'scope'
+              ? <Editor value={activeNode.content} onChange={updateContent} onCursor={setCursor} />
+              : <div className="flex min-h-0 flex-1 items-center justify-center text-sm"
+                  style={{ background: T.editor, color: '#5a5a5a' }}>
+                  {activeNode ? activeNode.content : 'Select a .scope file to start editing'}
+                </div>
+            }
           </div>
 
           {/* Splitter */}
-          <div
-            onMouseDown={() => {
-              dragging.current = true;
-              document.body.style.cursor = 'col-resize';
-            }}
-            className="w-1 shrink-0 cursor-col-resize transition-colors hover:opacity-100"
-            style={{ background: theme.border }}
-            title="Drag to resize"
-          />
+          <div onMouseDown={() => { dragging.current = true; document.body.style.cursor = 'col-resize'; }}
+            className="w-1 shrink-0 cursor-col-resize" style={{ background: T.border }} />
 
-          {/* Output column */}
-          <OutputColumn
-            compiled={compiled}
-            logs={logs}
-            onRun={run}
-            onClear={() => setLogs([])}
-            outputTab={outputTab}
-            setOutputTab={setOutputTab}
-            canvasRef={canvasRef}
-            chartData={visualizationData}
-          />
+          {/* Output */}
+          <OutputColumn logs={logs} onRun={run} onClear={() => setLogs([])}
+            outputTab={outputTab} setOutputTab={setOutputTab} result={result} running={running} />
         </div>
       </div>
 
       {/* Status bar */}
-      <div
-        className="flex h-6 shrink-0 items-center justify-between px-3 text-[12px]"
-        style={{ background: theme.statusBar, color: theme.statusFg }}
-      >
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1">Ln {cursor.ln}, Col {cursor.col}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span>{activeNode ? 'SCOPE' : '—'}</span>
-        </div>
+      <div className="flex h-6 shrink-0 items-center justify-between px-3 text-[12px]"
+        style={{ background: T.statusBar, color: T.statusFg }}>
+        <span>Ln {cursor.ln}, Col {cursor.col}</span>
+        <span>{activeNode?.lang === 'scope' ? 'SCOPE · Ctrl+Enter to run' : '—'}</span>
       </div>
     </div>
   );
