@@ -614,7 +614,7 @@ function ImagePanel({ result }: { result: ScopeResult | null }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ChartsPanel — 10 charts per execution
 // ─────────────────────────────────────────────────────────────────────────────
-function ChartsPanel({ result }: { result: ScopeResult | null }) {
+function ChartsPanel({ result, hfResult }: { result: ScopeResult | null; hfResult: HFResult | null }) {
   if (!result) {
     return (
       <div className="flex h-full items-center justify-center" style={{ color: '#5a5a5a' }}>
@@ -859,34 +859,106 @@ function ChartsPanel({ result }: { result: ScopeResult | null }) {
           }}
         </InlineChart>
 
-        {/* Chart 10: Channel capacity */}
-        <InlineChart title="Chart 10 — Channel capacity C (bits/px)">
+        {/* Chart 10: HF classification (live) or channel capacity (fallback) */}
+        <InlineChart title="Chart 10 — HF cell classification / Channel capacity">
           {(W, H) => {
+            if (hfResult?.classification?.length) {
+              const cls = hfResult.classification;
+              const mrgL = 8, mrgR = 8, mrgT = 12, mrgB = 8;
+              const iW = W - mrgL - mrgR, iH = H - mrgT - mrgB;
+              const rowH = iH / cls.length;
+              const cols = ['#4ec9b0','#569cd6','#c586c0','#dcdcaa','#9cdcfe'];
+              return (
+                <g transform={`translate(${mrgL},${mrgT})`}>
+                  {cls.map((c, i) => {
+                    const bw = c.score * iW * 0.85;
+                    const col = cols[i % cols.length];
+                    return (
+                      <g key={i} transform={`translate(0,${i * rowH})`}>
+                        <rect x={0} y={2} width={bw} height={rowH - 4} fill={col} opacity={0.75} rx={2} />
+                        <text x={4} y={rowH / 2 + 4} fill="#111" fontSize={8} fontWeight="bold">
+                          {c.label.split(',')[0].slice(0, 24)}
+                        </text>
+                        <text x={iW} y={rowH / 2 + 4} fill={col} fontSize={9} textAnchor="end">
+                          {(c.score * 100).toFixed(1)}%
+                        </text>
+                      </g>
+                    );
+                  })}
+                </g>
+              );
+            }
+            // Fallback: channel capacity arc
             const cx2=W/2, cy2=H/2, r=Math.min(W,H)*0.32;
             const maxC = 8, pct = Math.min(1, C/maxC);
-            const arc = (frac: number) => {
+            const arcPt = (frac: number) => {
               const a = -Math.PI/2 + frac*2*Math.PI;
               return { x: cx2 + r*Math.cos(a), y: cy2 + r*Math.sin(a) };
             };
-            const p0 = arc(0), p1 = arc(pct);
+            const p0 = arcPt(0), p1 = arcPt(pct);
             const largeArc = pct > 0.5 ? 1 : 0;
             return (
               <>
                 <circle cx={cx2} cy={cy2} r={r} fill="none" stroke="#1e2a2a" strokeWidth={18} />
                 <path d={`M ${p0.x} ${p0.y} A ${r} ${r} 0 ${largeArc} 1 ${p1.x} ${p1.y}`}
                   fill="none" stroke="#569cd6" strokeWidth={18} strokeLinecap="round" />
-                <text x={cx2} y={cy2-8} fill="#d4d4d4" fontSize={22} textAnchor="middle" fontWeight="bold">
-                  {C.toFixed(2)}
-                </text>
+                <text x={cx2} y={cy2-8} fill="#d4d4d4" fontSize={22} textAnchor="middle" fontWeight="bold">{C.toFixed(2)}</text>
                 <text x={cx2} y={cy2+14} fill="#858585" fontSize={11} textAnchor="middle">bits/px</text>
-                <text x={cx2} y={H-10} fill="#858585" fontSize={9} textAnchor="middle">
-                  Shannon C = ½ log₂(1 + SNR²)
-                </text>
+                <text x={cx2} y={H-10} fill="#858585" fontSize={9} textAnchor="middle">Shannon C = ½ log₂(1 + SNR²)</text>
               </>
             );
           }}
         </InlineChart>
       </div>
+
+      {/* HF segmentation + DINOv2 features — shown when available */}
+      {hfResult && (hfResult.segmentation?.length || hfResult.features?.length) ? (
+        <div className="grid grid-cols-2 gap-3">
+          {hfResult.segmentation?.length ? (
+            <div className="bg-[#0d1117] border border-[#3a3a3a] rounded p-2">
+              <div className="text-[#858585] text-[10px] mb-2">HF segmentation — mask2former instances</div>
+              <div className="space-y-1">
+                {hfResult.segmentation.map((s, i) => (
+                  <div key={i} className="flex items-center gap-2 text-[11px]">
+                    <div className="h-2 rounded flex-1 bg-[#1a1a1a]">
+                      <div className="h-2 rounded bg-[#4ec9b0]" style={{ width: `${s.score * 100}%` }} />
+                    </div>
+                    <span className="text-[#4ec9b0] w-10 text-right">{(s.score*100).toFixed(1)}%</span>
+                    <span className="text-[#858585] truncate w-28">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : <div />}
+
+          {hfResult.features?.length ? (
+            <InlineChart title="HF DINOv2 feature embedding (first 16 dims)">
+              {(W, H) => {
+                const feats = hfResult.features!;
+                const mn = Math.min(...feats), mx = Math.max(...feats);
+                const rng = (mx - mn) || 1;
+                const bw = W / feats.length;
+                const midY = H / 2;
+                return (
+                  <>
+                    <line x1={0} x2={W} y1={midY} y2={midY} stroke="#2a2a2a" />
+                    {feats.map((v, i) => {
+                      const norm = (v - mn) / rng;
+                      const barH = norm * (H * 0.42);
+                      const col = norm > 0.5 ? '#569cd6' : '#c586c0';
+                      return (
+                        <rect key={i} x={i * bw + 1} y={midY - barH} width={bw - 2} height={Math.abs(barH)}
+                          fill={col} opacity={0.8} rx={1} />
+                      );
+                    })}
+                    <text x={W/2} y={H-4} fill="#555" fontSize={8} textAnchor="middle">dim index</text>
+                  </>
+                );
+              }}
+            </InlineChart>
+          ) : <div />}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -905,15 +977,96 @@ function InlineChart({ title, children }: { title: string; children: (W: number,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// HuggingFace inference — routed through /api/hf-inference (key stays server-side)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface HFClassLabel { label: string; score: number; }
+export interface HFResult {
+  classification: HFClassLabel[];   // resnet-50 cell-type top-5
+  segmentation:   Array<{ label: string; score: number; mask?: string }> | null;
+  features:       number[] | null;  // DINOv2 CLS token (first 16 for display)
+}
+
+async function hfInfer(imageData: Float32Array, width: number, height: number): Promise<HFResult> {
+  // Convert Float32Array grayscale → base64 PNG via OffscreenCanvas
+  const toBase64 = async (): Promise<string> => {
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d')!;
+    const id = ctx.createImageData(width, height);
+    for (let i = 0; i < width * height; i++) {
+      const v = Math.round(Math.max(0, Math.min(1, imageData[i])) * 255);
+      id.data[i * 4] = v; id.data[i * 4 + 1] = v; id.data[i * 4 + 2] = v; id.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(id, 0, 0);
+    const blob = await canvas.convertToBlob({ type: 'image/png' });
+    return new Promise(resolve => {
+      const fr = new FileReader();
+      fr.onload = () => resolve((fr.result as string).split(',')[1]);
+      fr.readAsDataURL(blob);
+    });
+  };
+
+  const b64 = await toBase64();
+
+  const call = async (model: string, inputs: unknown) => {
+    const r = await fetch('/api/hf-inference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, inputs }),
+    });
+    if (!r.ok) throw new Error(`HF ${model}: ${r.status}`);
+    return r.json();
+  };
+
+  // Run classification and feature extraction in parallel; segmentation separately
+  const [classRaw, featRaw] = await Promise.allSettled([
+    call('microsoft/resnet-50', b64),
+    call('facebook/dinov2-base', b64),
+  ]);
+
+  let segRaw: PromiseSettledResult<unknown>;
+  try {
+    segRaw = await Promise.resolve({ status: 'fulfilled' as const, value: await call('facebook/mask2former-swin-large-coco-instance', b64) });
+  } catch (e) {
+    segRaw = { status: 'rejected', reason: e };
+  }
+
+  const classification: HFClassLabel[] =
+    classRaw.status === 'fulfilled' && Array.isArray(classRaw.value)
+      ? (classRaw.value as HFClassLabel[]).slice(0, 5)
+      : [];
+
+  const segmentation =
+    segRaw.status === 'fulfilled' && Array.isArray(segRaw.value)
+      ? (segRaw.value as Array<{ label: string; score: number; mask?: string }>).slice(0, 8)
+      : null;
+
+  const features: number[] | null = (() => {
+    if (featRaw.status !== 'fulfilled') return null;
+    const v = featRaw.value;
+    // DINOv2 returns { last_hidden_state: number[][] } or flat number[]
+    if (Array.isArray(v)) return (v as number[]).slice(0, 16);
+    if (v && typeof v === 'object' && 'last_hidden_state' in v) {
+      const lhs = (v as { last_hidden_state: number[][] }).last_hidden_state;
+      if (Array.isArray(lhs) && Array.isArray(lhs[0])) return lhs[0].slice(0, 16);
+    }
+    return null;
+  })();
+
+  return { classification, segmentation, features };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // OutputColumn — 3 tabs: Console | Charts | Image
 // ─────────────────────────────────────────────────────────────────────────────
-function OutputColumn({ logs, onRun, onClear, outputTab, setOutputTab, result, running }: {
+function OutputColumn({ logs, onRun, onClear, outputTab, setOutputTab, result, hfResult, running }: {
   logs: Array<{ level: string; message: string }>;
   onRun: () => void;
   onClear: () => void;
   outputTab: string;
   setOutputTab: (t: string) => void;
   result: ScopeResult | null;
+  hfResult: HFResult | null;
   running: boolean;
 }) {
   const tabs = [
@@ -975,7 +1128,7 @@ function OutputColumn({ logs, onRun, onClear, outputTab, setOutputTab, result, r
             }
           </div>
         )}
-        {outputTab === 'charts'  && <ChartsPanel result={result} />}
+        {outputTab === 'charts'  && <ChartsPanel result={result} hfResult={hfResult} />}
         {outputTab === 'image'   && <ImagePanel result={result} />}
       </div>
     </div>
@@ -999,6 +1152,7 @@ export default function ScopeIDEMain() {
   const [outputTab, setOutputTab] = useState('console');
   const [result, setResult]       = useState<ScopeResult | null>(null);
   const [running, setRunning]     = useState(false);
+  const [hfResult, setHfResult]   = useState<HFResult | null>(null);
 
   const splitRef  = useRef<HTMLDivElement>(null);
   const dragging  = useRef(false);
@@ -1079,6 +1233,25 @@ export default function ScopeIDEMain() {
 
       setResult(scopeResult);
       setLogs([...newLogs]);
+
+      // 4. HuggingFace inference (non-blocking — enrich after render)
+      log('Running HuggingFace inference (classify + segment + features)…');
+      setLogs([...newLogs]);
+      setHfResult(null);
+      hfInfer(imagePayload.data, imagePayload.width, imagePayload.height)
+        .then(hf => {
+          setHfResult(hf);
+          setLogs(prev => [
+            ...prev,
+            { level: 'info', message: `HF classification: ${hf.classification.map(c => `${c.label} ${(c.score*100).toFixed(1)}%`).join(', ') || 'no results'}` },
+            ...(hf.segmentation ? [{ level: 'info', message: `HF segmentation: ${hf.segmentation.length} instance(s) detected` }] : []),
+            ...(hf.features     ? [{ level: 'info', message: `HF DINOv2 features: ${hf.features.length} dims extracted` }]          : []),
+          ]);
+        })
+        .catch(err => {
+          setLogs(prev => [...prev, { level: 'warn', message: `HF inference skipped: ${err instanceof Error ? err.message : String(err)}` }]);
+        });
+
       // Auto-switch to image tab when done
       setOutputTab('image');
     } catch (err) {
@@ -1248,7 +1421,7 @@ export default function ScopeIDEMain() {
 
           {/* Output */}
           <OutputColumn logs={logs} onRun={run} onClear={() => setLogs([])}
-            outputTab={outputTab} setOutputTab={setOutputTab} result={result} running={running} />
+            outputTab={outputTab} setOutputTab={setOutputTab} result={result} hfResult={hfResult} running={running} />
         </div>
       </div>
 
