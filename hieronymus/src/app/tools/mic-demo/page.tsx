@@ -253,7 +253,7 @@ export default function MICDemoPage() {
                 sceneRef.current.updateVisualization(fieldData, mode);
               }
             }}
-            micResult={result.micResult}
+            result={result.micResult as any}
           />
         </div>
       </div>

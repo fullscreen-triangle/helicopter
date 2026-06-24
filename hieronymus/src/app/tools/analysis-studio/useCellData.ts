@@ -103,7 +103,8 @@ export const useHuggingFaceModel = (huggingfaceApiKey: string) => {
  */
 export const useMeshData = (huggingfaceApiKey: string) => {
   const { manager } = useCellData(huggingfaceApiKey);
-  const [meshData, setMeshData] = useState(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [meshData, setMeshData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 

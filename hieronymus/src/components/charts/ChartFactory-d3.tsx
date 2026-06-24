@@ -340,7 +340,7 @@ export const BarChart: React.FC<D3ChartProps> = ({
           : config.colors?.[0] || '#06b6d4'
       )
       .attr('opacity', 0.7)
-      .on('click', (_event, d: any, i: number[]) => {
+      .on('click', (_event: any, d: any) => {
         // Single bar selection
         onBrush?.([d]);
       });
@@ -428,7 +428,7 @@ export const Histogram: React.FC<D3ChartProps> = ({
       .attr('height', (d) => h - yScale(d.length))
       .attr('fill', config.colors?.[0] || '#06b6d4')
       .attr('opacity', 0.7)
-      .on('click', (_event, d: any) => {
+      .on('click', (_event: any, d: any) => {
         // Get data points in this bin
         const binData = config.data.filter(
           (row: any) =>
@@ -493,7 +493,7 @@ export const PieChart: React.FC<D3ChartProps> = ({
       .attr('d', arc)
       .attr('fill', (_d, i) => config.colors?.[i % config.colors.length] || d3.schemeCategory10[i % 10])
       .attr('opacity', 0.7)
-      .on('click', (_event, d: any) => {
+      .on('click', (_event: any, d: any) => {
         onBrush?.([d.data]);
       });
   }, [config, onBrush, width, height]);

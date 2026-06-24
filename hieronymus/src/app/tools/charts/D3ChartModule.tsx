@@ -263,7 +263,7 @@ export const StreamChart: React.FC<StreamChartProps> = ({
       .data(series)
       .enter()
       .append('path')
-      .attr('fill', d => colorScale(d.key))
+      .attr('fill', (d: any): string => colorScale(d.key) as string)
       .attr('d', area)
       .attr('opacity', 0.8);
 
@@ -285,7 +285,7 @@ export const StreamChart: React.FC<StreamChartProps> = ({
       .append('rect')
       .attr('width', 18)
       .attr('height', 18)
-      .attr('fill', d => colorScale(d));
+      .attr('fill', (d: any): string => colorScale(d) as string);
 
     legend
       .append('text')
@@ -367,7 +367,7 @@ export const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
       .enter()
       .append('circle')
       .attr('r', nodeRadius)
-      .attr('fill', d => colorScale(String(d.group || 0)))
+      .attr('fill', (d: any): string => colorScale(String(d.group || 0)) as string)
       .call(
         d3
           .drag<any, any>()
@@ -473,8 +473,8 @@ export const ChordDiagram: React.FC<ChordDiagramProps> = ({
 
     group
       .append('path')
-      .attr('fill', d => colorScale(String(d.index)))
-      .attr('stroke', d => d3.rgb(colorScale(String(d.index)) as string).darker().toString())
+      .attr('fill', (d: any): string => colorScale(String(d.index)) as string)
+      .attr('stroke', (d: any): string => d3.rgb(colorScale(String(d.index)) as string).darker().toString())
       .attr('d', arc as any);
 
     group
@@ -501,8 +501,8 @@ export const ChordDiagram: React.FC<ChordDiagramProps> = ({
       .enter()
       .append('path')
       .attr('d', ribbon as any)
-      .attr('fill', d => colorScale(String(d.source.index)))
-      .attr('stroke', d => d3.rgb(colorScale(String(d.source.index)) as string).darker().toString());
+      .attr('fill', (d: any): string => colorScale(String(d.source.index)) as string)
+      .attr('stroke', (d: any): string => d3.rgb(colorScale(String(d.source.index)) as string).darker().toString());
   }, [matrix, labels, width, height, colors]);
 
   return <svg ref={svgRef} width={width} height={height} />;
@@ -657,7 +657,7 @@ export const DensityPlot: React.FC<DensityPlotProps> = ({
       .enter()
       .append('path')
       .attr('d', d3.geoPath())
-      .attr('fill', d => colorScale(d.value))
+      .attr('fill', (d: any): string => colorScale(d.value) as string)
       .attr('stroke', 'none')
       .attr('opacity', 0.7);
 
@@ -729,7 +729,7 @@ export const Heatmap: React.FC<HeatmapProps> = ({
       .attr('y', d => yScale(d.y) || 0)
       .attr('width', xScale.bandwidth())
       .attr('height', yScale.bandwidth())
-      .attr('fill', d => colorScale(d.value))
+      .attr('fill', (d: any): string => colorScale(d.value) as string)
       .attr('stroke', 'white')
       .attr('stroke-width', 1);
 

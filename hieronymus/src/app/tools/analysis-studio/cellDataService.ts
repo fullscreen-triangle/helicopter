@@ -95,7 +95,8 @@ export class ZarrDataService {
   async loadZarrData(url: string) {
     try {
       // Using zarr.js for loading OME-Zarr data
-      const { openArray } = await import('zarr');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { openArray } = await import('zarr' as any);
       const store = await fetch(url).then(r => r.arrayBuffer());
       return await openArray({ store });
     } catch (error) {
