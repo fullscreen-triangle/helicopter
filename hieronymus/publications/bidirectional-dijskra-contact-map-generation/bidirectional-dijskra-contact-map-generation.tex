@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+﻿%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Contact Maps via S-Entropy Bidirectional Dijkstra:
 %% A Theory of Individuation by Negation in Bounded Resolvable Spaces
 %%
@@ -50,6 +50,7 @@
 \newcommand{\NN}{\mathcal{N}}
 \newcommand{\TC}{\mathcal{T}_C}
 \newcommand{\GC}{G_C}
+\newcommand{\ScS}{\mathcal{S}}
 \newcommand{\HH}{\mathcal{H}}
 \newcommand{\Sk}{S_k}
 \newcommand{\St}{S_t}
@@ -199,7 +200,7 @@ combinatorial skeleton of this topology.
 \subsection{S-Entropy State Space and SEBD}
 
 To quantify the ``distance'' between two regions in the contact map, we introduce
-the \emph{S-entropy state space} $\SS = [0,1]^3$, whose three axes are
+the \emph{S-entropy state space} $\ScS = [0,1]^3$, whose three axes are
 normalized measures of kinetic entropy ($\Sk$: gradient magnitude density),
 thermal entropy ($\St$: intensity distribution entropy), and energetic entropy
 ($\Se$: contrast ratio). The S-entropy coordinates of a region are computable
@@ -788,8 +789,8 @@ The denominator $\log_2(|\mathrm{range}(I)|)$ is the maximum possible entropy
 where $\bar{I}_A = \frac{1}{\mu(A)}\int_A I \, d\mu$ is the mean intensity in $A$
 and $\bar{I}_\Omega = \frac{1}{\mu(\Omega)}\int_\Omega I \, d\mu$ is the global
 mean. $\Se(A)$ is the ratio of local variance to global variance. It lies in
-$[0,+\infty]$, but we cap it at $1$ by convention: $\Se(A) = \min(1, \Se_{\text{raw}}(A))$
-where $\Se_{\text{raw}}$ is the uncapped ratio.
+$[0,+\infty]$, but we cap it at $1$ by convention: $\Se(A) = \min(1, {S_e}_{\text{raw}}(A))$
+where ${S_e}_{\text{raw}}$ is the uncapped ratio.
 \end{definition}
 
 \begin{remark}[Independence of Axes]
@@ -819,7 +820,7 @@ $\Sk = 0$ (no gradients), $\St = 0$ (single intensity value, zero entropy), $\Se
 
 \begin{definition}[S-Entropy State Space]
 \label{def:statespace}
-The \emph{S-entropy state space} is $\SS = [0,1]^3$ equipped with the Euclidean
+The \emph{S-entropy state space} is $\ScS = [0,1]^3$ equipped with the Euclidean
 metric $\dS(\bS_1, \bS_2) = \norm{\bS_1 - \bS_2}_2$.
 \end{definition}
 
@@ -944,13 +945,13 @@ to noise within regions because we integrate over the entire region).
 \subsection{Virtual Substates and Off-Shell States}
 
 To compute shortest paths in the contact map efficiently via bidirectional search,
-we need to handle the fact that intermediate points on a path in $\SS = [0,1]^3$
+we need to handle the fact that intermediate points on a path in $\ScS = [0,1]^3$
 may ``leave'' the unit cube. We formalize this as follows.
 
 \begin{definition}[Virtual Substate]
 \label{def:virtualsubstate}
 A \emph{virtual substate} is a point $\bS^* \in \reals^3$ that arises as a
-mathematical intermediary in the decomposition of a path in $\SS$. A virtual
+mathematical intermediary in the decomposition of a path in $\ScS$. A virtual
 substate is called \emph{off-shell} if $\bS^* \in \reals^3 \setminus [0,1]^3$.
 \end{definition}
 
@@ -979,11 +980,11 @@ that the path, when completed, corresponds to a physically meaningful traversal.
 
 \begin{definition}[SEBD State Space Graph]
 \label{def:sebdgraph}
-The \emph{SEBD graph} $G_{\SS} = (V_\SS, E_\SS)$ is the graph on the set of
+The \emph{SEBD graph} $G_{\ScS} = (V_\ScS, E_\ScS)$ is the graph on the set of
 all S-entropy states of distinguishable regions:
 \begin{itemize}
-\item $V_\SS = \{\bS(A) : A \in \PP\}$ (one node per region);
-\item $E_\SS = \{(\bS(A), \bS(B)) : (A,B) \in E_{G_C}\}$ (edges correspond to contacts);
+\item $V_\ScS = \{\bS(A) : A \in \PP\}$ (one node per region);
+\item $E_\ScS = \{(\bS(A), \bS(B)) : (A,B) \in E_{G_C}\}$ (edges correspond to contacts);
 \item edge weight $w(\bS(A), \bS(B)) = \dS(\bS(A), \bS(B))$.
 \end{itemize}
 \end{definition}
@@ -1017,7 +1018,7 @@ $\text{visited}_F \leftarrow \emptyset$; \quad $\text{visited}_B \leftarrow \emp
       $\mu^* \leftarrow d_F(v) + d_B(v)$; \quad $v^* \leftarrow v$\;
     }
   }
-  \ForEach{neighbor $u$ of $v$ in $G_\SS$}{
+  \ForEach{neighbor $u$ of $v$ in $G_\ScS$}{
     $d' \leftarrow d_F(v) + \dS(v, u)$\;
     \If{$d' < d_F(u)$}{
       $d_F(u) \leftarrow d'$\;
@@ -1036,7 +1037,7 @@ $\text{visited}_F \leftarrow \emptyset$; \quad $\text{visited}_B \leftarrow \emp
     }
   }
   \tcp{Virtual substate decomposition for backward expansion}
-  \ForEach{neighbor $u$ of $w$ in $G_\SS$}{
+  \ForEach{neighbor $u$ of $w$ in $G_\ScS$}{
     \tcp{Standard expansion}
     $d' \leftarrow d_B(w) + \dS(w, u)$\;
     \If{$d' < d_B(u)$}{
@@ -1066,20 +1067,20 @@ $\text{visited}_F \leftarrow \emptyset$; \quad $\text{visited}_B \leftarrow \emp
 \begin{theorem}[SEBD Correctness]
 \label{thm:correctness}
 Algorithm~\ref{alg:sebd} (SEBD) correctly computes the minimum-cost path between
-$\bS(A)$ and $\bS(B)$ in the SEBD graph $G_\SS$, i.e., it returns
+$\bS(A)$ and $\bS(B)$ in the SEBD graph $G_\ScS$, i.e., it returns
 $\mu^* = \min_{\pi: A \rightsquigarrow B} \sum_{(u,v) \in \pi} \dS(u,v)$,
-where the minimum is over all paths $\pi$ from $\bS(A)$ to $\bS(B)$ in $G_\SS$.
+where the minimum is over all paths $\pi$ from $\bS(A)$ to $\bS(B)$ in $G_\ScS$.
 \end{theorem}
 
 \begin{proof}
 We prove correctness in three parts: (a) the forward Dijkstra is correct for
-shortest paths in $G_\SS$; (b) the bidirectional combination does not introduce
+shortest paths in $G_\ScS$; (b) the bidirectional combination does not introduce
 errors; (c) the virtual substate decomposition does not change the minimum cost.
 
 \textbf{(a) Correctness of forward Dijkstra.} The forward search maintains
 the invariant that when a node $v$ is extracted from $\text{PQ}_F$ with distance
 $d_F(v)$, this is the true shortest-path distance from $\bS(A)$ to $v$ in
-$G_\SS$. This is the standard Dijkstra invariant, which holds because all edge
+$G_\ScS$. This is the standard Dijkstra invariant, which holds because all edge
 weights $\dS(u,v) = \norm{\bS(u) - \bS(v)}_2 \geq 0$ are non-negative
 \cite{dijkstra1959note, cormen2009introduction}. (Non-negativity of Euclidean
 distances is obvious; the Euclidean metric satisfies $\dS(u,v) \geq 0$ with
@@ -1127,7 +1128,7 @@ is constrained by the image structure). In the worst case, the virtual substate
 expansion adds only redundant paths with cost $\geq \dS(w,u)$, which are
 correctly dominated by the direct edge. In all cases, the minimum over all
 paths (direct and virtual) is $\leq \dS(\bS(A), \bS(B))$ and equals the true
-minimum-cost path in $G_\SS$.
+minimum-cost path in $G_\ScS$.
 
 Combining (a), (b), and (c), SEBD correctly returns the minimum-cost path cost
 $\mu^*$ between $\bS(A)$ and $\bS(B)$. \qed
@@ -1143,7 +1144,7 @@ Algorithm~\ref{alg:sebd} runs in time $O(|\mathcal{R}|^{3/2})$.
 We analyze the complexity of the forward and backward Dijkstra searches and then
 bound the cost of the virtual substate expansion.
 
-\textbf{Graph structure.} The SEBD graph $G_\SS$ has $n = |\mathcal{R}|$ vertices
+\textbf{Graph structure.} The SEBD graph $G_\ScS$ has $n = |\mathcal{R}|$ vertices
 and at most $m = |E_{G_C}|$ edges (one per contact in the contact graph). For
 a planar image domain $\Omega \subset \reals^2$, the contact graph is planar
 (since it is the adjacency graph of a partition of a planar surface), and by
@@ -1399,7 +1400,7 @@ The hologram $\HH$ produced by Contact-Driven Holographic Slicing
 (Algorithm~\ref{alg:slicing}) faithfully represents the image's partition
 structure. Specifically: two images $I_1$ and $I_2$ with the same contact
 topology (i.e., the same contact graph $\GC$ up to isomorphism) produce holograms
-$\HH_1$ and $\HH_2$ that are congruent up to isometry of $\SS = [0,1]^3$.
+$\HH_1$ and $\HH_2$ that are congruent up to isometry of $\ScS = [0,1]^3$.
 \end{theorem}
 
 \begin{proof}
@@ -1408,15 +1409,15 @@ respectively, and suppose there exists a graph isomorphism $\phi: V^{(1)} \to V^
 such that $(A,B) \in E^{(1)} \Leftrightarrow (\phi(A), \phi(B)) \in E^{(2)}$.
 
 We must show that the holograms $\HH_1$ and $\HH_2$ are congruent up to isometry
-of $\SS$. The hologram $\HH_k$ consists of slices $(z_i^{(k)}, \text{slice}_i^{(k)})$
+of $\ScS$. The hologram $\HH_k$ consists of slices $(z_i^{(k)}, \text{slice}_i^{(k)})$
 where $z_i^{(k)} = \CM_k(A_i^{(k)}, B_i^{(k)})$ is the SEBD cost of the $i$-th
 resolved contact in image $I_k$.
 
 The key observation is that the contact map $\CM$ depends only on the S-entropy
 state vectors $\bS(A)$ and $\bS(B)$ via
-$\CM(A,B) = \dS(\bS(A), \bS(B))$. The S-entropy state space $\SS = [0,1]^3$ is
+$\CM(A,B) = \dS(\bS(A), \bS(B))$. The S-entropy state space $\ScS = [0,1]^3$ is
 a Riemannian manifold (a cube with the flat metric), and the map $A \mapsto \bS(A)$
-embeds each region as a point in $\SS$.
+embeds each region as a point in $\ScS$.
 
 If $I_1$ and $I_2$ have the same contact topology (same $\GC$ up to isomorphism),
 then the SEBD algorithm produces the same ordering of contact resolutions (since
@@ -1427,7 +1428,7 @@ then the z-coordinates $z_i^{(1)} = z_i^{(2)}$ for all $i$, giving identical
 holograms.
 
 In the more general case where the S-entropy states differ by an isometry
-$T: \SS \to \SS$ (a rigid motion of $[0,1]^3$): if $\bS^{(2)}(\phi(A)) = T(\bS^{(1)}(A))$
+$T: \ScS \to \ScS$ (a rigid motion of $[0,1]^3$): if $\bS^{(2)}(\phi(A)) = T(\bS^{(1)}(A))$
 for all $A$, then since $T$ preserves distances,
 \[
   \CM_2(\phi(A), \phi(B)) \;=\; \dS(\bS^{(2)}(\phi(A)), \bS^{(2)}(\phi(B)))
@@ -1437,10 +1438,10 @@ for all $A$, then since $T$ preserves distances,
 \]
 Therefore the z-coordinates of corresponding slices are equal: $z_i^{(1)} = z_i^{(2)}$
 for all $i$. The slices themselves (the contact boundaries $\partial A \cap \partial B$)
-are transformed by $T$ as embedded subsets of $\SS$: $\text{slice}_i^{(2)} = T(\text{slice}_i^{(1)})$.
-This is an isometry of $\SS$.
+are transformed by $T$ as embedded subsets of $\ScS$: $\text{slice}_i^{(2)} = T(\text{slice}_i^{(1)})$.
+This is an isometry of $\ScS$.
 
-Hence $\HH_1$ and $\HH_2$ are congruent up to the isometry $T$ of $\SS$. \qed
+Hence $\HH_1$ and $\HH_2$ are congruent up to the isometry $T$ of $\ScS$. \qed
 \end{proof}
 
 \begin{corollary}[Contact Map as Complete Invariant]
@@ -1482,9 +1483,9 @@ the S-entropy coordinates are measurable integrals of $I$ and its derivatives.
 By the dominated convergence theorem and standard Sobolev estimates \cite{evans2010partial},
 the S-entropy coordinates are Lipschitz in $I$ with respect to the $L^2$-norm:
 \[
-  \abs{\Sk_\eps(A) - \Sk(A)} \leq C_k \eps, \quad
-  \abs{\St_\eps(A) - \St(A)} \leq C_t \eps, \quad
-  \abs{\Se_\eps(A) - \Se(A)} \leq C_e \eps,
+  \abs{{S_k}_\eps(A) - \Sk(A)} \leq C_k \eps, \quad
+  \abs{{S_t}_\eps(A) - \St(A)} \leq C_t \eps, \quad
+  \abs{{S_e}_\eps(A) - \Se(A)} \leq C_e \eps,
 \]
 for constants $C_k, C_t, C_e$ depending on the regularity of $I$. By the
 triangle inequality for Euclidean distances and the Lipschitz property,
@@ -1637,7 +1638,7 @@ the holographic z-axis is flat.
 noise (local variance $\sigma^2 = 100$) in the center of the image. Now $\Se$
 differs between blocks: the noisy block has $\Se \approx 1$ while the uniform
 blocks retain $\Se = 0$. The contact costs involving the noisy block are
-$\CM \approx 1$ (large distance in $\SS$), while contacts between uniform blocks
+$\CM \approx 1$ (large distance in $\ScS$), while contacts between uniform blocks
 remain at $\CM = 0$. SEBD then resolves the zero-cost contacts first (uniform
 blocks are individuated from each other at z=0) and the noisy contacts last (at
 z=1). This produces a two-level hologram: a base layer at $z=0$ (uniform block
@@ -1890,7 +1891,7 @@ Several directions extend the present work:
 
 \item \textbf{Learning the S-entropy metric}: The S-entropy state space uses a
   fixed Euclidean metric $\dS$. One could learn a more expressive metric
-  (e.g., a Riemannian metric on $\SS$) from training data that assigns higher
+  (e.g., a Riemannian metric on $\ScS$) from training data that assigns higher
   cost to contacts that are semantically significant (object boundaries) and
   lower cost to contacts that are semantically insignificant (texture boundaries).
 
@@ -1927,8 +1928,10 @@ resolvable spaces, partition depth, contact topology, S-entropy coordinates,
 and virtual substates --- provides the tools needed to explore this new foundation
 systematically.
 
-\input{figures/dijkstra-captions}
-
 \printbibliography
 
 \end{document}
+
+
+
+
