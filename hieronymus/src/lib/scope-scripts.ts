@@ -38,7 +38,7 @@ const BASICS: ScopeFolder = {
     lambda_t 0.05
   }
 
-  hello = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 4)
+  hello = observe(load(db="cells", dataset="cells", image="35185.jpg"), n = 4)
     |> visualise(raw_image)
     |> visualise(scale_field)
 }`,
@@ -56,7 +56,7 @@ const BASICS: ScopeFolder = {
     lambda_t 0.05
   }
 
-  segment = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 6)
+  segment = observe(load(db="cells", dataset="cells", image="38912.jpg"), n = 6)
     |> visualise(scale_field)
     |> access(nucleus_a)
     |> access(nucleus_b)
@@ -76,7 +76,7 @@ const BASICS: ScopeFolder = {
     lambda_t 0.05
   }
 
-  entropy_demo = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10f.tif"), n = 8)
+  entropy_demo = observe(load(db="cells", dataset="cells", image="39146.jpg"), n = 8)
     |> visualise(scale_field)
     |> access(nucleus_a)
     |> access(nucleus_b)
@@ -128,7 +128,7 @@ const MEASUREMENT: ScopeFolder = {
     epsilon: 0.008
   }
 
-  nucleus_pair_measurement = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 10)
+  nucleus_pair_measurement = observe(load(db="cells", dataset="cells", image="48106.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> catalyze(phase_lock(chromatin), confidence = 0.9)
@@ -140,7 +140,7 @@ const MEASUREMENT: ScopeFolder = {
     |> visualise(entropy_trajectory)
     |> visualise(geodesic)
 
-  membrane_boundary = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10f.tif"), n = 10)
+  membrane_boundary = observe(load(db="cells", dataset="cells", image="50647.jpg"), n = 10)
     |> catalyze(phase_lock(plasma_membrane))
     |> access(cell_boundary)
     |> visualise(scale_field)
@@ -176,7 +176,7 @@ const MEASUREMENT: ScopeFolder = {
     epsilon: 0.008
   }
 
-  measure = observe(load(db="BBBC", dataset="BBBC007", image="A9 p9d.tif"), n = 6)
+  measure = observe(load(db="cells", dataset="cells", image="35185.jpg"), n = 6)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_a)
@@ -211,7 +211,7 @@ const MEASUREMENT: ScopeFolder = {
     epsilon: 0.008
   }
 
-  deep_measure = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10d.tif"), n = 12)
+  deep_measure = observe(load(db="cells", dataset="cells", image="38912.jpg"), n = 12)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_a)
@@ -251,7 +251,7 @@ const CATALYSTS: ScopeFolder = {
     distance_uncertainty < 0.4 µm
   }
 
-  with_lock = observe(load(db="BBBC", dataset="BBBC007", image="A9 p7d.tif"), n = 10)
+  with_lock = observe(load(db="cells", dataset="cells", image="39146.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(phase_lock(chromatin), confidence = 0.9)
     |> access(nucleus_a)
@@ -290,7 +290,7 @@ const CATALYSTS: ScopeFolder = {
     epsilon: 0.008
   }
 
-  spindle_axis = observe(load(db="BBBC", dataset="BBBC007", image="17P1_POS0006_D_1UL.tif"), n = 10)
+  spindle_axis = observe(load(db="cells", dataset="cells", image="48106.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(symmetry(bilateral), confidence = 0.8)
     |> catalyze(phase_lock(plasma_membrane), confidence = 0.6)
@@ -332,7 +332,7 @@ const CATALYSTS: ScopeFolder = {
     epsilon: 0.008
   }
 
-  symmetric_pair = observe(load(db="BBBC", dataset="BBBC007", image="A9 p9d.tif"), n = 10)
+  symmetric_pair = observe(load(db="cells", dataset="cells", image="50647.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(symmetry(bilateral), confidence = 0.85)
     |> catalyze(conservation(dna_mass))
@@ -384,7 +384,7 @@ const MULTICHANNEL: ScopeFolder = {
     epsilon: 0.008
   }
 
-  gfp_morphology = observe(load(db="BBBC", dataset="BBBC007", image="AS_09125_040701150004_A02f00d1.tif"), n = 10)
+  gfp_morphology = observe(load(db="cells", dataset="cells", image="35185.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(phase_lock(actin), confidence = 0.75)
     |> access(nucleus_a, threshold = 0.6)
@@ -393,7 +393,7 @@ const MULTICHANNEL: ScopeFolder = {
     |> measure_distance(nucleus_a, nucleus_b)
     |> visualise(point_cloud)
 
-  dapi_distance = observe(load(db="BBBC", dataset="BBBC007", image="AS_09125_040701150004_A02f00d0.tif"), n = 10)
+  dapi_distance = observe(load(db="cells", dataset="cells", image="38912.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_a)
@@ -429,13 +429,13 @@ const MULTICHANNEL: ScopeFolder = {
     epsilon: 0.008
   }
 
-  membrane_estimate = observe(load(db="BBBC", dataset="BBBC007", image="20P1_POS0002_F_2UL.tif"), n = 10)
+  membrane_estimate = observe(load(db="cells", dataset="cells", image="39146.jpg"), n = 10)
     |> catalyze(phase_lock(actin))
     |> access(cell_boundary)
     |> access(nucleus_centroid)
     |> measure_distance(cell_boundary, nucleus_centroid)
 
-  nucleus_primary = observe(load(db="BBBC", dataset="BBBC007", image="20P1_POS0002_D_1UL.tif"), n = 10)
+  nucleus_primary = observe(load(db="cells", dataset="cells", image="48106.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> catalyze(phase_lock(chromatin), confidence = 0.85)
@@ -487,13 +487,13 @@ const DISPATCH: ScopeFolder = {
     epsilon: 0.008
   }
 
-  early_nucleus = observe(load(db="BBBC", dataset="BBBC007", image="A9 p7d.tif"), n = 10)
+  early_nucleus = observe(load(db="cells", dataset="cells", image="50647.jpg"), n = 10)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_centroid)
     |> visualise(scale_field)
     |> visualise(segmentation)
 
-  separating_nucleus = observe(load(db="BBBC", dataset="BBBC007", image="A9 p5d.tif"), n = 10)
+  separating_nucleus = observe(load(db="cells", dataset="cells", image="35185.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_a)
@@ -544,13 +544,13 @@ const DISPATCH: ScopeFolder = {
     epsilon: 0.006
   }
 
-  early_nucleus = observe(load(db="BBBC", dataset="BBBC007", image="A9 p7d.tif"), n = 10)
+  early_nucleus = observe(load(db="cells", dataset="cells", image="38912.jpg"), n = 10)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_centroid)
     |> visualise(scale_field)
     |> visualise(segmentation)
 
-  aligned_nucleus = observe(load(db="BBBC", dataset="BBBC007", image="A9 p9d.tif"), n = 10)
+  aligned_nucleus = observe(load(db="cells", dataset="cells", image="39146.jpg"), n = 10)
     |> catalyze(symmetry(bilateral))
     |> access(nucleus_a)
     |> access(nucleus_b)
@@ -558,7 +558,7 @@ const DISPATCH: ScopeFolder = {
     |> measure_distance(nucleus_a, nucleus_b)
     |> visualise(partition_tree)
 
-  separating_nucleus = observe(load(db="BBBC", dataset="BBBC007", image="A9 p5d.tif"), n = 10)
+  separating_nucleus = observe(load(db="cells", dataset="cells", image="48106.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> catalyze(phase_lock(chromatin))
@@ -608,7 +608,7 @@ const CONTACT_MAPS: ScopeFolder = {
   // The entropy_sphere visualises (Sk, St, Se) as a point in [0,1]^3.
   // entropy_trajectory shows how each component evolves through the
   // observation pipeline — the flat sum = 1 line is the conservation law.
-  coords = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10f.tif"), n = 10)
+  coords = observe(load(db="cells", dataset="cells", image="50647.jpg"), n = 10)
     |> visualise(scale_field)
     |> access(nucleus_a)
     |> access(nucleus_b)
@@ -645,7 +645,7 @@ const CONTACT_MAPS: ScopeFolder = {
   // region pair. measure_distance here computes this cost via SEBD.
   // distance_map shows the cost field. point_cloud shows regions as
   // points in S-space coloured by SEBD cost from nucleus_a.
-  contact_map = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10f.tif"), n = 10)
+  contact_map = observe(load(db="cells", dataset="cells", image="35185.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_a)
@@ -692,7 +692,7 @@ const CONTACT_MAPS: ScopeFolder = {
   // geodesic shows the shortest path through S-space (the slice sequence).
   // distance_tube visualises the 3D tube swept by the geodesic.
   // scale_histogram shows the alpha distribution across all slices.
-  slicing = observe(load(db="BBBC", dataset="BBBC007", image="A9 p10f.tif"), n = 12)
+  slicing = observe(load(db="cells", dataset="cells", image="38912.jpg"), n = 12)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> catalyze(symmetry(bilateral), confidence = 0.85)
@@ -737,7 +737,7 @@ const CONTACT_MAPS: ScopeFolder = {
 
   // A9 p5f: 100 regions, 46 contacts — high residue (mean 11.56 per step).
   // Each contact resolution spawns ~11 new contacts (residue chain).
-  dense_contacts = observe(load(db="BBBC", dataset="BBBC007", image="A9 p5f.tif"), n = 12)
+  dense_contacts = observe(load(db="cells", dataset="cells", image="39146.jpg"), n = 12)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_a)
@@ -749,7 +749,7 @@ const CONTACT_MAPS: ScopeFolder = {
     |> visualise(scale_histogram)
 
   // A9 p7f: 145 regions, 26 contacts — lower residue (mean 1.93 per step).
-  sparse_contacts = observe(load(db="BBBC", dataset="BBBC007", image="A9 p7d.tif"), n = 10)
+  sparse_contacts = observe(load(db="cells", dataset="cells", image="48106.jpg"), n = 10)
     |> visualise(scale_field)
     |> catalyze(conservation(dna_mass))
     |> access(nucleus_a)

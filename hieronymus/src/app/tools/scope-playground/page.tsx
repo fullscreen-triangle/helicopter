@@ -15,7 +15,45 @@ import DistanceTube from './components/threed/DistanceTube';
 import ScaleFieldSurface from './components/threed/ScaleFieldSurface';
 import PointCloud from './components/threed/PointCloud';
 
-interface ImagePayload { data: Float32Array; width: number; height: number; synthetic?: boolean; }
+interface ImagePayload { data: Float32Array; width: number; height: number; synthetic?: boolean; url?: string; }
+
+// ── Image loader — JPG/PNG via bitmap (client-side), TIF via proxy ─────────────
+async function loadImageAsPayload(db: string, dataset: string, image: string): Promise<ImagePayload> {
+  // Cell JPGs served directly from /cells/ — decode natively in browser
+  if (dataset === 'cells') {
+    const url = `/cells/${image}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+    const blob = await res.blob();
+    const bitmap = await createImageBitmap(blob);
+    const W = Math.min(bitmap.width, 512);
+    const H = Math.min(bitmap.height, 512);
+    const canvas = new OffscreenCanvas(W, H);
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(bitmap, 0, 0, W, H);
+    const imgData = ctx.getImageData(0, 0, W, H);
+    // Convert RGBA → grayscale float32 [0,1]
+    const data = new Float32Array(W * H);
+    for (let i = 0; i < W * H; i++) {
+      const r = imgData.data[i * 4] / 255;
+      const g = imgData.data[i * 4 + 1] / 255;
+      const b = imgData.data[i * 4 + 2] / 255;
+      data[i] = 0.299 * r + 0.587 * g + 0.114 * b; // luminance
+    }
+    return { data, width: W, height: H, url };
+  }
+  // All other datasets go through the server-side proxy (handles TIF decoding)
+  const params = new URLSearchParams({ db, dataset, image });
+  const res = await fetch(`/api/image-proxy?${params}`);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return {
+    data: new Float32Array(json.data as number[]),
+    width: json.width,
+    height: json.height,
+    synthetic: json.synthetic ?? false,
+  };
+}
 
 // ── State ────────────────────────────────────────────────────────────────────
 
@@ -83,22 +121,17 @@ export default function ScopePlayground() {
   const [preloadImage, setPreloadImage] = useState<ImagePayload | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Fetch preview image for the active script whenever the source changes.
-  // Parse the first load() call directly from the source text to avoid
-  // running the full compiler just for a preview.
+  // Load preview image for the active script whenever the source changes.
+  // Parses the first load() call from source text — no compiler run needed.
   useEffect(() => {
     const m = state.source.match(/load\s*\(\s*db\s*=\s*"([^"]+)"\s*,\s*dataset\s*=\s*"([^"]+)"\s*,\s*image\s*=\s*"([^"]+)"/);
     if (!m) return;
     const [, db, dataset, image] = m;
-    const params = new URLSearchParams({ db, dataset, image });
-    fetch(`/api/image-proxy?${params}`)
-      .then(r => r.json())
-      .then(json => {
-        if (!json.error) setPreloadImage({
-          data: new Float32Array(json.data as number[]),
-          width: json.width, height: json.height, synthetic: json.synthetic ?? false,
-        });
-      }).catch(() => {});
+    let cancelled = false;
+    loadImageAsPayload(db, dataset, image)
+      .then(payload => { if (!cancelled) setPreloadImage(payload); })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [state.source]);
 
   const run = useCallback(async () => {
@@ -120,18 +153,9 @@ export default function ScopePlayground() {
       for (const morphism of program.morphisms) {
         const frame = morphism.expr.observe.frame;
         if (frame.kind !== 'LoadRef') continue;
-        const params = new URLSearchParams({ db: frame.db, dataset: frame.dataset, image: frame.image });
         log.push(`[FETCH]    loading ${frame.dataset}/${frame.image} (${morphism.name})`);
-        const res = await fetch(`/api/image-proxy?${params}`);
-        const json = await res.json();
-        if (json.error) throw new Error(json.error);
-        const payload: ImagePayload = {
-          data: new Float32Array(json.data as number[]),
-          width: json.width,
-          height: json.height,
-        };
-        if (json.synthetic) log.push(`[FETCH]    ⚠ ${morphism.name}: synthetic fallback`);
-        else log.push(`[FETCH]    ${morphism.name}: ${json.width}×${json.height} real image`);
+        const payload = await loadImageAsPayload(frame.db, frame.dataset, frame.image);
+        log.push(`[FETCH]    ${morphism.name}: ${payload.width}×${payload.height}${payload.synthetic ? ' ⚠ synthetic' : ' real image'}`);
         morphismImages[morphism.name] = payload;
         if (!primaryPayload) primaryPayload = payload;
       }

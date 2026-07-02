@@ -18,6 +18,7 @@ export function emitPhase(
   crlbPixels: number,
   channelCapacity: number,
   allEntropyPoints: EntropyPhasePoint[],
+  rawImageUrl?: string,
 ): ScopeResult {
   const log: string[] = [];
 
@@ -68,6 +69,7 @@ export function emitPhase(
   // Visual data
   const visualData: VisualData = {
     rawImage: image,
+    rawImageUrl,
     width,
     height,
     scaleField: measure.scaleField.alpha,

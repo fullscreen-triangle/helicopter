@@ -6,7 +6,7 @@ import type { ScopeResult } from '@/lib/scope-runtime/runtime';
 interface Props {
   result: ScopeResult | null;
   mode: string;
-  preloadImage?: { data: Float32Array; width: number; height: number } | null;
+  preloadImage?: { data: Float32Array; width: number; height: number; url?: string } | null;
 }
 
 // ── Viridis 11-stop ───────────────────────────────────────────────────────────
@@ -31,20 +31,22 @@ export default function Canvas2D({ result, mode, preloadImage }: Props) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // ── No result yet — always show preload image if available ───────────────
+    // ── No result yet — show preload image ───────────────────────────────────
     if (!result) {
       if (preloadImage) {
-        const { data, width, height } = preloadImage;
+        const { data, width, height, url } = preloadImage as typeof preloadImage & { url?: string };
         canvas.width = width; canvas.height = height;
-        drawRaw(ctx, data, width, height);
-        // Draw a dim overlay label so the user knows the mode isn't active yet
-        if (mode !== 'raw_image') {
-          ctx.fillStyle = 'rgba(0,0,0,0.55)';
-          ctx.fillRect(0, canvas.height - 22, canvas.width, 22);
-          ctx.fillStyle = '#858585';
-          ctx.font = '11px monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText(`${mode.replace(/_/g, ' ')} — run to activate`, canvas.width / 2, canvas.height - 7);
+        if (url) {
+          // Color JPG — draw via Image element
+          const img = new Image();
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, width, height);
+            if (mode !== 'raw_image') drawModeOverlay(ctx, mode, width, height);
+          };
+          img.src = url;
+        } else {
+          drawRaw(ctx, data, width, height);
+          if (mode !== 'raw_image') drawModeOverlay(ctx, mode, width, height);
         }
       } else {
         canvas.width = 256; canvas.height = 256;
@@ -65,7 +67,13 @@ export default function Canvas2D({ result, mode, preloadImage }: Props) {
 
     switch (mode) {
       case 'raw_image':
-        drawRaw(ctx, visualData.rawImage, W, H);
+        if (visualData.rawImageUrl) {
+          const img = new Image();
+          img.onload = () => ctx.drawImage(img, 0, 0, W, H);
+          img.src = visualData.rawImageUrl;
+        } else {
+          drawRaw(ctx, visualData.rawImage, W, H);
+        }
         break;
 
       case 'scale_field':
@@ -117,6 +125,16 @@ export default function Canvas2D({ result, mode, preloadImage }: Props) {
       <div className="text-[#555] text-xs">{modeLabel(mode)}</div>
     </div>
   );
+}
+
+// ── Dim overlay label shown when preload is displayed in non-raw mode ─────────
+function drawModeOverlay(ctx: CanvasRenderingContext2D, mode: string, W: number, H: number) {
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(0, H - 22, W, 22);
+  ctx.fillStyle = '#858585';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${mode.replace(/_/g, ' ')} — run to activate`, W / 2, H - 7);
 }
 
 // ── Draw raw grayscale image ──────────────────────────────────────────────────

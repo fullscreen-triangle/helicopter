@@ -25,6 +25,7 @@ export interface ChartData {
 
 export interface VisualData {
   rawImage: Float32Array;
+  rawImageUrl?: string;   // color JPG URL for direct browser rendering
   width: number;
   height: number;
   scaleField: Float32Array;        // α(x,y)

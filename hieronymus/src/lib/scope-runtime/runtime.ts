@@ -109,6 +109,7 @@ export async function runScope(
     compileOut.sk, compileOut.st, compileOut.se,
     emitMeasure.snr, emitMeasure.crlbPixels, emitMeasure.channelCapacity,
     allEntropyPoints,
+    (targetImage as any).url,
   );
 
   result.log = [
