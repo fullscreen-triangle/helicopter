@@ -51,8 +51,11 @@ export function computeScaleField(
 
   // Scale histogram: bin α values into 20 bins
   const scaleHistogram: ScaleHistogramBin[] = [];
-  const minA = Math.min(...Array.from(alpha));
-  const maxA = Math.max(...Array.from(alpha));
+  let minA = Infinity, maxA = -Infinity;
+  for (let i = 0; i < alpha.length; i++) {
+    if (alpha[i] < minA) minA = alpha[i];
+    if (alpha[i] > maxA) maxA = alpha[i];
+  }
   const nBins = 20;
   const binWidth = (maxA - minA) / nBins || 0.001;
   const counts = new Array(nBins).fill(0);

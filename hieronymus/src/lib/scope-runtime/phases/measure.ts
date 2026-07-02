@@ -62,8 +62,12 @@ export function measurePhase(
   const pc = new Float32Array(nPts * 6);
 
   // normalise alpha for colour mapping
-  const alphaMin = Math.min(...Array.from(field.alpha));
-  const alphaRange = Math.max(0.001, Math.max(...Array.from(field.alpha)) - alphaMin);
+  let alphaMin = Infinity, alphaMax = -Infinity;
+  for (let i = 0; i < field.alpha.length; i++) {
+    if (field.alpha[i] < alphaMin) alphaMin = field.alpha[i];
+    if (field.alpha[i] > alphaMax) alphaMax = field.alpha[i];
+  }
+  const alphaRange = Math.max(0.001, alphaMax - alphaMin);
 
   let ptIdx = 0;
   for (let i = 0; i < total; i += step) {

@@ -275,49 +275,62 @@ export function fastMarchingDistance(
   sourceY: number
 ): Float32Array {
   const INF = 1e30;
-  const dist = new Float32Array(width * height).fill(INF);
-  // State: 0=far, 1=trial, 2=accepted
-  const state = new Uint8Array(width * height);
+  const N = width * height;
+  const dist = new Float32Array(N).fill(INF);
+  const state = new Uint8Array(N); // 0=far, 1=trial, 2=accepted
 
-  // Min-heap via simple sorted array (adequate for 256×256)
-  const heap: Array<[number, number, number]> = []; // [dist, x, y]
+  // Binary min-heap storing flat pixel indices, keyed by dist[]
+  const heapData = new Int32Array(N + 1); // 1-indexed
+  let heapSize = 0;
 
-  const heapPush = (d: number, x: number, y: number) => {
-    heap.push([d, x, y]);
-    heap.sort((a, b) => a[0] - b[0]);
+  const swap = (i: number, j: number) => {
+    const t = heapData[i]; heapData[i] = heapData[j]; heapData[j] = t;
   };
-  const heapPop = (): [number, number, number] => heap.shift()!;
+  const heapPush = (idx: number) => {
+    heapData[++heapSize] = idx;
+    let i = heapSize;
+    while (i > 1 && dist[heapData[i]] < dist[heapData[i >> 1]]) {
+      swap(i, i >> 1); i >>= 1;
+    }
+  };
+  const heapPop = (): number => {
+    const top = heapData[1];
+    heapData[1] = heapData[heapSize--];
+    let i = 1;
+    while (true) {
+      let smallest = i;
+      const l = i * 2, r = i * 2 + 1;
+      if (l <= heapSize && dist[heapData[l]] < dist[heapData[smallest]]) smallest = l;
+      if (r <= heapSize && dist[heapData[r]] < dist[heapData[smallest]]) smallest = r;
+      if (smallest === i) break;
+      swap(i, smallest); i = smallest;
+    }
+    return top;
+  };
 
-  // Initialize source
   const si = sourceY * width + sourceX;
   dist[si] = 0;
   state[si] = 1;
-  heapPush(0, sourceX, sourceY);
+  heapPush(si);
 
-  const neighbors = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-
-  while (heap.length > 0) {
-    const [d, x, y] = heapPop();
-    const idx = y * width + x;
-
+  while (heapSize > 0) {
+    const idx = heapPop();
     if (state[idx] === 2) continue;
     state[idx] = 2;
+    const x = idx % width;
+    const y = (idx / width) | 0;
 
-    for (const [dx, dy] of neighbors) {
-      const nx = x + dx;
-      const ny = y + dy;
+    for (let d = 0; d < 4; d++) {
+      const nx = x + (d === 0 ? -1 : d === 1 ? 1 : 0);
+      const ny = y + (d === 2 ? -1 : d === 3 ? 1 : 0);
       if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-
       const nidx = ny * width + nx;
       if (state[nidx] === 2) continue;
-
-      // Upwind update: T(neighbor) ≈ T(current) + h * α(neighbor)
-      // h = 1 pixel (grid spacing)
-      const newDist = d + alpha[nidx];
+      const newDist = dist[idx] + alpha[nidx];
       if (newDist < dist[nidx]) {
         dist[nidx] = newDist;
         state[nidx] = 1;
-        heapPush(newDist, nx, ny);
+        heapPush(nidx);
       }
     }
   }
