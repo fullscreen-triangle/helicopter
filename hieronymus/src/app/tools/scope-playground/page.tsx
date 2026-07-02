@@ -83,9 +83,15 @@ export default function ScopePlayground() {
   const [preloadImage, setPreloadImage] = useState<ImagePayload | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Preload first image on mount
+  // Fetch preview image for the active script whenever the source changes.
+  // Parse the first load() call directly from the source text to avoid
+  // running the full compiler just for a preview.
   useEffect(() => {
-    fetch('/api/image-proxy?db=BBBC&dataset=BBBC007&image=A9%20p10d.tif')
+    const m = state.source.match(/load\s*\(\s*db\s*=\s*"([^"]+)"\s*,\s*dataset\s*=\s*"([^"]+)"\s*,\s*image\s*=\s*"([^"]+)"/);
+    if (!m) return;
+    const [, db, dataset, image] = m;
+    const params = new URLSearchParams({ db, dataset, image });
+    fetch(`/api/image-proxy?${params}`)
       .then(r => r.json())
       .then(json => {
         if (!json.error) setPreloadImage({
@@ -93,7 +99,7 @@ export default function ScopePlayground() {
           width: json.width, height: json.height, synthetic: json.synthetic ?? false,
         });
       }).catch(() => {});
-  }, []);
+  }, [state.source]);
 
   const run = useCallback(async () => {
     dispatch({ type: 'RUN_START' });
