@@ -299,8 +299,8 @@ export class Parser {
     const t = this.cur();
     const raw = t.type === TokenType.IDENT ? this.advance().value : (() => { const v = this.advance().value; return v; })();
     const VALID_MODES: VisMode[] = [
-      'scale_field', 'segmentation', 'distance_map', 'geodesic',
-      'point_cloud', 'entropy_sphere', 'partition_tree',
+      'raw_image', 'scale_field', 'segmentation', 'distance_map', 'geodesic',
+      'point_cloud', 'entropy_sphere', 'partition_tree', 'distance_tube',
       'spectral_power', 'entropy_trajectory', 'uncertainty_bar',
       'scale_histogram',
     ];

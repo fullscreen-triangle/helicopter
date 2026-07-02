@@ -106,29 +106,44 @@ export default function ScopePlayground() {
         return;
       }
       const program = cr.program;
-      const firstLoad = program.morphisms.find(m => m.expr.observe.frame.kind === 'LoadRef')?.expr.observe.frame;
-      let imagePayload: ImagePayload;
-      if (firstLoad?.kind === 'LoadRef') {
-        const params = new URLSearchParams({ db: firstLoad.db, dataset: firstLoad.dataset, image: firstLoad.image });
-        log.push(`[FETCH]    loading ${firstLoad.dataset}/${firstLoad.image}`);
+
+      // Fetch one real image per morphism (keyed by morphism name)
+      const morphismImages: Record<string, ImagePayload> = {};
+      let primaryPayload: ImagePayload | null = null;
+
+      for (const morphism of program.morphisms) {
+        const frame = morphism.expr.observe.frame;
+        if (frame.kind !== 'LoadRef') continue;
+        const params = new URLSearchParams({ db: frame.db, dataset: frame.dataset, image: frame.image });
+        log.push(`[FETCH]    loading ${frame.dataset}/${frame.image} (${morphism.name})`);
         const res = await fetch(`/api/image-proxy?${params}`);
         const json = await res.json();
         if (json.error) throw new Error(json.error);
-        imagePayload = { data: new Float32Array(json.data as number[]), width: json.width, height: json.height, synthetic: json.synthetic ?? false };
-        if (json.synthetic) log.push(`[FETCH]    ⚠ using synthetic fallback image`);
-        else log.push(`[FETCH]    ${json.width}×${json.height} pixels loaded`);
-        setPreloadImage(imagePayload);
-      } else {
+        const payload: ImagePayload = {
+          data: new Float32Array(json.data as number[]),
+          width: json.width,
+          height: json.height,
+        };
+        if (json.synthetic) log.push(`[FETCH]    ⚠ ${morphism.name}: synthetic fallback`);
+        else log.push(`[FETCH]    ${morphism.name}: ${json.width}×${json.height} real image`);
+        morphismImages[morphism.name] = payload;
+        if (!primaryPayload) primaryPayload = payload;
+      }
+
+      // Fallback: no LoadRef morphisms — use synthetic
+      if (!primaryPayload) {
         const W = 256, H = 256, data = new Float32Array(W * H);
         for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
           const d1 = (x-80)**2+(y-128)**2, d2 = (x-176)**2+(y-128)**2;
           data[y*W+x] = Math.max(0, Math.min(1, 0.05+0.9*Math.exp(-d1/1250)+0.9*Math.exp(-d2/968)));
         }
-        imagePayload = { data, width: W, height: H, synthetic: true };
+        primaryPayload = { data, width: W, height: H };
         log.push(`[FETCH]    synthetic 256×256 image`);
       }
+
+      setPreloadImage(primaryPayload);
       log.push(`[RUNTIME]  running pipeline...`);
-      const result = await runScope(program, imagePayload);
+      const result = await runScope(program, primaryPayload, morphismImages);
       log.push(...result.log.filter(l => !log.includes(l)));
       const vis = result.visualData.activeVisMode;
       dispatch({ type: 'RUN_OK', result, log });
