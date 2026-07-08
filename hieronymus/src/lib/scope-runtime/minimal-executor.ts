@@ -37,15 +37,12 @@ export async function executeMinimal(plan: ExecutionPlan): Promise<ObservationRe
   const startTime = performance.now();
 
   // Detect what this program does
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hasMeasureDistance = (plan as any).morphisms?.some((m: any) =>
     m.steps?.some((s: any) => s.type === 'measure')
   ) ?? false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hasCatalyze = (plan as any).morphisms?.some((m: any) =>
     m.steps?.some((s: any) => s.type === 'catalyze')
   ) ?? false;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hasAccess = (plan as any).morphisms?.some((m: any) =>
     m.steps?.some((s: any) => s.type === 'access')
   ) ?? false;

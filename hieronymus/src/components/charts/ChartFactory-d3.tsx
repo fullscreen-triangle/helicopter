@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 export interface ChartConfig {
   id: string;
-  type: 'line' | 'bar' | 'scatter' | 'area' | 'pie' | 'histogram' | 'parallel';
+  type: 'line' | 'bar' | 'scatter' | 'area' | 'pie' | 'histogram' | 'parallel' | 'radar' | 'treemap' | 'composed';
   title: string;
   data: any[];
   dataKey?: string;

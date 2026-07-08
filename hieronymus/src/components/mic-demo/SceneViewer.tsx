@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid } from '@react-three/drei';
-import { Mesh, BufferGeometry, BufferAttribute } from 'three';
+import { Points, BufferGeometry, BufferAttribute } from 'three';
 
 type VisualizationMode = 'scale-field' | 'segmentation' | 'distance';
 
@@ -21,7 +21,7 @@ function SceneContent({
   scaleField?: Float32Array;
   onUpdateRef: (ref: any) => void;
 }) {
-  const meshRef = useRef<Mesh>(null);
+  const meshRef = useRef<Points>(null);
 
   useEffect(() => {
     if (meshRef.current && scaleField) {
@@ -74,12 +74,7 @@ function SceneContent({
       colors[i * 3 + 2] = b;
     }
 
-    if (geometry.attributes.color) {
-      geometry.attributes.color.array = colors;
-      geometry.attributes.color.needsUpdate = true;
-    } else {
-      geometry.setAttribute('color', new BufferAttribute(colors, 3));
-    }
+    geometry.setAttribute('color', new BufferAttribute(colors, 3));
   };
 
   // Create point cloud visualization

@@ -3,7 +3,7 @@
 import React from 'react';
 import { LineChart, ScatterChart, BarChart, Histogram, PieChart, D3ChartComponent, ChartConfig } from './ChartFactory-d3';
 
-export type ChartType = 'line' | 'bar' | 'scatter' | 'area' | 'pie' | 'histogram' | 'parallel';
+export type ChartType = 'line' | 'bar' | 'scatter' | 'area' | 'pie' | 'histogram' | 'parallel' | 'radar' | 'treemap' | 'composed';
 export type { ChartConfig };
 
 interface ChartComponentProps {

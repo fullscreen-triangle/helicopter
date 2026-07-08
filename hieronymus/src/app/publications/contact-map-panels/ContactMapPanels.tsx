@@ -1470,7 +1470,6 @@ function erfInv(x: number): number {
 }
 
 function wrap(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selection: d3.Selection<any, unknown, SVGGElement, unknown>,
   _width: number
 ) {
