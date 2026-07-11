@@ -34,6 +34,32 @@ export class Parser {
     const name = this.expectIdent();
     this.expect(TokenType.LBRACE);
 
+    const body = this.parseBody(() => this.check(TokenType.RBRACE));
+
+    this.expect(TokenType.RBRACE);
+    return { kind: 'ScopeProgram', name, ...body };
+  }
+
+  /**
+   * Parse un-wrapped top-level declarations — one REPL cell. Accepts the same
+   * six constructs as a scope{} body (channels, coordinate_space, goal, rule,
+   * dispatch, morphism), without the `scope name { ... }` wrapper. Used by the
+   * session runtime to build a program incrementally.
+   */
+  parseFragment(name = 'repl'): ScopeProgram {
+    const body = this.parseBody(() => this.check(TokenType.EOF));
+    this.expect(TokenType.EOF);
+    return { kind: 'ScopeProgram', name, ...body };
+  }
+
+  private parseBody(atEnd: () => boolean): {
+    channels?: ChannelsDecl;
+    coordinateSpace?: CoordinateSpaceDecl;
+    goal?: GoalDecl;
+    rules: RuleDecl[];
+    morphisms: MorphismDecl[];
+    dispatch?: DispatchDecl;
+  } {
     let channels: ChannelsDecl | undefined;
     let coordinateSpace: CoordinateSpaceDecl | undefined;
     let goal: GoalDecl | undefined;
@@ -41,7 +67,7 @@ export class Parser {
     const morphisms: MorphismDecl[] = [];
     let dispatch: DispatchDecl | undefined;
 
-    while (!this.check(TokenType.RBRACE) && !this.check(TokenType.EOF)) {
+    while (!atEnd() && !this.check(TokenType.EOF)) {
       if (this.check(TokenType.CHANNELS)) {
         channels = this.parseChannels();
       } else if (this.check(TokenType.COORDINATE_SPACE)) {
@@ -60,8 +86,7 @@ export class Parser {
       }
     }
 
-    this.expect(TokenType.RBRACE);
-    return { kind: 'ScopeProgram', name, channels, coordinateSpace, goal, rules, morphisms, dispatch };
+    return { channels, coordinateSpace, goal, rules, morphisms, dispatch };
   }
 
   // ── channels ────────────────────────────────────────────────────────────────
