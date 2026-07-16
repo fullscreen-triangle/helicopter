@@ -11,7 +11,7 @@ import {
 import PiCamera from './PiCamera';
 import HolographicCell from './HolographicCell';
 
-function SceneContent() {
+function SceneContent({ cameraOnly = false }: { cameraOnly?: boolean }) {
   return (
     <>
       {/* Lighting */}
@@ -39,11 +39,14 @@ function SceneContent() {
         color="#c084fc"
       />
 
-      {/* Pi Camera - left side, slightly smaller */}
-      <PiCamera position={[-2.8, -0.3, 0]} scale={0.2} />
+      {/* Pi Camera - centered when it's the only element, otherwise left */}
+      <PiCamera
+        position={cameraOnly ? [0, -0.2, 0] : [-2.8, -0.3, 0]}
+        scale={cameraOnly ? 0.32 : 0.2}
+      />
 
-      {/* Holographic Cell - right/center, the hero element */}
-      <HolographicCell position={[1.5, 0.5, 0]} scale={1.8} />
+      {/* Holographic Cell - hidden in camera-only (minimal) mode */}
+      {!cameraOnly && <HolographicCell position={[1.5, 0.5, 0]} scale={1.8} />}
 
       {/* Ground shadows */}
       <ContactShadows
@@ -78,7 +81,7 @@ function SceneContent() {
   );
 }
 
-export default function LandingScene() {
+export default function LandingScene({ cameraOnly = false }: { cameraOnly?: boolean }) {
   return (
     <Canvas
       shadows
@@ -87,7 +90,7 @@ export default function LandingScene() {
       style={{ width: '100%', height: '100%' }}
     >
       <Suspense fallback={null}>
-        <SceneContent />
+        <SceneContent cameraOnly={cameraOnly} />
       </Suspense>
     </Canvas>
   );

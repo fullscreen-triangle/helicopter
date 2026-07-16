@@ -82,8 +82,27 @@ export default function NavbarApp() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
+  // On the landing page the navbar is hidden and only reveals when the
+  // cursor is near the top of the viewport. Everywhere else it stays fixed.
+  const isLanding = pathname === '/';
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    if (!isLanding) return;
+    const handler = (e: MouseEvent) => setRevealed(e.clientY <= 90);
+    window.addEventListener('mousemove', handler);
+    return () => window.removeEventListener('mousemove', handler);
+  }, [isLanding]);
+
+  // Keep the bar visible whenever the mobile menu is open.
+  const visible = !isLanding || revealed || isOpen;
+
   return (
-    <header className="w-full flex items-center justify-between px-12 py-5 font-medium z-20 text-light border-b border-gray-800/50 md:px-6 sm:px-4">
+    <header
+      onMouseEnter={() => setRevealed(true)}
+      className={`${isLanding ? 'fixed top-0 left-0' : ''} w-full flex items-center justify-between px-12 py-5 font-medium z-30 text-light border-b border-gray-800/50 md:px-6 sm:px-4
+        ${isLanding ? 'bg-dark/80 backdrop-blur-md transition-all duration-300 ' + (visible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none') : ''}`}
+    >
       <Link href="/" className="flex items-center gap-2 shrink-0">
         <span className="text-cyan-400 font-bold text-lg tracking-wider">HIERONYMUS</span>
         <span className="text-gray-600 text-xs tracking-widest sm:hidden">OBSERVATION PLATFORM</span>

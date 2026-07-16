@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import SceneViewer from '@/components/mic-demo/SceneViewer';
+import dynamic from 'next/dynamic';
 import CodeEditor from '@/components/mic-demo/CodeEditor';
 import ControlPanel from '@/components/mic-demo/ControlPanel';
 import {
@@ -16,6 +16,19 @@ import {
   type MICAnalysisResult,
   type ScaleFieldResult,
 } from '@/lib/mic-engine';
+
+// The R3F <Canvas> in SceneViewer cannot be prerendered on the server (no
+// WebGL/DOM at build time — it throws during static generation on Vercel).
+// Load it client-side only. `next/dynamic` doesn't forward refs, so we thread
+// the imperative handle through a `forwardedRef` prop instead of `ref`.
+const SceneViewer = dynamic(
+  () => import('@/components/mic-demo/SceneViewer'),
+  { ssr: false }
+) as React.ComponentType<{
+  forwardedRef?: React.Ref<any>;
+  mode: 'scale-field' | 'segmentation' | 'distance';
+  scaleField?: Float32Array;
+}>;
 
 const SAMPLE_CODE = `analyze {
   load channel: "synthetic"
@@ -185,7 +198,7 @@ export default function MICDemoPage() {
           {/* 3D Viewport */}
           <div className="flex-1 relative overflow-hidden">
             <SceneViewer
-              ref={sceneRef}
+              forwardedRef={sceneRef}
               mode={result.visualMode}
               scaleField={
                 result.micResult
@@ -253,7 +266,13 @@ export default function MICDemoPage() {
                 sceneRef.current.updateVisualization(fieldData, mode);
               }
             }}
-            result={result.micResult as any}
+            result={{
+              status: result.status,
+              distance: result.micResult?.distance?.worldDistance,
+              scaleField: result.micResult?.scaleField.alpha,
+              error: result.error,
+              elapsedMs: result.elapsedMs,
+            }}
           />
         </div>
       </div>

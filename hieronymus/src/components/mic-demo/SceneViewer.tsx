@@ -10,6 +10,9 @@ type VisualizationMode = 'scale-field' | 'segmentation' | 'distance';
 interface SceneViewerProps {
   mode: VisualizationMode;
   scaleField?: Float32Array;
+  // `next/dynamic` does not forward `ref`, so callers that load this component
+  // lazily (ssr: false) pass the imperative handle through this prop instead.
+  forwardedRef?: React.Ref<any>;
 }
 
 function SceneContent({
@@ -132,10 +135,12 @@ function SceneContent({
 }
 
 const SceneViewer = forwardRef<any, SceneViewerProps>(
-  ({ mode, scaleField }, ref) => {
+  ({ mode, scaleField, forwardedRef }, ref) => {
     const sceneRef = useRef<any>(null);
 
-    useImperativeHandle(ref, () => ({
+    // Support both a real forwarded `ref` and the `forwardedRef` prop used by
+    // the lazily-loaded (ssr: false) path.
+    useImperativeHandle(ref ?? forwardedRef, () => ({
       updateVisualization: (data: Float32Array, visualMode: VisualizationMode) => {
         if (sceneRef.current) {
           sceneRef.current.updateVisualization(data, visualMode);
